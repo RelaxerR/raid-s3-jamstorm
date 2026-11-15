@@ -1,2 +1,15 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Unity YAML merge - чтобы сцены и префабы не конфликтовали у всей команды
+*.unity merge=unityyamlmerge eol=lf
+*.prefab merge=unityyamlmerge eol=lf
+*.asset merge=unityyamlmerge eol=lf
+*.mat merge=unityyamlmerge eol=lf
+*.anim merge=unityyamlmerge eol=lf
+*.controller merge=unityyamlmerge eol=lf
+*.overrideController merge=unityyamlmerge eol=lf
+*.preset merge=unityyamlmerge eol=lf
+*.physicsMaterial2D merge=unityyamlmerge eol=lf
+*.physicsMaterial merge=unityyamlmerge eol=lf
+*.unitypackage merge=unityyamlmerge eol=lf
+*.meta text eol=lf
+*.cs text eol=lf
+*.md text eol=lf
