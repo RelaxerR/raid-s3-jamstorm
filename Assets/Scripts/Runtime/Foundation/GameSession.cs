@@ -4,13 +4,13 @@ using System.Collections.Generic;
 namespace SecondCatch.Foundation
 {
     /// <summary>
-    /// Shared host-owned gameplay model. Call commands serially from the Unity main thread.
-    /// A network adapter must validate sender identity and state authority before calling this model.
-    /// Clients consume replicated state and never instantiate an authoritative command receiver.
+    /// Общая игровая модель хоста. Команды выполняются последовательно в главном потоке Unity.
+    /// Сетевой адаптер проверяет отправителя и право изменять состояние перед вызовом модели.
+    /// Клиенты читают реплицированное состояние. Команды принимает хост.
     /// </summary>
     public sealed class GameSession
     {
-        #region State
+        #region Состояние
         private readonly Dictionary<string, PlayerState> _players = new Dictionary<string, PlayerState>();
         private readonly int _upgradePrice;
         private readonly int _huntReward;
@@ -24,7 +24,7 @@ namespace SecondCatch.Foundation
         public FishDefinition Fish { get; }
         public long Revision { get; private set; }
 
-        /// <summary>Creates a fresh session in port using explicitly supplied balance values.</summary>
+        /// <summary>Создаёт новую сессию в порту с заданными параметрами баланса.</summary>
         public GameSession(FishDefinition fish, int capacity = 20, int upgradePrice = 100, int huntReward = 50)
         {
             Fish = fish ?? throw new ArgumentNullException(nameof(fish));
@@ -36,8 +36,8 @@ namespace SecondCatch.Foundation
         }
         #endregion
 
-        #region Players and stations
-        /// <summary>Registers a player before departure. Repeated registration has no effect.</summary>
+        #region Игроки и станции
+        /// <summary>Регистрирует игрока до выхода из порта. Повторный вызов не меняет состояние.</summary>
         public bool Join(string playerId)
         {
             if (Voyage != VoyagePhase.Port || string.IsNullOrWhiteSpace(playerId) || _players.ContainsKey(playerId)) return false;
@@ -46,7 +46,7 @@ namespace SecondCatch.Foundation
             return true;
         }
 
-        /// <summary>Releases occupied stations on disconnect.</summary>
+        /// <summary>Освобождает станции игрока при отключении.</summary>
         public void Leave(string playerId)
         {
             if (playerId == null || !_players.Remove(playerId)) return;
@@ -54,7 +54,7 @@ namespace SecondCatch.Foundation
             Revision++;
         }
 
-        /// <summary>Atomically moves a registered player to a free station.</summary>
+        /// <summary>Переводит зарегистрированного игрока на свободную станцию за одну операцию.</summary>
         public bool Occupy(string playerId, StationRole role)
         {
             if (playerId == null || !_players.ContainsKey(playerId)) return false;
@@ -68,7 +68,7 @@ namespace SecondCatch.Foundation
             return true;
         }
 
-        /// <summary>Releases all stations occupied by this player and clears stale helm input.</summary>
+        /// <summary>Освобождает станции игрока и сбрасывает его последний ввод со штурвала.</summary>
         public void Release(string playerId)
         {
             if (playerId == null) return;
@@ -82,7 +82,7 @@ namespace SecondCatch.Foundation
             if (Winch.OperatorId == playerId) { Winch.OperatorId = null; Revision++; }
         }
 
-        /// <summary>Accepts finite normalized input from the current helm operator.</summary>
+        /// <summary>Принимает конечные значения ввода от оператора штурвала и ограничивает их диапазоном от −1 до 1.</summary>
         public bool Steer(string playerId, float throttle, float steering)
         {
             if (playerId == null || Helm.OperatorId != playerId || Voyage == VoyagePhase.Port ||
@@ -94,8 +94,8 @@ namespace SecondCatch.Foundation
         }
         #endregion
 
-        #region Voyage and economy
-        /// <summary>Begins a voyage from port when a player occupies the helm.</summary>
+        #region Рейс и экономика
+        /// <summary>Начинает рейс из порта, если штурвал занят игроком.</summary>
         public bool Depart()
         {
             if (Voyage != VoyagePhase.Port || Helm.OperatorId == null) return false;
@@ -104,7 +104,7 @@ namespace SecondCatch.Foundation
             return true;
         }
 
-        /// <summary>Host port trigger ends a voyage. Active hunts cannot dock.</summary>
+        /// <summary>Завершает рейс по сигналу портового триггера на хосте. Во время охоты причаливание недоступно.</summary>
         public bool Dock()
         {
             if (Voyage != VoyagePhase.Sailing) return false;
@@ -112,7 +112,7 @@ namespace SecondCatch.Foundation
             return true;
         }
 
-        /// <summary>Host catch source inserts one fish only when sailing with room available.</summary>
+        /// <summary>Добавляет одну рыбу в рейсе, если в трюме есть место. Вызывается источником улова на хосте.</summary>
         public bool CatchFish()
         {
             if (Voyage != VoyagePhase.Sailing || Cargo.Count >= Cargo.Capacity) return false;
@@ -121,7 +121,7 @@ namespace SecondCatch.Foundation
             return true;
         }
 
-        /// <summary>Sells the current cargo once. Repeated requests against empty cargo do nothing.</summary>
+        /// <summary>Продаёт весь текущий улов. При пустом трюме баланс не меняется.</summary>
         public bool Sell()
         {
             if (Voyage != VoyagePhase.Port || Cargo.Count == 0) return false;
@@ -133,7 +133,7 @@ namespace SecondCatch.Foundation
             return true;
         }
 
-        /// <summary>Purchases the slice's single boat upgrade once.</summary>
+        /// <summary>Один раз покупает улучшение лодки для RAID-среза.</summary>
         public bool BuyUpgrade()
         {
             if (Voyage != VoyagePhase.Port || Boat.UpgradeLevel != 0 || Wallet.Balance < _upgradePrice) return false;
@@ -144,8 +144,8 @@ namespace SecondCatch.Foundation
         }
         #endregion
 
-        #region Encounter
-        /// <summary>Starts a fresh encounter. The host supplies collision and station actions.</summary>
+        #region Охота
+        /// <summary>Начинает новую охоту. Хост передаёт столкновения и действия операторов станций.</summary>
         public bool StartHunt()
         {
             if (Voyage != VoyagePhase.Sailing) return false;
@@ -157,7 +157,7 @@ namespace SecondCatch.Foundation
             return true;
         }
 
-        /// <summary>Advances one host simulation step; large catch-up intervals must be subdivided.</summary>
+        /// <summary>Выполняет один шаг симуляции хоста. Интервалы больше 0,25 с нужно разбивать на несколько шагов.</summary>
         public void Tick(float deltaTime, bool winchHeld)
         {
             if (Voyage != VoyagePhase.Hunting || !Finite(deltaTime) || deltaTime <= 0 || deltaTime > 0.25f) return;
@@ -179,7 +179,7 @@ namespace SecondCatch.Foundation
             Revision++;
         }
 
-        /// <summary>Applies host-calculated tension; overload ends the encounter.</summary>
+        /// <summary>Применяет натяжение, рассчитанное хостом. Перегрузка завершает охоту.</summary>
         public void SetTension(float tension)
         {
             if (Voyage != VoyagePhase.Hunting || !Finite(tension) || tension < 0) return;
@@ -188,7 +188,7 @@ namespace SecondCatch.Foundation
             if (tension > 100) FinishHunt(false);
         }
 
-        /// <summary>Applies host collision damage and returns a destroyed boat to port.</summary>
+        /// <summary>Применяет урон от столкновения на хосте и возвращает лодку с нулём прочности в порт.</summary>
         public void Damage(int amount)
         {
             if (Voyage == VoyagePhase.Port || amount <= 0) return;

@@ -2,17 +2,17 @@ using System;
 
 namespace SecondCatch.Foundation
 {
-    /// <summary>Lifecycle of the shared boat voyage.</summary>
+    /// <summary>Этапы общего рейса лодки.</summary>
     public enum VoyagePhase { Port, Sailing, Hunting }
-    /// <summary>Roles available in the RAID slice.</summary>
+    /// <summary>Роли на станциях в RAID-срезе.</summary>
     public enum StationRole { Helm, Winch }
-    /// <summary>Authoritative encounter phases, including terminal outcomes.</summary>
+    /// <summary>Фазы охоты и её исходы в состоянии хоста.</summary>
     public enum HuntPhase { Idle, Run, Tire, Enrage, Won, Failed }
 
-    /// <summary>Read-only boat state. Only the session applies gameplay changes.</summary>
+    /// <summary>Состояние лодки. Игровые изменения применяет сессия.</summary>
     public sealed class BoatState
     {
-        #region State
+        #region Состояние
         public int HitPoints { get; internal set; } = 100;
         public int UpgradeLevel { get; internal set; }
         public float Throttle { get; internal set; }
@@ -20,47 +20,47 @@ namespace SecondCatch.Foundation
         #endregion
     }
 
-    /// <summary>Stable player identity mapped by the transport adapter to its authenticated sender.</summary>
+    /// <summary>Идентификатор игрока, который сетевой адаптер сопоставляет с проверенным отправителем.</summary>
     public sealed class PlayerState
     {
-        #region State
+        #region Состояние
         public string Id { get; }
         internal PlayerState(string id) { Id = id; }
         #endregion
     }
 
-    /// <summary>Exclusive station occupancy, owned by the host session.</summary>
+    /// <summary>Состояние станции с одним оператором под управлением хоста.</summary>
     public sealed class StationState
     {
-        #region State
+        #region Состояние
         public StationRole Role { get; }
         public string OperatorId { get; internal set; }
         internal StationState(StationRole role) { Role = role; }
         #endregion
     }
 
-    /// <summary>Single-species cargo and its quantity limit for the initial integration slice.</summary>
+    /// <summary>Трюм для одного вида рыбы с ограничением по количеству.</summary>
     public sealed class CargoHold
     {
-        #region State
+        #region Состояние
         public int Count { get; internal set; }
         public int Capacity { get; }
         internal CargoHold(int capacity) { Capacity = capacity; }
         #endregion
     }
 
-    /// <summary>Shared integer currency balance for the entire boat.</summary>
+    /// <summary>Общий баланс лодки в целых монетах.</summary>
     public sealed class Wallet
     {
-        #region State
+        #region Состояние
         public long Balance { get; internal set; }
         #endregion
     }
 
-    /// <summary>Encounter state exposed to presentation and future replication.</summary>
+    /// <summary>Состояние охоты для интерфейса и будущей сетевой репликации.</summary>
     public sealed class HuntEncounter
     {
-        #region State
+        #region Состояние
         public HuntPhase Phase { get; internal set; }
         public float Progress { get; internal set; }
         public float Tension { get; internal set; }
@@ -69,10 +69,10 @@ namespace SecondCatch.Foundation
         #endregion
     }
 
-    /// <summary>Immutable single-species economy settings copied from an asset at session creation.</summary>
+    /// <summary>Неизменяемые параметры одного вида рыбы для экономики сессии.</summary>
     public sealed class FishDefinition
     {
-        #region Definition
+        #region Параметры вида
         public string Id { get; }
         public int Price { get; }
         public float WeightKg { get; }

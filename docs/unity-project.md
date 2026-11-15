@@ -25,8 +25,8 @@ aliases:
 | --- | --- | --- |
 | Океан | `Assets/Plugins/OceanPro/Runtime/OceanSystem.cs` | Генерирует поверхность воды. `GetWaterHeight` возвращает высоту волны в мировой позиции и через выходные параметры отдаёт нормаль и пену на гребне. `SetWakeSource` регистрирует источник следа для материала воды. |
 | Плавучесть | `Assets/Plugins/OceanPro/Runtime/OceanBuoyancy.cs` | В `FixedUpdate` вычисляет погружение точек корпуса по высоте воды и прикладывает силы к `Rigidbody`. |
-| Спасательный круг | `Assets/Scripts/Runtime/игрок/LifebuoyController.cs` | Управляет `Rigidbody`, рассчитывает плавучесть круга и обновляет его след. Клавиши W/S задают тягу, A/D — поворот. |
-| Левиафаны | `Assets/Scripts/Runtime/левиа/LeviathanSpawner.cs` и `LeviathanSwimmer.cs` | Спавнер создаёт экземпляры префаба и передаёт им параметры движения и ссылку на океан. Пловец перемещается в заданной области и учитывает высоту поверхности при расчёте глубины. |
+| Спасательный круг | `Assets/Scripts/Runtime/Player/LifebuoyController.cs` | Управляет `Rigidbody`, рассчитывает плавучесть круга и обновляет его след. Клавиши W/S задают тягу, A/D — поворот. |
+| Левиафаны | `Assets/Scripts/Runtime/Leviathan/LeviathanSpawner.cs` и `LeviathanSwimmer.cs` | Спавнер создаёт экземпляры префаба и передаёт им параметры движения и ссылку на океан. Пловец перемещается в заданной области и учитывает высоту поверхности при расчёте глубины. |
 | Погода | `Assets/Plugins/WeatherKit/Runtime/WeatherController.cs` | `SetWeather` переключает пресеты освещения, тумана и осадков. |
 | Молния | `Assets/Plugins/LightningBolt/Runtime/LightningBolt.cs` | `Strike` запускает эффект между двумя точками. У встроенного действия по умолчанию назначен пробел. |
 
