@@ -14,6 +14,23 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 API = "https://api.wiki.yandex.net/v1"
 
 
+def load_dotenv():
+    """Load simple KEY=value entries from the repository's local .env file."""
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+    if not env_path.is_file():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        os.environ.setdefault(key, value)
+
+
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
@@ -61,6 +78,7 @@ def api_request(path, params=None, body=None):
 
 
 def main():
+    load_dotenv()
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     read = commands.add_parser("read", help="Read page content and metadata as JSON")
@@ -109,7 +127,11 @@ def main():
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except HTTPError as error:
-        print(f"Wiki API returned HTTP {error.code}", file=sys.stderr)
+        details = error.read().decode("utf-8", errors="replace").strip()
+        message = f"Wiki API returned HTTP {error.code}"
+        if details:
+            message += f": {details}"
+        print(message, file=sys.stderr)
     except URLError as error:
         print(f"Cannot reach Wiki API: {error.reason}", file=sys.stderr)
     except (OSError, ValueError, KeyError, TypeError) as error:

@@ -77,3 +77,6 @@ crashlytics-build.properties
 # Local settings for the Obsidian vault
 /docs/.obsidian/
 /docs/.trash/
+
+# Local credentials
+/.env
