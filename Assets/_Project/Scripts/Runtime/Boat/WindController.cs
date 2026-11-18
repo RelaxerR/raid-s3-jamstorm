@@ -51,7 +51,7 @@ namespace SecondCatch.Boat
         [SerializeField] private Transform _boat;
         [SerializeField] private Transform _islandCenter;
         [SerializeField] private BoxCollider _seaSurface;
-        [SerializeField, Min(0.1f)] private float _maxZoneRadius = 50f;
+        [SerializeField, Min(0.1f)] private float _maxZoneRadius = 200f;
         [SerializeField, Range(0f, 1f)] private float _centerReturnProbability = 0.05f;
         [SerializeField, Min(0.01f)] private float _distanceExponent = 2f;
         [SerializeField] private AnimationCurve _returnProbabilityCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);

@@ -1067,7 +1067,7 @@ MonoBehaviour:
   _boatMarker: {fileID: 1461}
   _caption: {fileID: 1263}
   _futureMarkers: {fileID: 1361}
-  _worldSize: {x: 120, y: 120}
+  _worldSize: {x: 400, y: 400}
   _markerPadding: 14
 --- !u!1 &1260
 GameObject:

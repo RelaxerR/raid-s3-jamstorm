@@ -10,7 +10,7 @@ namespace SecondCatch.Boat
         [SerializeField] private Transform _islandCenter;
         [SerializeField] private OceanSystem _ocean;
         [SerializeField, Min(0f)] private float _calmRadius = 12f;
-        [SerializeField, Min(0.01f)] private float _maximumForceRadius = 50f;
+        [SerializeField, Min(0.01f)] private float _maximumForceRadius = 200f;
         [SerializeField, Min(0f)] private float _minimumForce = 0.015f;
         [SerializeField, Min(0f)] private float _maximumForce = 1.2f;
         [SerializeField] private AnimationCurve _forceByDistance = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
