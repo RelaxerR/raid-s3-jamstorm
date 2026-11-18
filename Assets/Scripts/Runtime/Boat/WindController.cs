@@ -20,7 +20,7 @@ namespace SecondCatch.Boat
 
     /// <summary>Плавно меняет ветер по таймеру с вероятностным направлением к острову.</summary>
     [DisallowMultipleComponent]
-    public sealed class WindController : MonoBehaviour
+    public sealed class WindController : MonoBehaviour, ISerializationCallbackReceiver
     {
         [SerializeField] private Vector3 _direction = Vector3.forward;
         [SerializeField, Min(0f)] private float _strength = 1f;
@@ -119,7 +119,9 @@ namespace SecondCatch.Boat
             }
         }
 
-        private void Awake()
+        public void OnBeforeSerialize() { }
+
+        public void OnAfterDeserialize()
         {
             if (!_profilesMigrated)
             {
@@ -129,6 +131,10 @@ namespace SecondCatch.Boat
                 _normal.Color = _gizmoColor;
                 _profilesMigrated = true;
             }
+        }
+
+        private void Awake()
+        {
             _targetType = _type;
             WindProfile profile = Profile(_type);
             _speed = Mathf.Clamp(_speed, Mathf.Max(0f, profile.MinSpeed), Mathf.Max(profile.MinSpeed, profile.MaxSpeed));

@@ -45,7 +45,7 @@ namespace SecondCatch.Boat
         public float MaxSailAngle => _maxSailAngle;
         public Vector3 HullDirection => Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
         public Vector3 SailDirection => Quaternion.AngleAxis(SailAngle, Vector3.up) * HullDirection;
-        public Vector3 MovementDirection => HullDirection * Mathf.Sign(_longitudinalSpeed);
+        public Vector3 MovementDirection => _longitudinalSpeed == 0f ? Vector3.zero : HullDirection * Mathf.Sign(_longitudinalSpeed);
         public bool HelmActive => _helm != null && _helm.Active;
         public bool IsRowing => HelmActive && Mathf.Abs(_helm.RowingInput) > 0f;
         public float Steering => _helm != null ? _helm.Steering : 0f;

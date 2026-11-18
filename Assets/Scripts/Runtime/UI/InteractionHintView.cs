@@ -17,10 +17,10 @@ namespace SecondCatch.UI
             switch (player.ControlMode)
             {
                 case PlayerControlMode.Helm:
-                    _label.text = "A/D — корректировать курс · W/S — грести / прекратить\nEsc / E — выйти (парус продолжит работать)";
+                    _label.text = "W/S — грести вперёд / назад · A/D — руль\nEsc / E — выйти (парус продолжит работать)";
                     return;
                 case PlayerControlMode.Sail:
-                    _label.text = "W/S — поднять / опустить · A/D — повернуть парус\nEsc / E — выйти (настройка сохраняется)";
+                    _label.text = "W/S — больше / меньше паруса · A/D — угол\nEsc / E — выйти (настройка сохраняется)";
                     return;
             }
             StationInteraction station = player.GetAvailableStation();
