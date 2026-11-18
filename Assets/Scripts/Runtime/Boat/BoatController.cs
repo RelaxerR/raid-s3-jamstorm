@@ -18,7 +18,7 @@ namespace SecondCatch.Boat
         [SerializeField, Min(0f)] private float _rowingSpeed = 0.6f;
         [SerializeField, Min(0f)] private float _reverseRowingSpeed = 0.2f;
         [SerializeField, Min(0f)] private float _accelerationTime = 2f;
-        [SerializeField, Min(0f)] private float _decelerationTime = 10f;
+        [SerializeField, Min(0f)] private float _decelerationTime = 24f;
         [SerializeField, Min(0f)] private float _turnSpeed = 12f;
         [SerializeField, Min(0.01f)] private float _fullSteeringSpeed = 0.6f;
         [SerializeField, Range(0f, 1f)] private float _reverseSteeringMultiplier = 0.35f;
@@ -57,7 +57,7 @@ namespace SecondCatch.Boat
             : Vector3.Lerp(Wind.Direction, SailDirection, _sailDirectionInfluence).normalized;
         public float SailEfficiency => WindCapture * Mathf.Max(0f, Vector3.Dot(ForceDirection, HullDirection));
         public Vector3 SailForce => Wind == null || _sail == null ? Vector3.zero
-            : ForceDirection * (Wind.Speed * Wind.Strength * Mathf.Max(0f, _sailSpeedMultiplier)
+            : ForceDirection * (Wind.Speed * Wind.Strength * Wind.SailInfluence * Mathf.Max(0f, _sailSpeedMultiplier)
                 * WindCapture * _sail.ThrustMultiplier);
         public float SailSpeedContribution => Mathf.Max(0f, Vector3.Dot(SailForce, HullDirection));
         public float ForwardRowingContribution => IsRowing ? Mathf.Max(0f, _helm.RowingInput) * _rowingSpeed : 0f;

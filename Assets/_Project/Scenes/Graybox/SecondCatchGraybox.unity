@@ -2947,7 +2947,7 @@ MonoBehaviour:
   _rowingSpeed: 0.6
   _reverseRowingSpeed: 0.2
   _accelerationTime: 2
-  _decelerationTime: 10
+  _decelerationTime: 24
   _turnSpeed: 12
   _fullSteeringSpeed: 0.6
   _reverseSteeringMultiplier: 0.35
@@ -3156,6 +3156,17 @@ MonoBehaviour:
   _gizmoColor: {r: 0, g: 1, b: 1, a: 1}
   _gizmoLength: 3
   _arrowHeadRatio: 0.2
+  _type: 1
+  _boat: {fileID: 254610246}
+  _islandCenter: {fileID: 1065740984}
+  _seaSurface: {fileID: 799446956}
+  _maxZoneRadius: 50
+  _randomChanges: 1
+  _changeInterval: {x: 20, y: 40}
+  _transitionDuration: 6
+  _maxDirectionChange: 100
+  _centerReturnProbability: 0.05
+  _distanceExponent: 2
 --- !u!1 &2400000000
 GameObject:
   m_ObjectHideFlags: 0
