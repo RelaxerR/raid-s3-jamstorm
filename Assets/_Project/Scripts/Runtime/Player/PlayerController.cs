@@ -22,6 +22,7 @@ namespace SecondCatch.Player
         private Quaternion _startRotation;
 
         public BoatController Boat => _boat;
+        public StationInteraction ActiveStation => _activeStation;
         public PlayerControlMode ControlMode { get; private set; } = PlayerControlMode.Walking;
         /// <summary>Множитель скорости для будущего бега; Shift пока не обрабатывается.</summary>
         public float MovementSpeedMultiplier { get; set; } = 1f;

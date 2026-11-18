@@ -24,6 +24,54 @@ namespace SecondCatch.Input
             }
         }
 
+        public static bool OrbitHeld
+        {
+            get
+            {
+#if ENABLE_INPUT_SYSTEM
+                return Mouse.current != null && Mouse.current.rightButton.isPressed;
+#else
+                return UnityEngine.Input.GetMouseButton(1);
+#endif
+            }
+        }
+
+        public static Vector2 LookDelta
+        {
+            get
+            {
+#if ENABLE_INPUT_SYSTEM
+                return Mouse.current != null ? Mouse.current.delta.ReadValue() : Vector2.zero;
+#else
+                return new Vector2(UnityEngine.Input.GetAxisRaw("Mouse X"), UnityEngine.Input.GetAxisRaw("Mouse Y")) * 10f;
+#endif
+            }
+        }
+
+        public static float ZoomDelta
+        {
+            get
+            {
+#if ENABLE_INPUT_SYSTEM
+                return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 120f : 0f;
+#else
+                return UnityEngine.Input.mouseScrollDelta.y;
+#endif
+            }
+        }
+
+        public static bool CameraResetPressed
+        {
+            get
+            {
+#if ENABLE_INPUT_SYSTEM
+                return Keyboard.current != null && Keyboard.current.vKey.wasPressedThisFrame;
+#else
+                return UnityEngine.Input.GetKeyDown(KeyCode.V);
+#endif
+            }
+        }
+
         public static bool InteractPressed
         {
             get

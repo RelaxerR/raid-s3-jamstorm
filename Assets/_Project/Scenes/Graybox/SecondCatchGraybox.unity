@@ -3017,11 +3017,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _boat: {fileID: 254610246}
-  _distance: 5.5
-  _height: 5
+  _player: {fileID: 2100000002}
+  _defaultAzimuth: 0
+  _defaultElevation: 42
+  _defaultDistance: 7.4
+  _minimumDistance: 3
+  _maximumDistance: 15
+  _mouseSensitivity: 0.2
+  _wheelSensitivity: 1.2
+  _minimumElevation: 12
+  _maximumElevation: 80
+  _followSpeed: 8
+  _returnSpeed: 4
   _offset: {x: 0, y: 0.4, z: 0}
-  _positionSmoothTime: 0.2
-  _rotationSharpness: 12
+  _stationOffset: {x: 0, y: 0.3, z: 0.4}
+  _invertVerticalAxis: 0
 --- !u!114 &2100000004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3037,6 +3047,7 @@ MonoBehaviour:
   _boat: {fileID: 2100000001}
   _interactionPoint: {fileID: 1592356771}
   _interactionRadius: 0.8
+  _cameraOffset: {x: 0, y: 0, z: -0.4}
   _rudderVisual: {fileID: 2400000001}
   _maxRudderAngle: 35
   _deflectionAccelerationTime: 0.5
@@ -3060,6 +3071,7 @@ MonoBehaviour:
   _boat: {fileID: 2100000001}
   _interactionPoint: {fileID: 231343964}
   _interactionRadius: 0.9
+  _cameraOffset: {x: 0, y: 0.2, z: 0.4}
   _sailVisual: {fileID: 2100000011}
   _loweredHeightRatio: 0.15
   _rotationAccelerationTime: 0.6

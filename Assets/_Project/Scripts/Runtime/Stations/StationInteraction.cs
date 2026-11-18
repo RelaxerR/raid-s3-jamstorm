@@ -10,6 +10,8 @@ namespace SecondCatch.Stations
         [SerializeField] private BoatController _boat;
         [SerializeField] private Transform _interactionPoint;
         [SerializeField, Min(0.1f)] private float _interactionRadius = 0.8f;
+        [SerializeField] private Vector3 _cameraOffset;
+        public Vector3 CameraOffset => _cameraOffset;
         protected BoatController Boat => _boat;
         public PlayerController Operator { get; private set; }
         public abstract PlayerControlMode ControlMode { get; }
