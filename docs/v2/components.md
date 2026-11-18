@@ -16,7 +16,7 @@
 | `Game/BoatState.cs` | HP, респавн, усиление скорости | [Лодка](entities/boat.md) |
 | `Game/FishCargo.cs` | Одна бочка одного вида с лимитом | [Груз](entities/cargo.md) |
 | `Game/StationAssignment.cs` | Заготовка локального назначения исполнителей, StationRole для v2 | [Станции и экипаж](entities/stations-crew.md) |
-| `Boat/BoatController.cs` | Мотор graybox, парус/гребля, инерция, руль, дрейф и сопротивление волн | [Движение](../boat-wind-movement.md) |
+| `Boat/BoatController.cs` | Ход graybox, парус/гребля, инерция, руль, дрейф и сопротивление волн | [Движение](../boat-wind-movement.md) |
 | `Boat/WaveController.cs` | Радиальное давление моря и настройки амплитуды OceanPro | [Волны](../boat-waves-buoyancy.md) |
 | `Boat/BoatBuoyancy.cs` | Управляемая вертикальная поддержка и качка по четырём Transform | [Плавучесть](../boat-waves-buoyancy.md) |
 | `Boat/BoatHealth.cs` | HP 100, урон, Changed/Damaged/Destroyed, защита при возврате | [HP](../boat-waves-buoyancy.md) |
