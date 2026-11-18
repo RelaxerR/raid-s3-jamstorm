@@ -35,6 +35,10 @@ Shader "OceanPro/Depth Foam Water"
             fixed4 _ShallowColor;
             fixed4 _DeepColor;
             fixed4 _FoamColor;
+            float4 _WaveDirections[4];
+            float4 _WaveSettings[4];
+            float3 _FieldCenter;
+            float4 _AmplitudeField;
             float _WaveHeight;
             float _WaveSpeed;
             float _Steepness;
@@ -69,11 +73,11 @@ Shader "OceanPro/Depth Foam Water"
 
             void AddWave(inout float3 p, inout float3 tangentX, inout float3 tangentZ,
                          float3 basePosition, float2 direction, float wavelength,
-                         float amplitude, float phaseOffset)
+                         float amplitude, float phaseOffset, float speed)
             {
                 direction = normalize(direction);
                 float k = 6.2831853 / wavelength;
-                float angularSpeed = sqrt(9.81 * k) * _WaveSpeed;
+                float angularSpeed = sqrt(9.81 * k) * _WaveSpeed * speed;
                 float phase = k * dot(direction, basePosition.xz) - _Time.y * angularSpeed + phaseOffset;
                 float s = sin(phase);
                 float c = cos(phase);
@@ -91,25 +95,11 @@ Shader "OceanPro/Depth Foam Water"
                                    -_Steepness * amplitude * k * direction.y * direction.y * s);
             }
 
-            void AddSlope(inout float dx, inout float dz, float2 worldXZ, float2 direction,
-                         float wavelength, float amplitude, float phaseOffset)
+            float AmplitudeScale(float2 worldXZ)
             {
-                direction = normalize(direction);
-                float k = 6.2831853 / wavelength;
-                float phase = k * dot(direction, worldXZ) - _Time.y * sqrt(9.81 * k) * _WaveSpeed + phaseOffset;
-                float slope = amplitude * k * cos(phase);
-                dx += slope * direction.x;
-                dz += slope * direction.y;
-            }
-
-            float3 FineWaveNormal(float2 worldXZ)
-            {
-                float dx = 0;
-                float dz = 0;
-                AddSlope(dx, dz, worldXZ, float2(-0.93, -0.36), 54, _WaveHeight * 0.14, 1.3);
-                AddSlope(dx, dz, worldXZ, float2(0.16, -1), 34, _WaveHeight * 0.10, 5.2);
-                AddSlope(dx, dz, worldXZ, float2(0.63, -0.78), 23, _WaveHeight * 0.06, 3.1);
-                return normalize(float3(-dx, 1, -dz));
+                float t = saturate((distance(worldXZ, _FieldCenter.xz) - _AmplitudeField.x)
+                    / max(0.01, _AmplitudeField.y - _AmplitudeField.x));
+                return lerp(_AmplitudeField.z, _AmplitudeField.w, t * t * (3.0 - 2.0 * t));
             }
 
             v2f vert(appdata v)
@@ -120,12 +110,15 @@ Shader "OceanPro/Depth Foam Water"
                 float3 tangentX = float3(1, 0, 0);
                 float3 tangentZ = float3(0, 0, 1);
 
-                AddWave(p, tangentX, tangentZ, basePosition, float2(1, 0.23), 220, _WaveHeight * 0.28, 0.4);
-                AddWave(p, tangentX, tangentZ, basePosition, float2(-0.48, 1), 142, _WaveHeight * 0.23, 2.0);
-                AddWave(p, tangentX, tangentZ, basePosition, float2(0.82, 0.57), 88, _WaveHeight * 0.19, 4.4);
-                AddWave(p, tangentX, tangentZ, basePosition, float2(-0.93, -0.36), 54, _WaveHeight * 0.14, 1.3);
-                AddWave(p, tangentX, tangentZ, basePosition, float2(0.16, -1), 34, _WaveHeight * 0.10, 5.2);
-                AddWave(p, tangentX, tangentZ, basePosition, float2(0.63, -0.78), 23, _WaveHeight * 0.06, 3.1);
+                float scale = _WaveHeight * AmplitudeScale(basePosition.xz);
+                [unroll]
+                for (int waveIndex = 0; waveIndex < 4; waveIndex++)
+                {
+                    float4 wave = _WaveDirections[waveIndex];
+                    float4 settings = _WaveSettings[waveIndex];
+                    AddWave(p, tangentX, tangentZ, basePosition, wave.xy, wave.z,
+                        scale * wave.w, settings.y, settings.x);
+                }
 
                 float3 viewPosition = mul(UNITY_MATRIX_V, float4(p, 1)).xyz;
                 o.position = mul(UNITY_MATRIX_P, float4(viewPosition, 1));
@@ -146,7 +139,7 @@ Shader "OceanPro/Depth Foam Water"
                 float depthFactor = 1.0 - exp(-thickness * _DepthDensity);
                 float3 waterColor = lerp(_ShallowColor.rgb, _DeepColor.rgb, saturate(depthFactor));
 
-                float3 N = normalize(lerp(normalize(i.worldNormal), FineWaveNormal(i.baseWorldPosition.xz), 0.52));
+                float3 N = normalize(i.worldNormal);
                 float3 V = normalize(_WorldSpaceCameraPos.xyz - i.worldPosition);
                 float fresnel = pow(1.0 - saturate(abs(dot(N, V))), 3.0) * _FresnelStrength;
                 waterColor = lerp(waterColor, _ShallowColor.rgb * 0.45 + 0.25, fresnel);

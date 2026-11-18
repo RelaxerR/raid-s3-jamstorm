@@ -10,6 +10,10 @@ namespace SecondCatch.Boat
     public sealed class BoatController : MonoBehaviour
     {
         [SerializeField] private WindController _wind;
+        [SerializeField] private WaveController _waves;
+        private Vector3 _waveVelocity;
+        public bool IsRespawning { get; internal set; }
+        public Vector3 Velocity => HullDirection * _longitudinalSpeed + _waveVelocity;
         [SerializeField] private HelmStation _helm;
         [SerializeField] private SailStation _sail;
         [SerializeField, Min(0f)] private float _maxSpeed = 4f;
@@ -35,7 +39,7 @@ namespace SecondCatch.Boat
         private float _longitudinalSpeed;
 
         public WindController Wind => _wind != null && _wind.isActiveAndEnabled ? _wind : null;
-        public float CurrentSpeed => Mathf.Abs(_longitudinalSpeed);
+        public float CurrentSpeed => Velocity.magnitude;
         public float LongitudinalSpeed => _longitudinalSpeed;
         public bool IsSailing => SailSpeedContribution > 0f || Mathf.Abs(RowingSpeedContribution) > 0f;
         public SailPosition SailPosition => _sail != null ? _sail.Position : SecondCatch.Stations.SailPosition.Folded;
@@ -45,7 +49,7 @@ namespace SecondCatch.Boat
         public float MaxSailAngle => _maxSailAngle;
         public Vector3 HullDirection => Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
         public Vector3 SailDirection => Quaternion.AngleAxis(SailAngle, Vector3.up) * HullDirection;
-        public Vector3 MovementDirection => _longitudinalSpeed == 0f ? Vector3.zero : HullDirection * Mathf.Sign(_longitudinalSpeed);
+        public Vector3 MovementDirection => Velocity.normalized;
         public bool HelmActive => _helm != null && _helm.Active;
         public bool IsRowing => HelmActive && Mathf.Abs(_helm.RowingInput) > 0f;
         public float Steering => _helm != null ? _helm.Steering : 0f;
@@ -90,6 +94,7 @@ namespace SecondCatch.Boat
 
         private void Update()
         {
+            if (IsRespawning) return;
             float targetSpeed = Mathf.Clamp(SailSpeedContribution + RowingSpeedContribution,
                 -Mathf.Max(0f, _reverseRowingSpeed), Mathf.Max(0f, _maxSpeed));
             // При смене знака сначала гасим старую скорость, затем разгоняемся в обратную сторону.
@@ -105,14 +110,33 @@ namespace SecondCatch.Boat
             float authority = Mathf.Clamp01(CurrentSpeed / Mathf.Max(0.01f, _fullSteeringSpeed));
             float reverseFactor = _longitudinalSpeed < 0f ? _reverseSteeringMultiplier : 1f;
             transform.Rotate(Vector3.up, steering * _turnSpeed * authority * reverseFactor * Time.deltaTime, Space.World);
-            // Киль поглощает боковую силу, движение остаётся продольным без разворота корпуса при S.
-            transform.position += HullDirection * (_longitudinalSpeed * Time.deltaTime);
+            // Тяга сохраняет продольную инерцию, море добавляет независимый дрейф к острову.
+            _waveVelocity *= Mathf.Exp(-Time.deltaTime);
+            if (_waves != null && _waves.isActiveAndEnabled)
+            {
+                Vector3 inward = _waves.DirectionToCenter(transform.position);
+                _waveVelocity += _waves.ReturnAcceleration(transform.position) * Time.deltaTime;
+                float outwardSpeed = Mathf.Max(0f, -Vector3.Dot(Velocity, inward));
+                float reduction = outwardSpeed * (1f - Mathf.Exp(-_waves.ResistanceAt(transform.position) * Time.deltaTime));
+                float alignment = Vector3.Dot(HullDirection, inward);
+                float longitudinalReduction = reduction * alignment;
+                _longitudinalSpeed += longitudinalReduction;
+                _waveVelocity += inward * reduction - HullDirection * longitudinalReduction;
+            }
+            transform.position += Velocity * Time.deltaTime;
+        }
+
+        /// <summary>Сбрасывает инерцию и команды руля при возврате в порт.</summary>
+        public void ResetMotion()
+        {
+            SetHelmActive(false);
+            _longitudinalSpeed = 0f;
+            _waveVelocity = Vector3.zero;
         }
 
         private void OnDisable()
         {
-            SetHelmActive(false);
-            _longitudinalSpeed = 0f;
+            ResetMotion();
         }
     }
 }
