@@ -20,31 +20,51 @@ namespace SecondCatch.Boat
         private void OnEnable()
         {
             if (_flagVisual == null) _flagVisual = transform;
-            _heading = _targetHeading = WindHeading();
+            Vector3 axis = HorizontalModelAxis();
+            Vector3 worldAxis = _flagVisual.rotation * axis;
+            worldAxis.y = 0f;
+            _heading = _targetHeading = worldAxis.sqrMagnitude > 0.0001f
+                ? Mathf.Atan2(worldAxis.x, worldAxis.z) * Mathf.Rad2Deg - _angleOffset : 0f;
+            if (TryGetWindHeading(out float heading)) _heading = _targetHeading = heading;
             _headingVelocity = 0f;
             ApplyRotation();
         }
 
-        private float WindHeading() => _wind == null ? _targetHeading
-            : Mathf.Atan2(_wind.Direction.x, _wind.Direction.z) * Mathf.Rad2Deg;
+        private bool TryGetWindHeading(out float heading)
+        {
+            heading = _targetHeading;
+            if (_wind == null || !_wind.isActiveAndEnabled
+                || !_wind.TryGetHorizontalDirection(out Vector3 direction)) return false;
+            // После удаления Y направление нормализуется самим источником; используем только мировой yaw.
+            heading = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
+            return true;
+        }
 
         private void LateUpdate()
         {
-            if (_wind == null || !_wind.isActiveAndEnabled) return;
-            float heading = WindHeading();
-            // Порог применяется к последней принятой цели: медленные изменения накапливаются.
-            if (Mathf.Abs(Mathf.DeltaAngle(_targetHeading, heading)) >= _minimumDirectionChange)
+            if (TryGetWindHeading(out float heading)
+                && Mathf.Abs(Mathf.DeltaAngle(_targetHeading, heading)) >= _minimumDirectionChange)
                 _targetHeading = heading;
-            _heading = Mathf.SmoothDampAngle(_heading, _targetHeading, ref _headingVelocity,
-                Mathf.Max(0.01f, _smoothingTime), Mathf.Max(0f, _turnSpeed), Time.deltaTime);
+            if (Time.deltaTime > 0f)
+                _heading = Mathf.SmoothDampAngle(_heading, _targetHeading, ref _headingVelocity,
+                    Mathf.Max(0.01f, _smoothingTime), Mathf.Max(0f, _turnSpeed), Time.deltaTime);
+            // Даже без нового ветра компенсируем вращение родителя по последнему корректному направлению.
             ApplyRotation();
+        }
+
+        private Vector3 HorizontalModelAxis()
+        {
+            Vector3 axis = _localDirectionAxis;
+            axis.y = 0f;
+            return axis.sqrMagnitude > 0.0001f ? axis.normalized : Vector3.forward;
         }
 
         private void ApplyRotation()
         {
-            Vector3 axis = _localDirectionAxis.sqrMagnitude > 0.0001f ? _localDirectionAxis.normalized : Vector3.forward;
-            _flagVisual.rotation = Quaternion.AngleAxis(_heading + _angleOffset, Vector3.up)
-                * Quaternion.FromToRotation(axis, Vector3.forward);
+            Vector3 axis = HorizontalModelAxis();
+            float modelHeading = Mathf.Atan2(axis.x, axis.z) * Mathf.Rad2Deg;
+            // Меняем только вращение вокруг мировой Y; локальная позиция крепления и масштаб не записываются.
+            _flagVisual.rotation = Quaternion.AngleAxis(_heading + _angleOffset - modelHeading, Vector3.up);
         }
     }
 }

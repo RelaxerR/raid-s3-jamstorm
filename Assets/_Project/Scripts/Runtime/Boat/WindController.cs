@@ -73,14 +73,23 @@ namespace SecondCatch.Boat
         private float _startStormIntensity;
         private float _targetStormIntensity;
 
-        public Vector3 Direction
+        /// <summary>Возвращает нормализованный горизонтальный ветер либо сообщает об отсутствии направления.</summary>
+        public bool TryGetHorizontalDirection(out Vector3 direction)
         {
-            get
+            direction = _direction;
+            direction.y = 0f;
+            if (float.IsNaN(direction.x) || float.IsNaN(direction.z)
+                || float.IsInfinity(direction.x) || float.IsInfinity(direction.z)
+                || direction.sqrMagnitude < 0.0001f)
             {
-                Vector3 horizontal = Vector3.ProjectOnPlane(_direction, Vector3.up);
-                return horizontal.sqrMagnitude > 0.0001f ? horizontal.normalized : Vector3.forward;
+                direction = Vector3.zero;
+                return false;
             }
+            direction.Normalize();
+            return true;
         }
+
+        public Vector3 Direction => TryGetHorizontalDirection(out Vector3 direction) ? direction : Vector3.forward;
         public WindType Type => _type;
         public WindType TargetType => _targetType;
         public float Strength => Mathf.Max(0f, _strength);
