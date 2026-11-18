@@ -55,6 +55,14 @@ namespace SecondCatch.Stations
             UpdateVisual();
         }
 
+        /// <summary>Мгновенно сбрасывает ввод, угол руля и визуал при респавне.</summary>
+        public void ResetMotion()
+        {
+            SetActive(false);
+            RudderAngle = 0f;
+            UpdateVisual();
+        }
+
         private void UpdateVisual()
         {
             if (_rudderVisual != null)

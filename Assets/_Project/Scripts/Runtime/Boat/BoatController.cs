@@ -30,8 +30,11 @@ namespace SecondCatch.Boat
         [SerializeField, Min(0.01f)] private float _sailEfficiencyExponent = 1f;
         [SerializeField, Range(0f, 1f)] private float _minimumSailEfficiency;
         [SerializeField, Range(0f, 1f)] private float _sailDirectionInfluence = 0.35f;
-        [SerializeField, Min(1f)] private float _maxHitPoints = 100f;
-        [SerializeField, Min(0f)] private float _hitPoints = 100f;
+        [SerializeField, HideInInspector] private bool _healthSettingsMigrated;
+        [SerializeField, HideInInspector] private float _maxHitPoints = 100f;
+        [SerializeField, HideInInspector] private float _hitPoints = 100f;
+        private BoatHealth _health;
+        public BoatHealth Health => _health != null ? _health : GetComponent<BoatHealth>();
         // Старые сцены передают сохранённые настройки станции при загрузке.
         [SerializeField, HideInInspector] private bool _sailRaised;
         [SerializeField, HideInInspector] private float _sailAngle;
@@ -67,11 +70,19 @@ namespace SecondCatch.Boat
         public float ForwardRowingContribution => IsRowing ? Mathf.Max(0f, _helm.RowingInput) * _rowingSpeed : 0f;
         public float ReverseRowingContribution => IsRowing ? Mathf.Max(0f, -_helm.RowingInput) * _reverseRowingSpeed : 0f;
         public float RowingSpeedContribution => ForwardRowingContribution - ReverseRowingContribution;
-        public float MaxHitPoints => Mathf.Max(1f, _maxHitPoints);
-        public float HitPoints => Mathf.Clamp(_hitPoints, 0f, MaxHitPoints);
+        public float MaxHitPoints => Health != null ? Health.Maximum : Mathf.Max(1f, _maxHitPoints);
+        public float HitPoints => Health != null ? Health.Current : Mathf.Clamp(_hitPoints, 0f, MaxHitPoints);
 
         private void Awake()
         {
+            _health = GetComponent<BoatHealth>();
+            if (_health == null) _health = gameObject.AddComponent<BoatHealth>();
+            if (GetComponent<BoatRespawnController>() == null) gameObject.AddComponent<BoatRespawnController>();
+            if (!_healthSettingsMigrated)
+            {
+                _health.ImportLegacy(_maxHitPoints, _hitPoints);
+                _healthSettingsMigrated = true;
+            }
             if (_helm == null) _helm = GetComponentInChildren<HelmStation>(true);
             if (_sail == null) _sail = GetComponentInChildren<SailStation>(true);
             if (!_stationStateMigrated && _sail != null)
@@ -82,10 +93,15 @@ namespace SecondCatch.Boat
             }
         }
 
-        public void SetHitPoints(float hitPoints) => _hitPoints = Mathf.Clamp(hitPoints, 0f, MaxHitPoints);
-        public void SetHelmActive(bool active) { if (_helm != null) _helm.SetActive(active); }
-        public void SetSteering(float steering) { if (_helm != null) _helm.SetSteering(steering); }
-        public void SetRowing(bool rowing) { if (_helm != null) _helm.SetRowing(rowing ? 1f : 0f); }
+        public void SetHitPoints(float hitPoints)
+        {
+            if (Health != null) Health.SetCurrent(hitPoints);
+            else _hitPoints = Mathf.Clamp(hitPoints, 0f, MaxHitPoints);
+        }
+        public void TakeDamage(float amount) { if (Health != null) Health.TakeDamage(amount); }
+        public void SetHelmActive(bool active) { if (_helm != null) _helm.SetActive(active && !IsRespawning); }
+        public void SetSteering(float steering) { if (_helm != null) _helm.SetSteering(IsRespawning ? 0f : steering); }
+        public void SetRowing(bool rowing) { if (_helm != null) _helm.SetRowing(rowing && !IsRespawning ? 1f : 0f); }
         public void SetSailRaised(bool raised)
         {
             if (_sail != null) _sail.SetPosition(raised ? SecondCatch.Stations.SailPosition.Full : SecondCatch.Stations.SailPosition.Folded);
@@ -129,7 +145,7 @@ namespace SecondCatch.Boat
         /// <summary>Сбрасывает инерцию и команды руля при возврате в порт.</summary>
         public void ResetMotion()
         {
-            SetHelmActive(false);
+            if (_helm != null) _helm.ResetMotion();
             _longitudinalSpeed = 0f;
             _waveVelocity = Vector3.zero;
         }

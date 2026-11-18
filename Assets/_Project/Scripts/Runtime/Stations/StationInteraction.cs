@@ -17,7 +17,7 @@ namespace SecondCatch.Stations
 
         public float DistanceSquared(PlayerController player) => (player.transform.position - InteractionPosition).sqrMagnitude;
 
-        public bool CanEnter(PlayerController player) => isActiveAndEnabled && _boat != null && _boat.isActiveAndEnabled
+        public bool CanEnter(PlayerController player) => isActiveAndEnabled && _boat != null && _boat.isActiveAndEnabled && !_boat.IsRespawning
             && player != null && player.isActiveAndEnabled && player.Boat == _boat && Operator == null
             && player.ControlMode == PlayerControlMode.Walking
             && DistanceSquared(player) <= _interactionRadius * _interactionRadius;
