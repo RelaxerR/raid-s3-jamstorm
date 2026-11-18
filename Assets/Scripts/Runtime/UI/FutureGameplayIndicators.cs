@@ -34,12 +34,12 @@ namespace SecondCatch.UI
         {
             if (label == null) return;
             label.text = value;
-            label.gameObject.SetActive(true);
+            SetVisible(label, true);
         }
 
         private static void SetVisible(Text label, bool visible)
         {
-            if (label != null) label.gameObject.SetActive(visible);
+            if (label != null) label.transform.parent.gameObject.SetActive(visible);
         }
     }
 }

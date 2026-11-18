@@ -12,7 +12,8 @@ namespace SecondCatch.UI
 
         public void Render(BoatController boat)
         {
-            if (_hitPointsFill != null) _hitPointsFill.fillAmount = boat != null ? boat.HitPoints / boat.MaxHitPoints : 0f;
+            if (_hitPointsFill != null)
+                _hitPointsFill.rectTransform.anchorMax = new Vector2(boat != null ? boat.HitPoints / boat.MaxHitPoints : 0f, 1f);
             if (_status == null) return;
             if (boat == null)
             {

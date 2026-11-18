@@ -27,6 +27,14 @@ namespace SecondCatch.UI
             Refresh();
         }
 
+        private void Awake()
+        {
+            // Встроенный шрифт Unity поддерживает русский текст без внешних ассетов.
+            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            foreach (UnityEngine.UI.Text label in GetComponentsInChildren<UnityEngine.UI.Text>(true))
+                label.font = font;
+        }
+
         private void OnEnable()
         {
             if (_futureIndicators != null) _futureIndicators.HideAll();

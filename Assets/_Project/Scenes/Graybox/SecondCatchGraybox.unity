@@ -1494,6 +1494,7 @@ Transform:
   m_Children:
   - {fileID: 1556566100}
   - {fileID: 1193594398}
+  - {fileID: 2200000001}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1055138549
@@ -2944,6 +2945,8 @@ MonoBehaviour:
   _turnSpeed: 50
   _steeringResponse: 4
   _sailRaised: 0
+  _maxHitPoints: 100
+  _hitPoints: 100
 --- !u!114 &2100000002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3049,6 +3052,36 @@ Transform:
   - {fileID: 163583577}
   m_Father: {fileID: 1591684568}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &2200000000
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1044196046}
+    m_Modifications:
+    - target: {fileID: 1004, guid: be15f63793d644fe8669ffaba2218c19, type: 3}
+      propertyPath: _boat
+      value: 
+      objectReference: {fileID: 2100000001}
+    - target: {fileID: 1004, guid: be15f63793d644fe8669ffaba2218c19, type: 3}
+      propertyPath: _player
+      value: 
+      objectReference: {fileID: 2100000002}
+    - target: {fileID: 1004, guid: be15f63793d644fe8669ffaba2218c19, type: 3}
+      propertyPath: _mapCenter
+      value: 
+      objectReference: {fileID: 1065740984}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: be15f63793d644fe8669ffaba2218c19, type: 3}
+--- !u!224 &2200000001 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1001, guid: be15f63793d644fe8669ffaba2218c19, type: 3}
+  m_PrefabInstance: {fileID: 2200000000}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
