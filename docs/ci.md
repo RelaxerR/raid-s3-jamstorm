@@ -8,6 +8,10 @@ GitHub Actions проверяет версию проекта и согласо�
 
 В настройках [GitHub Actions secrets](https://github.com/RelaxerR/raid-s3-jamstorm/settings/secrets/actions) администратор добавляет `UNITY_EMAIL` и `UNITY_PASSWORD` для учётной записи CI и один из секретов по типу лицензии. Для Personal нужен `UNITY_LICENSE`, для Pro — `UNITY_SERIAL`. См. [инструкцию GameCI](https://game.ci/docs/github/activation/). Если активация не настроена или секреты недоступны событию PR, проверка Unity завершится ошибкой. Секреты доступны коду, выполняемому Unity. Запускайте CI с учётными данными только для доверенных веток.
 
+## Windows-релиз
+
+Workflow `.github/workflows/windows-release.yml` запускается после каждого push в `main` (в том числе после слияния PR) и вручную через `workflow_dispatch`. Он собирает `raid-s3-jamstorm-Windows.zip` и macOS Universal-сборку `raid-s3-jamstorm-macOS-Universal.zip`, после чего создаёт GitHub Release. Версия `0.0.<номер запуска>` записывается и в Unity Player Settings (`Application.version`/bundle version), и в GitHub Release tag (`v0.0.<номер запуска>`). Для публикации релиза workflow использует `contents: write`; Unity-активация использует те же `UNITY_EMAIL`, `UNITY_PASSWORD` и `UNITY_LICENSE` или `UNITY_SERIAL`.
+
 ## Защита main
 
 В приватном репозитории требуется тариф GitHub с поддержкой защиты веток и доступ администратора. После успешного прогона Unity администратор настраивает правило для `main` в [Settings → Branches](https://github.com/RelaxerR/raid-s3-jamstorm/settings/branches).

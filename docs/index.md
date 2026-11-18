@@ -39,3 +39,4 @@
 - [Карта 400 × 400, IslandCenter и MapBoundary](v2/entities/world.md#размер-и-структура-graybox).
 - [Глобальный флаг и ручные сценарии](graybox-controls.md#проверка-глобального-флага-и-гребли).
 - [Тесты текущих механик и PR5, результаты запуска](v2/validation.md).
+- [Devlog — 18 ноября 2026](devlog-2026-11-18.md).

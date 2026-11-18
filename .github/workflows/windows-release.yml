@@ -1,0 +1,75 @@
+name: Release builds
+
+on:
+  # A merge into main produces a push event, so this runs after the merge is complete.
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  UNITY_VERSION: 6000.5.1f1
+  PROJECT_NAME: raid-s3-jamstorm
+  RELEASE_VERSION: 0.0.${{ github.run_number }}
+
+jobs:
+  build-and-release:
+    name: Build and publish game
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Build Windows player
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          versioning: Custom
+          version: ${{ env.RELEASE_VERSION }}
+          targetPlatform: StandaloneWindows64
+          buildName: raid-s3-jamstorm
+          buildsPath: build
+
+      - name: Archive Windows player
+        run: zip -r "${PROJECT_NAME}-Windows.zip" build/${PROJECT_NAME}
+
+      - name: Build macOS Universal player
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          versioning: Custom
+          version: ${{ env.RELEASE_VERSION }}
+          targetPlatform: StandaloneOSX
+          buildMethod: RaidS3Jamstorm.Editor.CiBuild.BuildMacOSUniversal
+          customParameters: -outputPath build/${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}.app
+
+      - name: Archive macOS player
+        run: zip -r "${PROJECT_NAME}-macOS-Universal.zip" "build/${PROJECT_NAME}/${PROJECT_NAME}.app"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.RELEASE_VERSION }}
+          name: raid-s3-jamstorm v${{ env.RELEASE_VERSION }}
+          generate_release_notes: true
+          files: |
+            ${{ env.PROJECT_NAME }}-Windows.zip
+            ${{ env.PROJECT_NAME }}-macOS-Universal.zip
