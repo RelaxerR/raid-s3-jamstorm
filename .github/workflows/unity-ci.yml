@@ -51,14 +51,12 @@ jobs:
             exit 1
           fi
       - name: Run Unity tests
-        uses: game-ci/unity-test-runner@32e57712352b500e17974b245a6dce9e11a73213 # v4.4.0
+        uses: game-ci/unity-test-runner@v5.0.0-beta.1
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          cliVersion: v0.1.75
           testMode: all
           coverageEnabled: false
           githubToken: ''
