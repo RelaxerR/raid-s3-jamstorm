@@ -12,8 +12,10 @@ namespace SecondCatch.Boat
         [SerializeField] private WindController _wind;
         [SerializeField] private WaveController _waves;
         private Vector3 _waveVelocity;
+        private Vector3 _motorVelocity;
+        private Vector3 _lastHullDirection = Vector3.forward;
         public bool IsRespawning { get; internal set; }
-        public Vector3 Velocity => HullDirection * _longitudinalSpeed + _waveVelocity;
+        public Vector3 Velocity => _motorVelocity + _waveVelocity;
         [SerializeField] private HelmStation _helm;
         [SerializeField] private SailStation _sail;
         [SerializeField, Min(0f)] private float _maxSpeed = 4f;
@@ -46,6 +48,7 @@ namespace SecondCatch.Boat
         [SerializeField, Min(0.01f)] private float _turnDecelerationTime = 2.5f;
         [SerializeField, Min(0f)] private float _movementResistance = 0.06f;
         [SerializeField, Min(0f)] private float _lateralResistance = 2.5f;
+        [SerializeField, Min(0f)] private float _waveDriftResistance = 1f;
         private float _longitudinalSpeed;
         private float _yawSpeed;
         public float Mass => Mathf.Max(1f, _mass);
@@ -61,7 +64,15 @@ namespace SecondCatch.Boat
         public float SailAngle => _sail != null ? _sail.Angle : 0f;
         public float SailDeployment => _sail != null ? _sail.Deployment : 0f;
         public float MaxSailAngle => _maxSailAngle;
-        public Vector3 HullDirection => Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+        public Vector3 HullDirection
+        {
+            get
+            {
+                Vector3 direction = transform.forward;
+                direction.y = 0f;
+                return direction.sqrMagnitude > 0.0001f ? direction.normalized : _lastHullDirection;
+            }
+        }
         public Vector3 SailDirection => Quaternion.AngleAxis(SailAngle, Vector3.up) * HullDirection;
         public Vector3 MovementDirection => Velocity.normalized;
         public bool HelmActive => _helm != null && _helm.Active;
@@ -121,48 +132,88 @@ namespace SecondCatch.Boat
 
         private void Update()
         {
-            if (IsRespawning) return;
+            float dt = Time.deltaTime;
+            if (IsRespawning || dt <= 0f) return;
+            // Состояния хода и волн независимы; визуальная поверхность не владеет скоростью лодки.
+            AdvanceMotor(dt);
+            AdvanceYaw(dt);
+            ApplyWaveField(dt);
+            _lastHullDirection = HullDirection;
+            _longitudinalSpeed = Vector3.Dot(_motorVelocity, _lastHullDirection);
+            transform.position += Velocity * dt;
+        }
+
+        private void AdvanceMotor(float dt)
+        {
+            Vector3 forward = HullDirection;
+            float currentSpeed = Vector3.Dot(_motorVelocity, forward);
+            Vector3 lateral = _motorVelocity - forward * currentSpeed;
             float targetSpeed = Mathf.Clamp(SailSpeedContribution + RowingSpeedContribution,
                 -Mathf.Max(0f, _reverseRowingSpeed), Mathf.Max(0f, _maxSpeed));
-            // При смене знака сначала гасим старую скорость, затем разгоняемся в обратную сторону.
-            bool reversing = _longitudinalSpeed * targetSpeed < 0f;
-            bool accelerating = !reversing && Mathf.Abs(targetSpeed) > Mathf.Abs(_longitudinalSpeed);
+            bool reversing = currentSpeed * targetSpeed < 0f;
+            bool accelerating = !reversing && Mathf.Abs(targetSpeed) > Mathf.Abs(currentSpeed);
             float responseTime = accelerating ? _accelerationTime : _decelerationTime;
             float intermediateTarget = reversing ? 0f : targetSpeed;
-            _longitudinalSpeed = responseTime <= 0f ? intermediateTarget
-                : Mathf.MoveTowards(_longitudinalSpeed, intermediateTarget,
-                    Mathf.Max(0.01f, _maxSpeed) / (responseTime * MassRatio) * Time.deltaTime);
-            _longitudinalSpeed *= Mathf.Exp(-_movementResistance / MassRatio * Time.deltaTime);
+            float speed = responseTime <= 0f ? intermediateTarget : Mathf.MoveTowards(currentSpeed,
+                intermediateTarget, Mathf.Max(0.01f, _maxSpeed) / (responseTime * MassRatio) * dt);
+            speed *= Mathf.Exp(-Mathf.Max(0f, _movementResistance) / MassRatio * dt);
+            lateral *= Mathf.Exp(-Mathf.Max(0f, _lateralResistance) / MassRatio * dt);
+            // Сохраняем рассчитанный разгон один раз. Дрейф не входит в обратную связь мотора.
+            _motorVelocity = forward * speed + lateral;
+            _longitudinalSpeed = speed;
+        }
 
+        private void AdvanceYaw(float dt)
+        {
             float steering = _helm != null ? _helm.CourseCorrection : 0f;
             float authority = Mathf.Clamp01(CurrentSpeed / Mathf.Max(0.01f, _fullSteeringSpeed));
             float reverseFactor = _longitudinalSpeed < 0f ? _reverseSteeringMultiplier : 1f;
             float inertia = Mathf.Max(0.01f, _turnInertiaMultiplier * MassRatio);
-            float maximumYaw = _turnSpeed / Mathf.Sqrt(inertia);
+            float maximumYaw = Mathf.Max(0f, _turnSpeed) / Mathf.Sqrt(inertia);
             float targetYaw = steering * maximumYaw * authority * reverseFactor;
             bool buildingTurn = _yawSpeed * targetYaw >= 0f && Mathf.Abs(targetYaw) > Mathf.Abs(_yawSpeed);
             float turnTime = buildingTurn ? _turnAccelerationTime : _turnDecelerationTime;
             _yawSpeed = Mathf.MoveTowards(_yawSpeed, targetYaw,
-                Mathf.Max(0.01f, maximumYaw) / (Mathf.Max(0.01f, turnTime) * inertia) * Time.deltaTime);
-            // Сохраняем мировой импульс при смене курса: киль постепенно убирает боковое скольжение.
-            Vector3 momentum = Velocity;
-            transform.Rotate(Vector3.up, _yawSpeed * Time.deltaTime, Space.World);
-            _longitudinalSpeed = Vector3.Dot(momentum, HullDirection);
-            Vector3 lateral = momentum - HullDirection * _longitudinalSpeed;
-            _waveVelocity = lateral * Mathf.Exp(-_lateralResistance / MassRatio * Time.deltaTime);
-            if (_waves != null && _waves.isActiveAndEnabled)
-            {
-                Vector3 inward = _waves.DirectionToCenter(transform.position);
-                _waveVelocity += _waves.ReturnAcceleration(transform.position) / MassRatio * Time.deltaTime;
-                float outwardSpeed = Mathf.Max(0f, -Vector3.Dot(Velocity, inward));
-                float reduction = outwardSpeed * (1f - Mathf.Exp(-_waves.ResistanceAt(transform.position) / MassRatio * Time.deltaTime));
-                float alignment = Vector3.Dot(HullDirection, inward);
-                float longitudinalReduction = reduction * alignment;
-                _longitudinalSpeed += longitudinalReduction;
-                _waveVelocity += inward * reduction - HullDirection * longitudinalReduction;
-            }
-            transform.position += Velocity * Time.deltaTime;
+                Mathf.Max(0.01f, maximumYaw) / (Mathf.Max(0.01f, turnTime) * inertia) * dt);
+            // Поворачивается корпус; оба мировых вектора скорости сохраняют свой импульс.
+            transform.Rotate(Vector3.up, _yawSpeed * dt, Space.World);
         }
+
+        private void ApplyWaveField(float dt)
+        {
+            _waveVelocity *= Mathf.Exp(-Mathf.Max(0f, _waveDriftResistance) / MassRatio * dt);
+            if (_waves == null || !_waves.isActiveAndEnabled) return;
+            Vector3 inward = _waves.DirectionToCenter(transform.position);
+            _waveVelocity += _waves.ReturnAcceleration(transform.position) / MassRatio * dt;
+            float outwardSpeed = Mathf.Max(0f, -Vector3.Dot(Velocity, inward));
+            float reduction = outwardSpeed * (1f - Mathf.Exp(-_waves.ResistanceAt(transform.position) / MassRatio * dt));
+            // Уменьшаем только наружный ход каждого источника; не переносим дрейф обратно в мотор.
+            float motorOutward = Mathf.Max(0f, -Vector3.Dot(_motorVelocity, inward));
+            float waveOutward = Mathf.Max(0f, -Vector3.Dot(_waveVelocity, inward));
+            float totalOutward = motorOutward + waveOutward;
+            if (totalOutward <= 0f) return;
+            Vector3 correction = inward * reduction;
+            _motorVelocity += correction * (motorOutward / totalOutward);
+            _waveVelocity += correction * (waveOutward / totalOutward);
+        }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>По явному запросу печатает один снимок цепочки движения без постоянного лога.</summary>
+        [ContextMenu("Диагностика движения лодки")]
+        private void LogMotionSnapshot()
+        {
+            Rigidbody body = GetComponent<Rigidbody>();
+            Vector3 waveAcceleration = _waves != null && _waves.isActiveAndEnabled
+                ? _waves.ReturnAcceleration(transform.position) / MassRatio : Vector3.zero;
+            string bodyState = body == null ? "нет" : $"kinematic={body.isKinematic}, constraints={body.constraints}, sleeping={body.IsSleeping()}";
+            Debug.Log($"Лодка: active={isActiveAndEnabled}, respawn={IsRespawning}, dt={Time.deltaTime:0.0000}, " +
+                $"massRatio={MassRatio:0.000}, helm={HelmActive}, rowingInput={(_helm != null ? _helm.RowingInput : 0f):0.000}, " +
+                $"rowing={RowingSpeedContribution:0.000}, sail={SailSpeedContribution:0.000}, " +
+                $"deployment={SailDeployment:0.000}, projection={Vector3.Dot(SailForce, HullDirection):0.000}, " +
+                $"waves={waveAcceleration}, motor={_motorVelocity}, drift={_waveVelocity}, " +
+                $"velocity={Velocity}, body=[{bodyState}]", this);
+        }
+#endif
 
         /// <summary>Сбрасывает инерцию и команды руля при возврате в порт.</summary>
         public void ResetMotion()
@@ -171,6 +222,7 @@ namespace SecondCatch.Boat
             _longitudinalSpeed = 0f;
             _yawSpeed = 0f;
             _waveVelocity = Vector3.zero;
+            _motorVelocity = Vector3.zero;
         }
 
         private void OnDisable()

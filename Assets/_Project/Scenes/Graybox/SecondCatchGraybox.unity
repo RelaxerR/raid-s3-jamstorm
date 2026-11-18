@@ -2969,6 +2969,7 @@ MonoBehaviour:
   _turnDecelerationTime: 2.5
   _movementResistance: 0.06
   _lateralResistance: 2.5
+  _waveDriftResistance: 1
   _accelerationTime: 4
   _decelerationTime: 24
   _turnSpeed: 12
