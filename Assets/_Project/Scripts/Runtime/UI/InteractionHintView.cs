@@ -10,6 +10,8 @@ namespace SecondCatch.UI
     {
         [SerializeField] private Text _label;
 
+        private const string CameraHint = "\nПКМ + мышь — обзор · колесо — приближение · V — вернуть камеру";
+
         public void Render(PlayerController player)
         {
             if (_label == null) return;
@@ -17,16 +19,16 @@ namespace SecondCatch.UI
             switch (player.ControlMode)
             {
                 case PlayerControlMode.Helm:
-                    _label.text = "W/S — грести вперёд / назад · A/D — руль\nEsc / E — выйти (парус продолжит работать)";
+                    _label.text = "W/S — гребля вперёд / назад · A/D — инерционный руль\nEsc / E — выйти (тяга и руль плавно затухают)" + "\n" + player.Boat.RowingAvailabilityText + CameraHint;
                     return;
                 case PlayerControlMode.Sail:
-                    _label.text = "W/S — больше / меньше паруса · A/D — угол\nEsc / E — выйти (настройка сохраняется)";
+                    _label.text = "W/S — больше / меньше паруса · A/D — разгон поворота\nEsc / E — выйти (угол сохраняется после выбега)" + CameraHint;
                     return;
             }
             StationInteraction station = player.GetAvailableStation();
             string action = station == null ? "" : station is HelmStation ? "\nE — управлять рулём"
                 : station is SailStation ? "\nE — управлять парусом" : "\nE — взаимодействовать";
-            _label.text = "WASD — перемещение" + action;
+            _label.text = "WASD — перемещение" + action + CameraHint;
         }
     }
 }

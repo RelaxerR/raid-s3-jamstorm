@@ -18,6 +18,12 @@ namespace SecondCatch.Stations
         [SerializeField, Range(0f, 1f)] private float _partialMultiplier = 0.5f;
         [SerializeField, Min(0.01f)] private float _stateChangeSpeed = 1f;
         [SerializeField, Min(0.01f)] private float _stepRepeatInterval = 0.4f;
+        [SerializeField, Min(0.01f)] private float _rotationAccelerationTime = 0.6f;
+        [SerializeField, Min(0.01f)] private float _rotationBrakingTime = 0.9f;
+        [SerializeField, Min(0f)] private float _rotationResistance = 0.2f;
+        [SerializeField] private Vector2 _angleRange = new Vector2(-180f, 180f);
+        private float _rotationInput;
+        public float AngularVelocity { get; private set; }
         private Vector3 _raisedScale;
         private Quaternion _initialRotation;
         private int _previousStep;
@@ -28,7 +34,7 @@ namespace SecondCatch.Stations
         public SailPosition Position => _position;
         public float Angle => _angle;
         public float Deployment => _deployment;
-        public float ThrustMultiplier => _position == SailPosition.Folded ? 0f : _deployment;
+        public float ThrustMultiplier => _deployment;
         private float TargetDeployment => _position == SailPosition.Full ? 1f
             : _position == SailPosition.Partial ? _partialMultiplier : 0f;
 
@@ -47,7 +53,8 @@ namespace SecondCatch.Stations
         public void SetAngle(float angle)
         {
             float limit = Boat != null ? Boat.MaxSailAngle : 180f;
-            _angle = Mathf.Clamp(angle, -limit, limit);
+            _angle = Mathf.Clamp(angle, Mathf.Clamp(Mathf.Min(_angleRange.x, _angleRange.y), -limit, limit),
+                Mathf.Clamp(Mathf.Max(_angleRange.x, _angleRange.y), -limit, limit));
         }
 
         public override void HandleInput(Vector2 input)
@@ -60,15 +67,39 @@ namespace SecondCatch.Stations
                 _repeatRemaining = Mathf.Max(0.01f, _stepRepeatInterval);
             }
             _previousStep = step;
-            SetAngle(_angle + input.x * _rotationSpeed * Time.deltaTime);
+            _rotationInput = Mathf.Clamp(input.x, -1f, 1f);
         }
 
-        protected override void OnExited() => _previousStep = 0;
-
-        private void Update()
+        protected override void OnExited()
         {
+            _previousStep = 0;
+            _rotationInput = 0f;
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            _rotationInput = 0f;
+            AngularVelocity = 0f;
+        }
+
+        private void Update() => Advance(Time.deltaTime);
+
+        private void Advance(float dt)
+        {
+            float input = Operator != null && Boat != null && !Boat.IsRespawning ? _rotationInput : 0f;
+            bool accelerating = input != 0f && AngularVelocity * input >= 0f;
+            float time = accelerating ? _rotationAccelerationTime : _rotationBrakingTime;
+            // Угловая скорость сохраняется при смене ступени и плавно затухает после выхода.
+            float targetVelocity = input * _rotationSpeed;
+            AngularVelocity = Mathf.MoveTowards(AngularVelocity, targetVelocity,
+                _rotationSpeed / Mathf.Max(0.01f, time) * dt);
+            if (input == 0f) AngularVelocity *= Mathf.Exp(-_rotationResistance * dt);
+            float requested = _angle + AngularVelocity * dt;
+            SetAngle(requested);
+            if (!Mathf.Approximately(requested, _angle)) AngularVelocity = 0f;
             _deployment = Mathf.MoveTowards(_deployment, TargetDeployment,
-                Mathf.Max(0.01f, _stateChangeSpeed) * Time.deltaTime);
+                Mathf.Max(0.01f, _stateChangeSpeed) * dt);
         }
 
         private void LateUpdate() => UpdateVisual();

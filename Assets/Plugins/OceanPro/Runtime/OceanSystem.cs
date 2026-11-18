@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// A single-object ocean: one generated mesh/material, depth tint, foam, Gerstner waves and CPU wave sampling.
+/// Единая поверхность океана с четырьмя радиальными волнами, пеной и выборкой высоты на CPU.
 /// </summary>
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class OceanSystem : MonoBehaviour
@@ -44,15 +44,57 @@ public class OceanSystem : MonoBehaviour
     private readonly List<WakeSource> wakeSources = new List<WakeSource>();
     private readonly Vector4[] wakeData = new Vector4[MaxWakeSources];
     private readonly Vector4[] wakeMotion = new Vector4[MaxWakeSources];
-    private static readonly WaveData[] Waves =
+    [Header("Четыре радиальные волны")]
+    [SerializeField] private WaveData[] waves =
     {
-        new WaveData(new Vector2(1f, 0.23f), 220f, 0.28f, 0.4f),
-        new WaveData(new Vector2(-0.48f, 1f), 142f, 0.23f, 2.0f),
-        new WaveData(new Vector2(0.82f, 0.57f), 88f, 0.19f, 4.4f),
-        new WaveData(new Vector2(-0.93f, -0.36f), 54f, 0.14f, 1.3f),
-        new WaveData(new Vector2(0.16f, -1f), 34f, 0.10f, 5.2f),
-        new WaveData(new Vector2(0.63f, -0.78f), 23f, 0.06f, 3.1f)
+        new WaveData(new Vector2(1f, 0.23f), 12f, 0.4f, 1f, 0.4f),
+        new WaveData(new Vector2(-0.48f, 1f), 8f, 0.28f, 1.1f, 2f),
+        new WaveData(new Vector2(0.82f, 0.57f), 5f, 0.2f, 0.9f, 4.4f),
+        new WaveData(new Vector2(-0.93f, -0.36f), 3f, 0.12f, 1.2f, 1.3f)
     };
+    private readonly Vector4[] waveDirections = new Vector4[4];
+    private readonly Vector4[] waveSettings = new Vector4[4];
+    private Vector3 fieldCenter;
+    private float calmRadius;
+    private float outerRadius = 50f;
+    private float centerAmplitude = 1f;
+    private float outerAmplitude = 1f;
+
+    /// <summary>Настраивает единое радиальное поле для шейдера и выборки высоты.</summary>
+    public void ConfigureAmplitudeField(Vector3 center, float calm, float outer, float minimum, float maximum)
+    {
+        fieldCenter = center;
+        calmRadius = Mathf.Max(0f, calm);
+        outerRadius = Mathf.Max(calmRadius + 0.01f, outer);
+        centerAmplitude = Mathf.Max(0f, minimum);
+        outerAmplitude = Mathf.Max(centerAmplitude, maximum);
+    }
+
+    private float AmplitudeScale(Vector3 position)
+    {
+        float distance = new Vector2(position.x - fieldCenter.x, position.z - fieldCenter.z).magnitude;
+        float t = Mathf.Clamp01((distance - calmRadius) / (outerRadius - calmRadius));
+        return Mathf.Lerp(centerAmplitude, outerAmplitude, Mathf.SmoothStep(0f, 1f, t));
+    }
+
+    private void UpdateWaveMaterial()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            WaveData wave = waves != null && i < waves.Length ? waves[i] : default;
+            Vector2 direction = wave.direction.sqrMagnitude > 0.001f ? wave.direction.normalized : Vector2.right;
+            waveDirections[i] = new Vector4(direction.x, direction.y, Mathf.Max(0.1f, wave.length), Mathf.Max(0f, wave.amplitude));
+            waveSettings[i] = new Vector4(Mathf.Max(0f, wave.speed), wave.phase, 0f, 0f);
+        }
+        generatedMaterial.SetVectorArray("_WaveDirections", waveDirections);
+        generatedMaterial.SetVectorArray("_WaveSettings", waveSettings);
+        generatedMaterial.SetVector("_FieldCenter", fieldCenter);
+        generatedMaterial.SetVector("_AmplitudeField", new Vector4(calmRadius, outerRadius, centerAmplitude, outerAmplitude));
+        generatedMaterial.SetFloat("_WaveHeight", waveHeight);
+        generatedMaterial.SetFloat("_WaveSpeed", Mathf.Max(0f, waveSpeed));
+        generatedMaterial.SetFloat("_WaveTime", Time.time);
+        generatedMaterial.SetFloat("_Steepness", waveSteepness);
+    }
 
     public float WaveHeight => waveHeight;
     public float WaveSpeed => waveSpeed;
@@ -69,6 +111,7 @@ public class OceanSystem : MonoBehaviour
     private void LateUpdate()
     {
         if (generatedMaterial == null) return;
+        UpdateWaveMaterial();
         UpdateDepthVolumeSurface();
 
         for (int i = wakeSources.Count - 1; i >= 0; i--)
@@ -94,7 +137,7 @@ public class OceanSystem : MonoBehaviour
         generatedMaterial.SetFloat("_WakeCount", Mathf.Min(wakeSources.Count, MaxWakeSources));
     }
 
-    /// <summary>Register/update one moving object for a soft trailing wake.</summary>
+    /// <summary>Регистрирует движущийся объект для мягкого следа на воде.</summary>
     public void SetWakeSource(Transform source, Vector3 velocity, float radius, float strength)
     {
         if (source == null) return;
@@ -144,7 +187,7 @@ public class OceanSystem : MonoBehaviour
             camera.depthTextureMode |= DepthTextureMode.Depth;
     }
 
-    /// <summary>Rebuilds the mesh and runtime material using the current Inspector settings.</summary>
+    /// <summary>Пересоздаёт сетку и материал по текущим настройкам Inspector.</summary>
     public void BuildOcean()
     {
         MeshFilter filter = GetComponent<MeshFilter>();
@@ -167,7 +210,8 @@ public class OceanSystem : MonoBehaviour
         generatedMaterial.SetColor("_DeepColor", deepColor);
         generatedMaterial.SetColor("_FoamColor", foamColor);
         generatedMaterial.SetFloat("_WaveHeight", waveHeight);
-        generatedMaterial.SetFloat("_WaveSpeed", waveSpeed);
+        generatedMaterial.SetFloat("_WaveSpeed", Mathf.Max(0f, waveSpeed));
+        generatedMaterial.SetFloat("_WaveTime", Time.time);
         generatedMaterial.SetFloat("_Steepness", waveSteepness);
         generatedMaterial.SetFloat("_DepthDensity", depthDensity);
         generatedMaterial.SetFloat("_Opacity", opacity);
@@ -176,6 +220,7 @@ public class OceanSystem : MonoBehaviour
         generatedMaterial.SetFloat("_CrestFoamStrength", crestFoamStrength);
         generatedMaterial.SetFloat("_IntersectionFoamStrength", intersectionFoamStrength);
         generatedMaterial.SetFloat("_FoamScale", foamScale);
+        UpdateWaveMaterial();
         meshRenderer.sharedMaterial = generatedMaterial;
         meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         meshRenderer.receiveShadows = true;
@@ -309,42 +354,38 @@ public class OceanSystem : MonoBehaviour
         else DestroyImmediate(asset);
     }
 
-    /// <summary>Sample the same wave field used by the shader. Used by floating objects.</summary>
+    /// <summary>Возвращает высоту и нормаль того же поля, которое рисует шейдер.</summary>
     public float GetWaterHeight(Vector3 worldPosition, out Vector3 normal, out float crestFoam)
     {
-        Vector3 p = worldPosition;
-        p.y = transform.position.y;
-        Vector3 tangentX = Vector3.right;
-        Vector3 tangentZ = Vector3.forward;
-        for (int i = 0; i < Waves.Length; i++)
-        {
-            WaveData w = Waves[i];
-            float amplitude = waveHeight * w.amplitude;
-            float k = 2f * Mathf.PI / w.length;
-            float angularSpeed = Mathf.Sqrt(9.81f * k) * waveSpeed;
-            float phase = k * Vector2.Dot(w.direction, new Vector2(worldPosition.x, worldPosition.z))
-                        - angularSpeed * Time.time + w.phase;
-            float sin = Mathf.Sin(phase);
-            float cos = Mathf.Cos(phase);
-            float horizontal = waveSteepness * amplitude;
-            p.x += w.direction.x * horizontal * cos;
-            p.z += w.direction.y * horizontal * cos;
-            p.y += amplitude * sin;
-
-            tangentX += new Vector3(
-                -waveSteepness * amplitude * k * w.direction.x * w.direction.x * sin,
-                amplitude * k * w.direction.x * cos,
-                -waveSteepness * amplitude * k * w.direction.x * w.direction.y * sin);
-            tangentZ += new Vector3(
-                -waveSteepness * amplitude * k * w.direction.x * w.direction.y * sin,
-                amplitude * k * w.direction.y * cos,
-                -waveSteepness * amplitude * k * w.direction.y * w.direction.y * sin);
-        }
-
+        Vector3 origin = worldPosition;
+        Vector3 surface = SampleSurface(origin);
+        const float epsilon = 0.02f;
+        Vector3 tangentX = SampleSurface(origin + Vector3.right * epsilon) - surface;
+        Vector3 tangentZ = SampleSurface(origin + Vector3.forward * epsilon) - surface;
         normal = Vector3.Cross(tangentZ, tangentX).normalized;
-        float displacement = p.y - transform.position.y;
-        crestFoam = waveHeight > 0.001f ? Mathf.Clamp01((displacement / waveHeight - 0.36f) * 2.8f) : 0f;
-        return p.y;
+        float amplitude = waveHeight * AmplitudeScale(origin);
+        crestFoam = amplitude > 0.001f ? Mathf.Clamp01(((surface.y - transform.position.y) / amplitude - 0.36f) * 2.8f) : 0f;
+        return surface.y;
+    }
+
+    private Vector3 SampleSurface(Vector3 origin)
+    {
+        Vector3 p = new Vector3(origin.x, transform.position.y, origin.z);
+        float scale = waveHeight * AmplitudeScale(origin);
+        int count = waves == null ? 0 : Mathf.Min(4, waves.Length);
+        for (int i = 0; i < count; i++)
+        {
+            WaveData w = waves[i];
+            float amplitude = scale * Mathf.Max(0f, w.amplitude);
+            float k = 2f * Mathf.PI / Mathf.Max(0.1f, w.length);
+            // Сглаженный радиус устраняет особую точку в центре; положительное время ведёт гребни внутрь.
+            Vector2 delta = new Vector2(origin.x - fieldCenter.x, origin.z - fieldCenter.z);
+            float radius = Mathf.Sqrt(delta.sqrMagnitude + 0.25f);
+            float phase = k * radius
+                + Mathf.Sqrt(9.81f * k) * Mathf.Max(0f, waveSpeed) * Mathf.Max(0f, w.speed) * Time.time + w.phase;
+            p.y += amplitude * (Mathf.Sin(phase) + waveSteepness * 0.25f * Mathf.Sin(2f * phase));
+        }
+        return p;
     }
 
     private Mesh CreateGrid(int gridResolution, float size)
@@ -429,18 +470,21 @@ public class OceanSystem : MonoBehaviour
         }
     }
 
+    [System.Serializable]
     private struct WaveData
     {
-        public readonly Vector2 direction;
-        public readonly float length;
-        public readonly float amplitude;
-        public readonly float phase;
+        public Vector2 direction;
+        [Min(0.1f)] public float length;
+        [Min(0f)] public float amplitude;
+        [Min(0f)] public float speed;
+        public float phase;
 
-        public WaveData(Vector2 direction, float length, float amplitude, float phase)
+        public WaveData(Vector2 direction, float length, float amplitude, float speed, float phase)
         {
             this.direction = direction.normalized;
             this.length = length;
             this.amplitude = amplitude;
+            this.speed = speed;
             this.phase = phase;
         }
     }

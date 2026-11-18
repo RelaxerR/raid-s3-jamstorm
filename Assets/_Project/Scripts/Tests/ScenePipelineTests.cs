@@ -11,6 +11,12 @@ namespace SecondCatch.Tests
 {
     public sealed class ScenePipelineTests
     {
+        [UnityTearDown]
+        public IEnumerator LeavePlayMode()
+        {
+            if (UnityEngine.Application.isPlaying) yield return new ExitPlayMode();
+        }
+
         [Test]
         public void BuildOrderAndSceneReferencesAreValid()
         {
@@ -39,25 +45,33 @@ namespace SecondCatch.Tests
             yield return WaitFor(GameScenes.MENU);
             var app = GameApplication.Instance;
             Assert.NotNull(app); Assert.IsNull(app.Session);
-            Assert.IsTrue(app.NewGame());
-            Assert.IsFalse(app.NewGame(), "Repeated clicks are ignored during loading");
+            Object.FindFirstObjectByType<MainMenuController>().NewGame();
+            Assert.IsTrue(app.IsLoading);
+            Assert.IsFalse(app.NewGame(), "Повторная команда отклоняется во время загрузки");
             yield return WaitFor(GameScenes.PORT);
             var session = app.Session;
             Assert.NotNull(session);
-            Assert.IsTrue(app.Depart());
+            Object.FindFirstObjectByType<HomePortController>().Depart();
             yield return WaitFor(GameScenes.SEA);
             Assert.IsTrue(session.AtSea);
-            Assert.IsTrue(session.CatchFish(session.Cargo.FishId));
+            for (int i = 0; i < 10; i++)
+                Assert.IsTrue(Object.FindFirstObjectByType<HomeShallowsController>().CollectFish());
             Assert.IsTrue(app.OpenMenu());
             yield return WaitFor(GameScenes.MENU);
-            Assert.IsTrue(app.ContinueGame());
+            Object.FindFirstObjectByType<MainMenuController>().ContinueGame();
             yield return WaitFor(GameScenes.SEA);
-            Assert.IsTrue(app.ReturnToPort());
+            Object.FindFirstObjectByType<HomeShallowsController>().ReturnToPort();
             yield return WaitFor(GameScenes.PORT);
             Assert.AreSame(session, app.Session);
-            Assert.IsFalse(session.AtSea); Assert.AreEqual(1, session.Cargo.Count);
-            Assert.IsTrue(session.Sell()); Assert.AreEqual(10, session.Coins);
+            Assert.IsFalse(session.AtSea); Assert.AreEqual(10, session.Cargo.Count);
+            var port = Object.FindFirstObjectByType<HomePortController>();
+            Assert.IsTrue(port.Sell());
+            Assert.AreEqual(100, session.Coins);
+            Assert.IsTrue(port.BuyUpgrade());
+            Assert.IsFalse(port.BuyUpgrade());
+            Assert.AreEqual(0, session.Coins);
             Assert.IsTrue(app.Depart()); yield return WaitFor(GameScenes.SEA);
+            Assert.AreEqual(1.4f, session.Boat.SpeedMultiplier);
             Object.FindFirstObjectByType<HomeShallowsController>().Damage(100);
             yield return WaitFor(GameScenes.PORT);
             Assert.AreEqual(18, session.Boat.Hp);
@@ -67,12 +81,26 @@ namespace SecondCatch.Tests
             Assert.AreEqual(1, Object.FindObjectsByType<GameApplication>(FindObjectsSortMode.None).Length);
             yield return new ExitPlayMode();
         }
+        [Test]
+        public void SoloPipelineHasNoPhotonOrCooperativeDependency()
+        {
+            foreach (var assembly in new[] { typeof(GameApplication).Assembly, typeof(SecondCatch.Solo.SoloGameSession).Assembly })
+                foreach (var reference in assembly.GetReferencedAssemblies())
+                    StringAssert.DoesNotContain("Photon", reference.Name);
+            foreach (string path in System.IO.Directory.GetFiles("Assets/_Project/Scripts/Runtime/Application", "*.cs"))
+            {
+                string source = System.IO.File.ReadAllText(path);
+                StringAssert.DoesNotContain("Photon", source);
+                StringAssert.DoesNotContain("SecondCatch.Foundation", source);
+            }
+        }
+
         private static IEnumerator WaitFor(string scene)
         {
             float deadline = Time.realtimeSinceStartup + 20;
             while (GameApplication.Instance == null || GameApplication.Instance.IsLoading || SceneManager.GetActiveScene().name != scene)
             {
-                Assert.Less(Time.realtimeSinceStartup, deadline, "Timed out loading " + scene);
+                Assert.Less(Time.realtimeSinceStartup, deadline, "Истекло время загрузки " + scene);
                 yield return null;
             }
         }

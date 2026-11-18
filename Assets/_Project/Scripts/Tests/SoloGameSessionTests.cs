@@ -6,6 +6,43 @@ namespace SecondCatch.Tests
     public sealed class SoloGameSessionTests
     {
         [Test]
+        public void NewSessionStartsInPortAndRejectedCommandsPreserveRevision()
+        {
+            var session = new SoloGameSession();
+            Assert.IsFalse(session.AtSea);
+            Assert.AreEqual(60, session.Boat.Hp);
+            Assert.AreEqual(60, session.Boat.MaxHp);
+            Assert.AreEqual(1f, session.Boat.SpeedMultiplier);
+            Assert.AreEqual(0, session.Cargo.Count);
+            Assert.AreEqual(0, session.Coins);
+            Assert.AreEqual(0, session.Revision);
+            Assert.IsFalse(session.Dock());
+            Assert.IsFalse(session.Sell());
+            Assert.IsFalse(session.BuySpeedUpgrade());
+            Assert.AreEqual(0, session.Revision);
+        }
+
+        [Test]
+        public void DockAndDepartPreserveCargoHealthAndModelIdentity()
+        {
+            var session = new SoloGameSession();
+            var boat = session.Boat;
+            var cargo = session.Cargo;
+            session.Depart();
+            session.CatchFish(cargo.FishId);
+            Assert.IsFalse(session.Damage(7));
+            Assert.AreEqual(53, boat.Hp);
+            long revision = session.Revision;
+            Assert.IsTrue(session.Dock());
+            Assert.IsTrue(session.Depart());
+            Assert.AreEqual(revision + 2, session.Revision);
+            Assert.AreSame(boat, session.Boat);
+            Assert.AreSame(cargo, session.Cargo);
+            Assert.AreEqual(53, session.Boat.Hp);
+            Assert.AreEqual(1, session.Cargo.Count);
+        }
+
+        [Test]
         public void TwoVoyagesPreserveUpgradeAndPreventDuplicatePurchases()
         {
             var session = new SoloGameSession();

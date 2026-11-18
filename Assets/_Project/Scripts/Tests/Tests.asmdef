@@ -4,7 +4,9 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Runtime"
+        "Runtime",
+        "OceanPro",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

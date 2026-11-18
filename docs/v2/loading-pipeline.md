@@ -26,3 +26,9 @@ flowchart LR
 Во время перехода IsLoading=true, повторный переход отклоняется. UI, улов, урон и физический адаптер приостанавливают команды. При недоступной сцене состояние не меняется, Error показывается на постоянном корне, Retry menu возвращает к меню. При исключении запуска загрузки блокировка снимается. На одновременные операции рассчитан только главный поток Unity.
 
 При прямом Play из MainMenu/HomePort/HomeShallows показывается Open Boot. SampleScene автономна и не поднимает приложение. Запуск с отключённой перезагрузкой сцены Unity пока не является поддерживаемым режимом проверки.
+
+## Автоматическое покрытие PR5
+
+Сохранены ScenePipelineTests, SoloGameSessionTests и StationAssignmentTests. ScenePipelineTests проверяет Boot → MainMenu → HomePort → HomeShallows, обратный переход и продолжение через меню, вызывает команды MainMenuController, HomePortController и HomeShallowsController. Проверяются GameApplication, каталог GameScenes, единственность приложения и отклонение повторного перехода при IsLoading.
+
+SoloGameSessionTests проверяет BoatState, FishCargo, сохранение HP, груза, монет и усиления между рейсами, новую сессию и Revision. Сохранение здесь означает состояние в памяти GameApplication между загрузками сцен. StationAssignmentTests проверяет назначения и освобождение. BoatRespawnControllerTests проверяет освобождение реальной станции при возврате graybox. Проверяется отсутствие Photon и кооперативного хоста в зависимостях одиночного pipeline. [Полный список и результат](validation.md)

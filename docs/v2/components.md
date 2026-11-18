@@ -16,7 +16,12 @@
 | `Game/BoatState.cs` | HP, респавн, усиление скорости | [Лодка](entities/boat.md) |
 | `Game/FishCargo.cs` | Одна бочка одного вида с лимитом | [Груз](entities/cargo.md) |
 | `Game/StationAssignment.cs` | Заготовка локального назначения исполнителей, StationRole для v2 | [Станции и экипаж](entities/stations-crew.md) |
-| `Boat/BoatController.cs` | Заготовка Rigidbody-мотора, внешний SetInput, ветер/волны/апгрейд | [Лодка](entities/boat.md) |
+| `Boat/BoatController.cs` | Ход graybox, парус/гребля, инерция, руль, дрейф и сопротивление волн | [Движение](../boat-wind-movement.md) |
+| `Boat/WaveController.cs` | Радиальное давление моря и настройки амплитуды OceanPro | [Волны](../boat-waves-buoyancy.md) |
+| `Boat/BoatBuoyancy.cs` | Управляемая вертикальная поддержка и качка по четырём Transform | [Плавучесть](../boat-waves-buoyancy.md) |
+| `Boat/BoatHealth.cs` | HP 100, урон, Changed/Damaged/Destroyed, защита при возврате | [HP](../boat-waves-buoyancy.md) |
+| `Boat/BoatRespawnController.cs` | Возврат в порт, освобождение станций, сброс движения, восстановление игрока/HP | [Респавн](../boat-waves-buoyancy.md) |
+| `Boat/BoatDamageSource.cs` | Reef/Rock/Debris, 15/25/5 HP, cooldown контактов | [Источники урона](../boat-waves-buoyancy.md) |
 | `Fishing/FishSchool.cs` | Заготовка одноразового источника улова через TryCollect | [Груз](entities/cargo.md) |
 | `World/SeaEnvironment.cs` | Заготовка поля направленных сил моря и ветра | [Мир](entities/world.md) |
 | `Spirit/SeaSpiritDirector.cs` | Заготовка сигнала опасности от полной бочки, без AI | [Дух](entities/spirit.md) |
@@ -27,4 +32,6 @@
 
 `Foundation/GameSession.cs`, `SessionState.cs`, `LocalSessionHost.cs`, `Player/LifebuoyController.cs`, `Leviathan/*.cs` перенесены с сохранением GUID и поведения. Старый API описан в [архиве](../project-foundation.md). Новые сцены не ссылаются на LocalSessionHost. Плагины и их публичные API перечислены в [запуске проекта](../unity-project.md).
 
-Для следующей интеграции: назначить SeaEnvironment и OceanBuoyancy на ручном уровне, создать лодку с единственным мотором, передавать Input System-ввод в SetInput, проверенные контакты в TryCollect/Damage/ReturnToPort, затем подключить духа к сигналу директора. Модель состояния продолжает принадлежать приложению. Не создавать независимые копии кошелька/груза на префабах.
+Graybox `SecondCatchGraybox` использует `WaveController` и общий `OceanSystem` из `Plugins/OceanPro`, с четырьмя настраиваемыми Gerstner-волнами на CPU и в шейдере. `SeaEnvironment` остаётся прежним контрактом каркаса, в graybox не назначен. `OceanBuoyancy` сохраняется для остальных потребителей плагина. Управляемой лодкой graybox по вертикали владеет `BoatBuoyancy`. Существующий `GameplayHud/BoatStatusPanel` показывает HP, урон и состояние возврата.
+
+Для общей интеграции с pipeline требуется согласовать владельца HP между `Game/BoatState` и локальным `BoatHealth`. Текущая graybox-сцена использует 100 HP и полное восстановление в порту, модель отдельной сессии сохраняет существующие правила. Рыбалка, дух и экономика остаются отдельными точками интеграции. Полная схема описана в [волнах и плавучести](../boat-waves-buoyancy.md).

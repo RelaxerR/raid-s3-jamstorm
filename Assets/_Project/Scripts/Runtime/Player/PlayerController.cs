@@ -18,8 +18,11 @@ namespace SecondCatch.Player
         [SerializeField] private StationInteraction[] _stations;
         private StationInteraction _activeStation;
         private float _deckHeight;
+        private Vector3 _startPosition;
+        private Quaternion _startRotation;
 
         public BoatController Boat => _boat;
+        public StationInteraction ActiveStation => _activeStation;
         public PlayerControlMode ControlMode { get; private set; } = PlayerControlMode.Walking;
         /// <summary>Множитель скорости для будущего бега; Shift пока не обрабатывается.</summary>
         public float MovementSpeedMultiplier { get; set; } = 1f;
@@ -36,11 +39,13 @@ namespace SecondCatch.Player
             transform.SetParent(_boat.transform, true);
             _deckHeight = transform.localPosition.y;
             ConstrainToDeck();
+            _startPosition = transform.localPosition;
+            _startRotation = transform.localRotation;
         }
 
         private void Update()
         {
-            if (_boat == null || !_boat.isActiveAndEnabled)
+            if (_boat == null || !_boat.isActiveAndEnabled || _boat.IsRespawning)
             {
                 ExitStation();
                 return;
@@ -115,6 +120,16 @@ namespace SecondCatch.Player
             _activeStation = null;
             ControlMode = PlayerControlMode.Walking;
             if (station != null) station.Release(this);
+        }
+
+        /// <summary>Освобождает станцию и возвращает игрока к исходной позиции палубы.</summary>
+        public void ReturnToBoatStart()
+        {
+            ExitStation();
+            transform.SetParent(_boat.transform, false);
+            transform.localPosition = _startPosition;
+            transform.localRotation = _startRotation;
+            ConstrainToDeck();
         }
 
         private void OnDisable() => ExitStation();

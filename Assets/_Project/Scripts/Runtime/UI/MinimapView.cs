@@ -10,7 +10,7 @@ namespace SecondCatch.UI
         [SerializeField] private RectTransform _boatMarker;
         [SerializeField] private Text _caption;
         [SerializeField] private RectTransform _futureMarkers;
-        [SerializeField] private Vector2 _worldSize = new Vector2(120f, 120f);
+        [SerializeField] private Vector2 _worldSize = new Vector2(400f, 400f);
         [SerializeField, Min(0f)] private float _markerPadding = 14f;
         public RectTransform FutureMarkers => _futureMarkers;
 
