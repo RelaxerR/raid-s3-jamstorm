@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Единая поверхность океана с четырьмя волнами Gerstner, пеной и выборкой высоты на CPU.
+/// Единая поверхность океана с четырьмя радиальными волнами, пеной и выборкой высоты на CPU.
 /// </summary>
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class OceanSystem : MonoBehaviour
@@ -44,7 +44,7 @@ public class OceanSystem : MonoBehaviour
     private readonly List<WakeSource> wakeSources = new List<WakeSource>();
     private readonly Vector4[] wakeData = new Vector4[MaxWakeSources];
     private readonly Vector4[] wakeMotion = new Vector4[MaxWakeSources];
-    [Header("Четыре волны Gerstner")]
+    [Header("Четыре радиальные волны")]
     [SerializeField] private WaveData[] waves =
     {
         new WaveData(new Vector2(1f, 0.23f), 12f, 0.4f, 1f, 0.4f),
@@ -91,7 +91,8 @@ public class OceanSystem : MonoBehaviour
         generatedMaterial.SetVector("_FieldCenter", fieldCenter);
         generatedMaterial.SetVector("_AmplitudeField", new Vector4(calmRadius, outerRadius, centerAmplitude, outerAmplitude));
         generatedMaterial.SetFloat("_WaveHeight", waveHeight);
-        generatedMaterial.SetFloat("_WaveSpeed", waveSpeed);
+        generatedMaterial.SetFloat("_WaveSpeed", Mathf.Max(0f, waveSpeed));
+        generatedMaterial.SetFloat("_WaveTime", Time.time);
         generatedMaterial.SetFloat("_Steepness", waveSteepness);
     }
 
@@ -209,7 +210,8 @@ public class OceanSystem : MonoBehaviour
         generatedMaterial.SetColor("_DeepColor", deepColor);
         generatedMaterial.SetColor("_FoamColor", foamColor);
         generatedMaterial.SetFloat("_WaveHeight", waveHeight);
-        generatedMaterial.SetFloat("_WaveSpeed", waveSpeed);
+        generatedMaterial.SetFloat("_WaveSpeed", Mathf.Max(0f, waveSpeed));
+        generatedMaterial.SetFloat("_WaveTime", Time.time);
         generatedMaterial.SetFloat("_Steepness", waveSteepness);
         generatedMaterial.SetFloat("_DepthDensity", depthDensity);
         generatedMaterial.SetFloat("_Opacity", opacity);
@@ -355,14 +357,7 @@ public class OceanSystem : MonoBehaviour
     /// <summary>Возвращает высоту и нормаль того же поля, которое рисует шейдер.</summary>
     public float GetWaterHeight(Vector3 worldPosition, out Vector3 normal, out float crestFoam)
     {
-        // Обратная выборка компенсирует горизонтальное смещение Gerstner в мировой точке.
         Vector3 origin = worldPosition;
-        for (int i = 0; i < 5; i++)
-        {
-            Vector3 displaced = SampleSurface(origin);
-            origin.x += worldPosition.x - displaced.x;
-            origin.z += worldPosition.z - displaced.z;
-        }
         Vector3 surface = SampleSurface(origin);
         const float epsilon = 0.02f;
         Vector3 tangentX = SampleSurface(origin + Vector3.right * epsilon) - surface;
@@ -381,14 +376,14 @@ public class OceanSystem : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             WaveData w = waves[i];
-            Vector2 direction = w.direction.sqrMagnitude > 0.001f ? w.direction.normalized : Vector2.right;
             float amplitude = scale * Mathf.Max(0f, w.amplitude);
             float k = 2f * Mathf.PI / Mathf.Max(0.1f, w.length);
-            float phase = k * Vector2.Dot(direction, new Vector2(origin.x, origin.z))
-                - Mathf.Sqrt(9.81f * k) * waveSpeed * Mathf.Max(0f, w.speed) * Time.time + w.phase;
-            p.x += direction.x * waveSteepness * amplitude * Mathf.Cos(phase);
-            p.z += direction.y * waveSteepness * amplitude * Mathf.Cos(phase);
-            p.y += amplitude * Mathf.Sin(phase);
+            // Сглаженный радиус устраняет особую точку в центре; положительное время ведёт гребни внутрь.
+            Vector2 delta = new Vector2(origin.x - fieldCenter.x, origin.z - fieldCenter.z);
+            float radius = Mathf.Sqrt(delta.sqrMagnitude + 0.25f);
+            float phase = k * radius
+                + Mathf.Sqrt(9.81f * k) * Mathf.Max(0f, waveSpeed) * Mathf.Max(0f, w.speed) * Time.time + w.phase;
+            p.y += amplitude * (Mathf.Sin(phase) + waveSteepness * 0.25f * Mathf.Sin(2f * phase));
         }
         return p;
     }
