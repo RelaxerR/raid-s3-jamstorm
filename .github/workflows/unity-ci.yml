@@ -21,6 +21,8 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+      - name: Check v2 project structure
+        run: python3 tools/check_project_structure.py
       - name: Check project version and Test Framework dependency
         run: |
           grep -Eq '^m_EditorVersion: [0-9]+\.[0-9]+\.[0-9]+[abfp][0-9]+$' ProjectSettings/ProjectVersion.txt
