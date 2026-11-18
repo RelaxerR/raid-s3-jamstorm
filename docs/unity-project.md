@@ -37,3 +37,7 @@ aliases:
 | Молния | `Assets/Plugins/LightningBolt/Runtime/LightningBolt.cs` | `Strike` запускает эффект между двумя точками. У встроенного действия по умолчанию назначен пробел. |
 
 Префабы спасательного круга и левиафана находятся в `Assets/Prefabs/Enemies`. При переносе или переименовании ассетов сохраняйте соответствующие файлы `.meta`, чтобы ссылки Unity по GUID продолжали работать.
+
+## HUD graybox
+
+В `SecondCatchGraybox` подключён [игровой HUD](gameplay-hud.md) через префаб `Assets/_Project/Prefabs/UI/GameplayHud.prefab`. [Схема подключения](hud-scene-integration.md) описывает ссылки на лодку и игрока, работающие элементы и выключенные заготовки среза 11 декабря.
