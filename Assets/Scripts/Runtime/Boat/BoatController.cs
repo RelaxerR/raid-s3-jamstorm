@@ -14,12 +14,20 @@ namespace SecondCatch.Boat
         [SerializeField, Min(0f)] private float _turnSpeed = 50f;
         [SerializeField, Min(0f)] private float _steeringResponse = 4f;
         [SerializeField] private bool _sailRaised;
+        [SerializeField, Min(1f)] private float _maxHitPoints = 100f;
+        [SerializeField, Min(0f)] private float _hitPoints = 100f;
 
         private float _steeringInput;
         private float _steering;
         public float CurrentSpeed { get; private set; }
         public bool IsSailing { get; private set; }
         public bool SailRaised => _sailRaised;
+        public float MaxHitPoints => Mathf.Max(1f, _maxHitPoints);
+        public float HitPoints => Mathf.Clamp(_hitPoints, 0f, MaxHitPoints);
+        public float Steering => _steering;
+
+        /// <summary>Принимает состояние прочности от будущего источника урона или ремонта.</summary>
+        public void SetHitPoints(float hitPoints) => _hitPoints = Mathf.Clamp(hitPoints, 0f, MaxHitPoints);
 
         /// <summary>Сохраняет команду поворота; ноль постепенно возвращает руль в нейтраль.</summary>
         public void SetSteering(float steering) => _steeringInput = Mathf.Clamp(steering, -1f, 1f);

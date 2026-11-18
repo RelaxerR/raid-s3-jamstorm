@@ -80,7 +80,14 @@ namespace SecondCatch.Player
 
         private bool TryEnterNearestStation()
         {
-            if (_stations == null) return false;
+            StationInteraction nearest = GetAvailableStation();
+            return nearest != null && nearest.TryEnter(this);
+        }
+
+        /// <summary>Возвращает ту же доступную станцию, которую выберет взаимодействие по E.</summary>
+        public StationInteraction GetAvailableStation()
+        {
+            if (!isActiveAndEnabled || ControlMode != PlayerControlMode.Walking || _stations == null) return null;
             StationInteraction nearest = null;
             float distance = float.PositiveInfinity;
             foreach (StationInteraction station in _stations)
@@ -91,7 +98,7 @@ namespace SecondCatch.Player
                 nearest = station;
                 distance = candidateDistance;
             }
-            return nearest != null && nearest.TryEnter(this);
+            return nearest;
         }
 
         /// <summary>Фиксирует режим после проверки доступности станции.</summary>
