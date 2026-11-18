@@ -46,7 +46,7 @@ namespace SecondCatch.UI
         private void Refresh()
         {
             bool boatAvailable = _boat != null && _boat.isActiveAndEnabled;
-            bool playerAvailable = boatAvailable && _player != null && _player.isActiveAndEnabled;
+            bool playerAvailable = boatAvailable && !_boat.IsRespawning && _player != null && _player.isActiveAndEnabled;
             if (_boatStatus != null) _boatStatus.Render(boatAvailable ? _boat : null);
             if (_controlMode != null) _controlMode.Render(playerAvailable ? _player.ControlMode : PlayerControlMode.Walking, playerAvailable);
             if (_interactionHint != null) _interactionHint.Render(playerAvailable ? _player : null);
