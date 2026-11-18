@@ -83,7 +83,7 @@ namespace SecondCatch.Boat
                 Mathf.Max(0f, _maxSpeed) / responseTime * Time.deltaTime);
 
             // Корпус ограничивает боковую тягу паруса, но не заставляет его совпадать с курсом.
-            Vector3 sailTravel = Vector3.Slerp(HullDirection, SailDirection, _sailDirectionInfluence).normalized;
+            Vector3 sailTravel = Quaternion.AngleAxis(SailAngle * _sailDirectionInfluence, Vector3.up) * HullDirection;
             Vector3 propulsion = sailTravel * sailSpeed + HullDirection * rowingSpeed;
             if (propulsion.sqrMagnitude > 0.0001f) _movementDirection = propulsion.normalized;
             // Без тяги сохраняется направление инерции до плавной остановки.
