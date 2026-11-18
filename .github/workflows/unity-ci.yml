@@ -1,0 +1,69 @@
+name: Unity CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unity-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  project-configuration:
+    name: Unity project configuration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Check project version and Test Framework dependency
+        run: |
+          grep -Eq '^m_EditorVersion: [0-9]+\.[0-9]+\.[0-9]+[abfp][0-9]+$' ProjectSettings/ProjectVersion.txt
+          jq -en --slurpfile manifest Packages/manifest.json --slurpfile lock Packages/packages-lock.json '
+            $manifest[0].dependencies["com.unity.test-framework"] as $version |
+            ($version | type == "string" and length > 0) and
+            ($lock[0].dependencies["com.unity.test-framework"] | .version == $version and .depth == 0)
+          '
+
+  tests:
+    name: Unity EditMode and PlayMode
+    needs: project-configuration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Check Unity activation configuration
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if [[ -z "${UNITY_EMAIL}" || -z "${UNITY_PASSWORD}" || ( -z "${UNITY_LICENSE}" && -z "${UNITY_SERIAL}" ) ]]; then
+            echo "::error::Configure Unity activation in GitHub Actions secrets. See docs/ci.md."
+            exit 1
+          fi
+      - name: Run Unity tests
+        uses: game-ci/unity-test-runner@v5.0.0-beta.1
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          testMode: all
+          coverageEnabled: false
+          githubToken: ''
+      - name: Upload Unity test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: unity-test-results
+          path: artifacts
+          if-no-files-found: ignore
