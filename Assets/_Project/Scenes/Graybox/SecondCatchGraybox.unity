@@ -2962,7 +2962,14 @@ MonoBehaviour:
   _sailSpeedMultiplier: 1
   _rowingSpeed: 0.6
   _reverseRowingSpeed: 0.2
-  _accelerationTime: 2
+  _mass: 1000
+  _referenceMass: 1000
+  _turnInertiaMultiplier: 1.5
+  _turnAccelerationTime: 1.8
+  _turnDecelerationTime: 2.5
+  _movementResistance: 0.06
+  _lateralResistance: 2.5
+  _accelerationTime: 4
   _decelerationTime: 24
   _turnSpeed: 12
   _fullSteeringSpeed: 0.6
@@ -3032,6 +3039,10 @@ MonoBehaviour:
   _interactionRadius: 0.8
   _rudderVisual: {fileID: 2400000001}
   _maxRudderAngle: 35
+  _deflectionAccelerationTime: 0.5
+  _deflectionBrakingTime: 0.7
+  _rowingAccelerationTime: 1.2
+  _rowingBrakingTime: 1.8
   _deflectionSpeed: 60
   _returnSpeed: 45
 --- !u!114 &2100000005
@@ -3051,6 +3062,10 @@ MonoBehaviour:
   _interactionRadius: 0.9
   _sailVisual: {fileID: 2100000011}
   _loweredHeightRatio: 0.15
+  _rotationAccelerationTime: 0.6
+  _rotationBrakingTime: 0.9
+  _rotationResistance: 0.2
+  _angleRange: {x: -180, y: 180}
   _rotationSpeed: 45
   _position: 0
   _angle: 0

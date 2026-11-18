@@ -39,7 +39,18 @@ namespace SecondCatch.Boat
         [SerializeField, HideInInspector] private bool _sailRaised;
         [SerializeField, HideInInspector] private float _sailAngle;
         [SerializeField, HideInInspector] private bool _stationStateMigrated;
+        [SerializeField, Min(1f)] private float _mass = 1000f;
+        [SerializeField, Min(1f)] private float _referenceMass = 1000f;
+        [SerializeField, Min(0.01f)] private float _turnInertiaMultiplier = 1.5f;
+        [SerializeField, Min(0.01f)] private float _turnAccelerationTime = 1.8f;
+        [SerializeField, Min(0.01f)] private float _turnDecelerationTime = 2.5f;
+        [SerializeField, Min(0f)] private float _movementResistance = 0.06f;
+        [SerializeField, Min(0f)] private float _lateralResistance = 2.5f;
         private float _longitudinalSpeed;
+        private float _yawSpeed;
+        public float Mass => Mathf.Max(1f, _mass);
+        public float YawSpeed => _yawSpeed;
+        private float MassRatio => Mass / Mathf.Max(1f, _referenceMass);
 
         public WindController Wind => _wind != null && _wind.isActiveAndEnabled ? _wind : null;
         public float CurrentSpeed => Velocity.magnitude;
@@ -54,7 +65,7 @@ namespace SecondCatch.Boat
         public Vector3 SailDirection => Quaternion.AngleAxis(SailAngle, Vector3.up) * HullDirection;
         public Vector3 MovementDirection => Velocity.normalized;
         public bool HelmActive => _helm != null && _helm.Active;
-        public bool IsRowing => HelmActive && Mathf.Abs(_helm.RowingInput) > 0f;
+        public bool IsRowing => _helm != null && Mathf.Abs(_helm.RowingInput) > 0.001f;
         public float Steering => _helm != null ? _helm.Steering : 0f;
         public float RudderAngle => _helm != null ? _helm.RudderAngle : 0f;
         private float WindCapture => Wind == null ? 0f : Mathf.Lerp(_minimumSailEfficiency, 1f,
@@ -120,20 +131,31 @@ namespace SecondCatch.Boat
             float intermediateTarget = reversing ? 0f : targetSpeed;
             _longitudinalSpeed = responseTime <= 0f ? intermediateTarget
                 : Mathf.MoveTowards(_longitudinalSpeed, intermediateTarget,
-                    Mathf.Max(0.01f, _maxSpeed) / responseTime * Time.deltaTime);
+                    Mathf.Max(0.01f, _maxSpeed) / (responseTime * MassRatio) * Time.deltaTime);
+            _longitudinalSpeed *= Mathf.Exp(-_movementResistance / MassRatio * Time.deltaTime);
 
             float steering = _helm != null ? _helm.CourseCorrection : 0f;
             float authority = Mathf.Clamp01(CurrentSpeed / Mathf.Max(0.01f, _fullSteeringSpeed));
             float reverseFactor = _longitudinalSpeed < 0f ? _reverseSteeringMultiplier : 1f;
-            transform.Rotate(Vector3.up, steering * _turnSpeed * authority * reverseFactor * Time.deltaTime, Space.World);
-            // Тяга сохраняет продольную инерцию, море добавляет независимый дрейф к острову.
-            _waveVelocity *= Mathf.Exp(-Time.deltaTime);
+            float inertia = Mathf.Max(0.01f, _turnInertiaMultiplier * MassRatio);
+            float maximumYaw = _turnSpeed / Mathf.Sqrt(inertia);
+            float targetYaw = steering * maximumYaw * authority * reverseFactor;
+            bool buildingTurn = _yawSpeed * targetYaw >= 0f && Mathf.Abs(targetYaw) > Mathf.Abs(_yawSpeed);
+            float turnTime = buildingTurn ? _turnAccelerationTime : _turnDecelerationTime;
+            _yawSpeed = Mathf.MoveTowards(_yawSpeed, targetYaw,
+                Mathf.Max(0.01f, maximumYaw) / (Mathf.Max(0.01f, turnTime) * inertia) * Time.deltaTime);
+            // Сохраняем мировой импульс при смене курса: киль постепенно убирает боковое скольжение.
+            Vector3 momentum = Velocity;
+            transform.Rotate(Vector3.up, _yawSpeed * Time.deltaTime, Space.World);
+            _longitudinalSpeed = Vector3.Dot(momentum, HullDirection);
+            Vector3 lateral = momentum - HullDirection * _longitudinalSpeed;
+            _waveVelocity = lateral * Mathf.Exp(-_lateralResistance / MassRatio * Time.deltaTime);
             if (_waves != null && _waves.isActiveAndEnabled)
             {
                 Vector3 inward = _waves.DirectionToCenter(transform.position);
-                _waveVelocity += _waves.ReturnAcceleration(transform.position) * Time.deltaTime;
+                _waveVelocity += _waves.ReturnAcceleration(transform.position) / MassRatio * Time.deltaTime;
                 float outwardSpeed = Mathf.Max(0f, -Vector3.Dot(Velocity, inward));
-                float reduction = outwardSpeed * (1f - Mathf.Exp(-_waves.ResistanceAt(transform.position) * Time.deltaTime));
+                float reduction = outwardSpeed * (1f - Mathf.Exp(-_waves.ResistanceAt(transform.position) / MassRatio * Time.deltaTime));
                 float alignment = Vector3.Dot(HullDirection, inward);
                 float longitudinalReduction = reduction * alignment;
                 _longitudinalSpeed += longitudinalReduction;
@@ -147,6 +169,7 @@ namespace SecondCatch.Boat
         {
             if (_helm != null) _helm.ResetMotion();
             _longitudinalSpeed = 0f;
+            _yawSpeed = 0f;
             _waveVelocity = Vector3.zero;
         }
 
