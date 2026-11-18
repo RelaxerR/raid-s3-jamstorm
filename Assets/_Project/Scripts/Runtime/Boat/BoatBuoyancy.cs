@@ -52,10 +52,13 @@ namespace SecondCatch.Boat
             Vector3 along = (fl + fr - rl - rr) * 0.5f;
             Vector3 normal = Vector3.Cross(along, across).normalized;
             normal = Vector3.RotateTowards(Vector3.up, normal, _maximumTilt * Mathf.Deg2Rad, 0f);
-            Vector3 forward = Vector3.ProjectOnPlane(_boat.HullDirection, normal).normalized;
+            Vector3 smoothedNormal = Vector3.Slerp(transform.up, normal,
+                1f - Mathf.Exp(-_rotationSharpness * Time.deltaTime)).normalized;
+            // Сохраняем горизонтальный курс руля при изменении крена и продольного наклона.
+            Vector3 forward = _boat.HullDirection;
+            forward.y = -Vector3.Dot(forward, smoothedNormal) / Mathf.Max(0.01f, smoothedNormal.y);
             if (forward.sqrMagnitude > 0.001f)
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(forward, normal),
-                    1f - Mathf.Exp(-_rotationSharpness * Time.deltaTime));
+                transform.rotation = Quaternion.LookRotation(forward.normalized, smoothedNormal);
         }
         private Vector3 SurfacePoint(Transform point)
         {
