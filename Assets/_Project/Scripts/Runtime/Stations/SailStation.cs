@@ -83,7 +83,9 @@ namespace SecondCatch.Stations
             AngularVelocity = 0f;
         }
 
-        private void Update()
+        private void Update() => Advance(Time.deltaTime);
+
+        private void Advance(float dt)
         {
             float input = Operator != null && Boat != null && !Boat.IsRespawning ? _rotationInput : 0f;
             bool accelerating = input != 0f && AngularVelocity * input >= 0f;
@@ -91,13 +93,13 @@ namespace SecondCatch.Stations
             // Угловая скорость сохраняется при смене ступени и плавно затухает после выхода.
             float targetVelocity = input * _rotationSpeed;
             AngularVelocity = Mathf.MoveTowards(AngularVelocity, targetVelocity,
-                _rotationSpeed / Mathf.Max(0.01f, time) * Time.deltaTime);
-            if (input == 0f) AngularVelocity *= Mathf.Exp(-_rotationResistance * Time.deltaTime);
-            float requested = _angle + AngularVelocity * Time.deltaTime;
+                _rotationSpeed / Mathf.Max(0.01f, time) * dt);
+            if (input == 0f) AngularVelocity *= Mathf.Exp(-_rotationResistance * dt);
+            float requested = _angle + AngularVelocity * dt;
             SetAngle(requested);
             if (!Mathf.Approximately(requested, _angle)) AngularVelocity = 0f;
             _deployment = Mathf.MoveTowards(_deployment, TargetDeployment,
-                Mathf.Max(0.01f, _stateChangeSpeed) * Time.deltaTime);
+                Mathf.Max(0.01f, _stateChangeSpeed) * dt);
         }
 
         private void LateUpdate() => UpdateVisual();

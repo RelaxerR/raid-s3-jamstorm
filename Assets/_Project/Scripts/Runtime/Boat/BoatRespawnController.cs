@@ -38,13 +38,15 @@ namespace SecondCatch.Boat
         {
             if (_health != null) _health.Destroyed -= BeginRespawn;
         }
-        private void Update()
+        private void Update() => Advance(Time.deltaTime);
+
+        private void Advance(float dt)
         {
             if (_health == null || _boat == null) return;
             // Нулевой HP из сохранённой сцены обрабатывается после инициализации всех компонентов.
             if (_health.IsDestroyed && !_boat.IsRespawning) BeginRespawn();
             if (!_boat.IsRespawning) return;
-            _remaining -= Time.deltaTime;
+            _remaining -= dt;
             if (_remaining <= 0f) CompleteRespawn();
         }
         private void BeginRespawn()

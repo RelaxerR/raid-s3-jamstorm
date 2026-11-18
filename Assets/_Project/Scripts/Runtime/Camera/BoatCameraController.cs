@@ -73,15 +73,18 @@ namespace SecondCatch.Camera
 
         private void LateUpdate()
         {
-            if (_boat == null || Time.deltaTime <= 0f) return;
-            float dt = Time.deltaTime;
-            if (GameplayInput.CameraResetPressed)
+            Advance(GameplayInput.OrbitHeld ? GameplayInput.LookDelta : Vector2.zero,
+                GameplayInput.ZoomDelta, GameplayInput.CameraResetPressed, Time.deltaTime);
+        }
+
+        private void Advance(Vector2 look, float zoom, bool reset, float dt)
+        {
+            if (_boat == null || dt <= 0f) return;
+            if (reset)
             {
                 _returning = true;
                 _targetDistance = ClampDistance(_defaultDistance);
             }
-            Vector2 look = GameplayInput.OrbitHeld ? GameplayInput.LookDelta : Vector2.zero;
-            float zoom = GameplayInput.ZoomDelta;
             if (look.sqrMagnitude > 0f || Mathf.Abs(zoom) > 0.001f) _returning = false;
             _azimuth = Mathf.Repeat(_azimuth + look.x * _mouseSensitivity, 360f);
             _elevation = ClampElevation(_elevation + look.y * _mouseSensitivity * (_invertVerticalAxis ? 1f : -1f));

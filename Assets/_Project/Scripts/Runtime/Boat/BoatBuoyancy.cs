@@ -26,7 +26,9 @@ namespace SecondCatch.Boat
         public float SupportAcceleration { get; private set; }
 
         private void Awake() => _boat = GetComponent<BoatController>();
-        private void Update()
+        private void Update() => Advance(Time.deltaTime);
+
+        private void Advance(float dt)
         {
             if (_boat.IsRespawning || _waves == null || _waves.Ocean == null || !_waves.Ocean.isActiveAndEnabled
                 || _frontLeft == null || _frontRight == null || _rearLeft == null || _rearRight == null) return;
@@ -37,7 +39,7 @@ namespace SecondCatch.Boat
             AverageImmersion = ((fl.y - _frontLeft.position.y) + (fr.y - _frontRight.position.y)
                 + (rl.y - _rearLeft.position.y) + (rr.y - _rearRight.position.y)) * 0.25f + _draft;
             // Ограниченный шаг удерживает пружину устойчивой при редких кадрах.
-            float remaining = Mathf.Min(Time.deltaTime, 0.1f);
+            float remaining = Mathf.Min(dt, 0.1f);
             while (remaining > 0f)
             {
                 float step = Mathf.Min(remaining, 0.01f);
@@ -53,7 +55,7 @@ namespace SecondCatch.Boat
             Vector3 normal = Vector3.Cross(along, across).normalized;
             normal = Vector3.RotateTowards(Vector3.up, normal, _maximumTilt * Mathf.Deg2Rad, 0f);
             Vector3 smoothedNormal = Vector3.Slerp(transform.up, normal,
-                1f - Mathf.Exp(-_rotationSharpness * Time.deltaTime)).normalized;
+                1f - Mathf.Exp(-_rotationSharpness * dt)).normalized;
             // Сохраняем горизонтальный курс руля при изменении крена и продольного наклона.
             Vector3 forward = _boat.HullDirection;
             forward.y = -Vector3.Dot(forward, smoothedNormal) / Mathf.Max(0.01f, smoothedNormal.y);

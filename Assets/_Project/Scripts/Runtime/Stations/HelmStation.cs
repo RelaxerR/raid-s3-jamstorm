@@ -53,10 +53,11 @@ namespace SecondCatch.Stations
             SetRowing(input.y);
         }
 
-        private void Update()
+        private void Update() => Advance(Time.deltaTime);
+
+        private void Advance(float dt)
         {
             if (Boat == null || !Boat.isActiveAndEnabled) SetActive(false);
-            float dt = Time.deltaTime;
             if (dt <= 0f) return;
             float input = Active ? _steeringInput : 0f;
             bool returning = Mathf.Abs(input) < 0.001f;
