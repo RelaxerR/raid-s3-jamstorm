@@ -12,5 +12,9 @@
 - [Проверка v2](v2/validation.md) и [CI](ci.md).
 - [Старая основа](project-foundation.md) — сохранённый API прототипа, не архитектура v2.
 - [Доступ к Wiki](yandex-wiki.md).
+- [Управление graybox](graybox-controls.md) — игрок на палубе, руль, парус и камера.
+- [Ветер и движение лодки](boat-wind-movement.md) — тяга, гребля, инерция и смена ветра.
+- [Игровой HUD](gameplay-hud.md) — статус лодки, режимы, подсказки и индикаторы.
+- [Интеграция HUD со сценой](hud-scene-integration.md).
 
 Документы связаны относительными Markdown-ссылками, доступны в GitHub и Obsidian. Дизайн — в [Wiki](https://wiki.yandex.ru/raid3/gdd-vtorojj-ulov-second-catch/vertikalnyjj-srez/); реализация и принятые решения — здесь.

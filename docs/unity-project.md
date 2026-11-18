@@ -2,6 +2,8 @@
 
 [Оглавление](index.md) · [Pipeline](v2/loading-pipeline.md) · [Компоненты](v2/components.md)
 
+Graybox-управление описано в [graybox-controls.md](graybox-controls.md), движение лодки и ветер — в [boat-wind-movement.md](boat-wind-movement.md), HUD — в [gameplay-hud.md](gameplay-hud.md).
+
 Unity **6000.5.1f1**, URP 17.5.0, Input System 1.19.0. Открыть корень через Hub, дождаться импорта.
 Открыть `Assets/_Project/Scenes/Boot.unity`, нажать Play. Техническая панель позволяет пройти New game → Depart → debug collect fish → Return to port → Sell catch → Buy speed upgrade → Depart. Для апгрейда собрать не меньше 10 рыб. Это проверка каркаса, не готовый серый билд.
 
