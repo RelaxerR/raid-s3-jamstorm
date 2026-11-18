@@ -54,8 +54,10 @@ namespace SecondCatch.Boat
             LastDamage = Mathf.Min(Current, amount);
             _lastDamageTime = Time.time;
             float remaining = Current - LastDamage;
-            Damaged?.Invoke(LastDamage);
+            // Подписчики получают уже применённый урон, включая состояние возврата при нулевом HP.
+            float appliedDamage = LastDamage;
             SetCurrent(remaining);
+            Damaged?.Invoke(appliedDamage);
         }
         internal void BeginRespawn() => IsRespawning = true;
         internal void CompleteRespawn()
