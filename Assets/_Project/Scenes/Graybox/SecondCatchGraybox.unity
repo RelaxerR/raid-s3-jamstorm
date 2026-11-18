@@ -2938,13 +2938,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c635c9db5083488281f554738f9ef322, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _wind: {fileID: 2300000002}
   _maxSpeed: 4
-  _speedWithSail: 3
-  _speedWithoutSail: 0.6
+  _sailSpeedMultiplier: 1
+  _rowingSpeed: 0.6
   _accelerationTime: 2
-  _turnSpeed: 50
-  _steeringResponse: 4
+  _decelerationTime: 1.5
+  _turnSpeed: 12
+  _steeringResponse: 2
   _sailRaised: 0
+  _sailAngle: 0
+  _maxSailAngle: 180
+  _sailEfficiencyExponent: 1
+  _minimumSailEfficiency: 0
+  _sailDirectionInfluence: 0.35
   _maxHitPoints: 100
   _hitPoints: 100
 --- !u!114 &2100000002
@@ -3018,6 +3025,7 @@ MonoBehaviour:
   _interactionRadius: 0.9
   _sailVisual: {fileID: 2100000011}
   _loweredHeightRatio: 0.15
+  _rotationSpeed: 45
 --- !u!1 &2100000010
 GameObject:
   m_ObjectHideFlags: 0
@@ -3082,6 +3090,58 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1001, guid: be15f63793d644fe8669ffaba2218c19, type: 3}
   m_PrefabInstance: {fileID: 2200000000}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2300000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2300000001}
+  - component: {fileID: 2300000002}
+  m_Layer: 0
+  m_Name: Wind
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2300000001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2300000000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -3, y: 4, z: 9.48}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2300000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2300000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9dfc62d85484ecfb4a9a804cb746dc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _direction: {x: 0, y: 0, z: 1}
+  _strength: 1
+  _minSpeed: 0
+  _maxSpeed: 3
+  _speed: 3
+  _gizmoColor: {r: 0, g: 1, b: 1, a: 1}
+  _gizmoLength: 3
+  _arrowHeadRatio: 0.2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -3090,3 +3150,4 @@ SceneRoots:
   - {fileID: 254610246}
   - {fileID: 993826026}
   - {fileID: 1044196046}
+  - {fileID: 2300000001}
