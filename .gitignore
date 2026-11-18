@@ -80,3 +80,6 @@ crashlytics-build.properties
 
 # Local credentials
 /.env
+
+# macOS Finder metadata
+.DS_Store
