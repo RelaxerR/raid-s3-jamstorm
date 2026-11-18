@@ -13,6 +13,7 @@ namespace SecondCatch.Boat
         [SerializeField, Min(0f)] private float _turnSpeed = 120f;
         [SerializeField, Min(0.01f)] private float _smoothingTime = 0.25f;
         [SerializeField, Range(0f, 30f)] private float _minimumDirectionChange = 0.5f;
+        private Quaternion _modelRotation;
         private float _targetHeading;
         private float _heading;
         private float _headingVelocity;
@@ -20,7 +21,10 @@ namespace SecondCatch.Boat
         private void OnEnable()
         {
             if (_flagVisual == null) _flagVisual = transform;
-            Vector3 axis = HorizontalModelAxis();
+            Vector3 axis = ModelAxis();
+            // Сохраняем авторский наклон модели и совмещаем её указанную ось с локальной +Z.
+            Quaternion authored = _flagVisual.localRotation;
+            _modelRotation = Quaternion.FromToRotation(authored * axis, Vector3.forward) * authored;
             Vector3 worldAxis = _flagVisual.rotation * axis;
             worldAxis.y = 0f;
             _heading = _targetHeading = worldAxis.sqrMagnitude > 0.0001f
@@ -40,31 +44,27 @@ namespace SecondCatch.Boat
             return true;
         }
 
-        private void LateUpdate()
+        private void LateUpdate() => Advance(Time.deltaTime);
+
+        private void Advance(float dt)
         {
             if (TryGetWindHeading(out float heading)
                 && Mathf.Abs(Mathf.DeltaAngle(_targetHeading, heading)) >= _minimumDirectionChange)
                 _targetHeading = heading;
-            if (Time.deltaTime > 0f)
+            if (dt > 0f)
                 _heading = Mathf.SmoothDampAngle(_heading, _targetHeading, ref _headingVelocity,
-                    Mathf.Max(0.01f, _smoothingTime), Mathf.Max(0f, _turnSpeed), Time.deltaTime);
+                    Mathf.Max(0.01f, _smoothingTime), Mathf.Max(0f, _turnSpeed), dt);
             // Даже без нового ветра компенсируем вращение родителя по последнему корректному направлению.
             ApplyRotation();
         }
 
-        private Vector3 HorizontalModelAxis()
-        {
-            Vector3 axis = _localDirectionAxis;
-            axis.y = 0f;
-            return axis.sqrMagnitude > 0.0001f ? axis.normalized : Vector3.forward;
-        }
+        private Vector3 ModelAxis() => _localDirectionAxis.sqrMagnitude > 0.0001f
+            ? _localDirectionAxis.normalized : Vector3.forward;
 
         private void ApplyRotation()
         {
-            Vector3 axis = HorizontalModelAxis();
-            float modelHeading = Mathf.Atan2(axis.x, axis.z) * Mathf.Rad2Deg;
-            // Меняем только вращение вокруг мировой Y; локальная позиция крепления и масштаб не записываются.
-            _flagVisual.rotation = Quaternion.AngleAxis(_heading + _angleOffset - modelHeading, Vector3.up);
+            // Позиция крепления остаётся дочерней лодке, мировое направление компенсирует родителя.
+            _flagVisual.rotation = Quaternion.AngleAxis(_heading + _angleOffset, Vector3.up) * _modelRotation;
         }
     }
 }
