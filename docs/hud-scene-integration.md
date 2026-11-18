@@ -18,39 +18,40 @@
 ```text
 Presentation
   GameplayHud                       Canvas, CanvasScaler, GameplayHud
-    BoatStatusPanel                 BoatStatusPanel, Image
-      StatusText                    Text
-      HitPointsTrack                Image
-        HitPointsFill               Image
-    ControlModeView                 ControlModeView, Image
-      ModeText                      Text
-    InteractionHintView             InteractionHintView, Image
-      HintText                      Text
-    CompassView                     CompassView, Image
-      HeadingText                   Text
-      FutureDirectionMarkers        выключен
-    MinimapView                     MinimapView, Image
-      Caption                       Text
-      SeaArea                       Image
-        IslandPlaceholder           Image, подпись центра
-        NorthLabel                  Text
-        FutureMapMarkers
-          FishMarkers               выключен
-          RockMarkers               выключен
-          PortMarkers               выключен
-          SpiritMarkers             выключен
-        BoatMarker                  Text, стрелка
-      PlaceholderLabel              Text
-    FutureGameplayIndicators        FutureGameplayIndicators
-      CargoPlaceholder              выключен, Image + дочерний Label
-      TensionPlaceholder            выключен, Image + дочерний Label
-      ReelingPlaceholder            выключен, Image + дочерний Label
-      LowHitPointsWarning           выключен, Image + дочерний Label
-      FishReceivedNotification      выключен, Image + дочерний Label
-      SpiritAppearedNotification    выключен, Image + дочерний Label
+    SafeArea                        внутренние 90% экрана
+      BoatStatusPanel                 BoatStatusPanel, Image
+        StatusText                    Text
+        HitPointsTrack                Image
+          HitPointsFill               Image
+      ControlModeView                 ControlModeView, Image
+        ModeText                      Text
+      InteractionHintView             InteractionHintView, Image
+        HintText                      Text
+      CompassView                     CompassView, Image
+        HeadingText                   Text
+        FutureDirectionMarkers        выключен
+      MinimapView                     MinimapView, Image
+        Caption                       Text
+        SeaArea                       Image
+          IslandPlaceholder           Image, подпись центра
+          NorthLabel                  Text
+          FutureMapMarkers
+            FishMarkers               выключен
+            RockMarkers               выключен
+            PortMarkers               выключен
+            SpiritMarkers             выключен
+          BoatMarker                  Text, стрелка
+        PlaceholderLabel              Text
+      FutureGameplayIndicators        FutureGameplayIndicators
+        CargoPlaceholder              выключен, Image + дочерний Label
+        TensionPlaceholder            выключен, Image + дочерний Label
+        ReelingPlaceholder            выключен, Image + дочерний Label
+        LowHitPointsWarning           выключен, Image + дочерний Label
+        FishReceivedNotification      выключен, Image + дочерний Label
+        SpiritAppearedNotification    выключен, Image + дочерний Label
 ```
 
-В сцене дополнительно записаны `_maxHitPoints: 100` и `_hitPoints: 100` существующего `BoatController`. Ссылки игрока на руль и парус сохранены. Существующие окружение, движение, камера и логика станций не заменялись. Список сцен сборки не менялся.
+В сцене дополнительно записаны `_maxHitPoints: 100` и `_hitPoints: 100` существующего `BoatController`. Ссылки игрока на руль и парус сохранены. Существующие окружение, движение, камера и логика станций не заменялись. Список сцен сборки не менялся. `SafeArea` — обычный RectTransform с отступами 5% через якоря; дополнительных компонентов и внешних зависимостей для него нет. Это фиксированная безопасная область HUD, а не адаптер вырезов экрана устройства.
 
 ## Ожидаемое поведение при ручном запуске
 
