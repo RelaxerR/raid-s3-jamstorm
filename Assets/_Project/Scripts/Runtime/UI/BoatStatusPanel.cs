@@ -56,7 +56,7 @@ namespace SecondCatch.UI
                 $"Скорость {boat.LongitudinalSpeed:+0.0;-0.0;0.0} · ход {boat.CurrentSpeed:0.0} ед/с\n" +
                 $"Парус {sailPosition} · {boat.SailAngle:+0;-0;0}°\n" +
                 $"Эффективность вперёд {boat.SailEfficiency:0%}\n{wind}\n" +
-                $"{movement}\nРуль {steering} · {boat.RudderAngle:+0;-0;0}°";
+                $"{movement}\n{boat.RowingAvailabilityText}\nРуль {steering} · {boat.RudderAngle:+0;-0;0}°";
         }
     }
 }

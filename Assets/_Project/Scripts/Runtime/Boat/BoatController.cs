@@ -12,10 +12,21 @@ namespace SecondCatch.Boat
         [SerializeField] private WindController _wind;
         [SerializeField] private WaveController _waves;
         private Vector3 _waveVelocity;
-        private Vector3 _motorVelocity;
+        private Vector3 _propulsionVelocity;
         private Vector3 _lastHullDirection = Vector3.forward;
         public bool IsRespawning { get; internal set; }
-        public Vector3 Velocity => _motorVelocity + _waveVelocity;
+        public Vector3 TotalBoatVelocity => _propulsionVelocity + WaveDrift;
+        public Vector3 Velocity => TotalBoatVelocity;
+        public Vector3 WaveDrift => _waveVelocity;
+        [SerializeField, Min(0f)] private float _sailThrustEpsilon = 0.001f;
+        public float SailThrustEpsilon => Mathf.Max(0f, _sailThrustEpsilon);
+        public float SailForwardThrust => SailSpeedContribution;
+        public Vector3 SailThrust => SailForce;
+        public bool RowingAvailable => !IsRespawning && SailForwardThrust <= SailThrustEpsilon;
+        public float RowingInput => _helm != null ? _helm.RowingInput : 0f;
+        public float RowingThrust => RowingSpeedContribution;
+        public string RowingAvailabilityText => RowingAvailable ? "Гребля доступна"
+            : IsRespawning ? "Гребля недоступна: возврат в порт" : "Гребля недоступна: работает парус";
         [SerializeField] private HelmStation _helm;
         [SerializeField] private SailStation _sail;
         [SerializeField, Min(0f)] private float _maxSpeed = 4f;
@@ -76,7 +87,7 @@ namespace SecondCatch.Boat
         public Vector3 SailDirection => Quaternion.AngleAxis(SailAngle, Vector3.up) * HullDirection;
         public Vector3 MovementDirection => Velocity.normalized;
         public bool HelmActive => _helm != null && _helm.Active;
-        public bool IsRowing => _helm != null && Mathf.Abs(_helm.RowingInput) > 0.001f;
+        public bool IsRowing => RowingAvailable && Mathf.Abs(RowingInput) > 0.001f;
         public float Steering => _helm != null ? _helm.Steering : 0f;
         public float RudderAngle => _helm != null ? _helm.RudderAngle : 0f;
         private float WindCapture => Wind == null ? 0f : Mathf.Lerp(_minimumSailEfficiency, 1f,
@@ -135,19 +146,19 @@ namespace SecondCatch.Boat
             float dt = Time.deltaTime;
             if (IsRespawning || dt <= 0f) return;
             // Состояния хода и волн независимы; визуальная поверхность не владеет скоростью лодки.
-            AdvanceMotor(dt);
+            AdvancePropulsion(dt);
             AdvanceYaw(dt);
             ApplyWaveField(dt);
             _lastHullDirection = HullDirection;
-            _longitudinalSpeed = Vector3.Dot(_motorVelocity, _lastHullDirection);
+            _longitudinalSpeed = Vector3.Dot(_propulsionVelocity, _lastHullDirection);
             transform.position += Velocity * dt;
         }
 
-        private void AdvanceMotor(float dt)
+        private void AdvancePropulsion(float dt)
         {
             Vector3 forward = HullDirection;
-            float currentSpeed = Vector3.Dot(_motorVelocity, forward);
-            Vector3 lateral = _motorVelocity - forward * currentSpeed;
+            float currentSpeed = Vector3.Dot(_propulsionVelocity, forward);
+            Vector3 lateral = _propulsionVelocity - forward * currentSpeed;
             float targetSpeed = Mathf.Clamp(SailSpeedContribution + RowingSpeedContribution,
                 -Mathf.Max(0f, _reverseRowingSpeed), Mathf.Max(0f, _maxSpeed));
             bool reversing = currentSpeed * targetSpeed < 0f;
@@ -158,8 +169,8 @@ namespace SecondCatch.Boat
                 intermediateTarget, Mathf.Max(0.01f, _maxSpeed) / (responseTime * MassRatio) * dt);
             speed *= Mathf.Exp(-Mathf.Max(0f, _movementResistance) / MassRatio * dt);
             lateral *= Mathf.Exp(-Mathf.Max(0f, _lateralResistance) / MassRatio * dt);
-            // Сохраняем рассчитанный разгон один раз. Дрейф не входит в обратную связь мотора.
-            _motorVelocity = forward * speed + lateral;
+            // Сохраняем рассчитанный разгон один раз. Дрейф не входит в обратную связь тяги.
+            _propulsionVelocity = forward * speed + lateral;
             _longitudinalSpeed = speed;
         }
 
@@ -187,13 +198,13 @@ namespace SecondCatch.Boat
             _waveVelocity += _waves.ReturnAcceleration(transform.position) / MassRatio * dt;
             float outwardSpeed = Mathf.Max(0f, -Vector3.Dot(Velocity, inward));
             float reduction = outwardSpeed * (1f - Mathf.Exp(-_waves.ResistanceAt(transform.position) / MassRatio * dt));
-            // Уменьшаем только наружный ход каждого источника; не переносим дрейф обратно в мотор.
-            float motorOutward = Mathf.Max(0f, -Vector3.Dot(_motorVelocity, inward));
+            // Уменьшаем только наружный ход каждого источника; не переносим дрейф обратно в тягу.
+            float propulsionOutward = Mathf.Max(0f, -Vector3.Dot(_propulsionVelocity, inward));
             float waveOutward = Mathf.Max(0f, -Vector3.Dot(_waveVelocity, inward));
-            float totalOutward = motorOutward + waveOutward;
+            float totalOutward = propulsionOutward + waveOutward;
             if (totalOutward <= 0f) return;
             Vector3 correction = inward * reduction;
-            _motorVelocity += correction * (motorOutward / totalOutward);
+            _propulsionVelocity += correction * (propulsionOutward / totalOutward);
             _waveVelocity += correction * (waveOutward / totalOutward);
         }
 
@@ -210,7 +221,7 @@ namespace SecondCatch.Boat
                 $"massRatio={MassRatio:0.000}, helm={HelmActive}, rowingInput={(_helm != null ? _helm.RowingInput : 0f):0.000}, " +
                 $"rowing={RowingSpeedContribution:0.000}, sail={SailSpeedContribution:0.000}, " +
                 $"deployment={SailDeployment:0.000}, projection={Vector3.Dot(SailForce, HullDirection):0.000}, " +
-                $"waves={waveAcceleration}, motor={_motorVelocity}, drift={_waveVelocity}, " +
+                $"waves={waveAcceleration}, propulsion={_propulsionVelocity}, drift={_waveVelocity}, " +
                 $"velocity={Velocity}, body=[{bodyState}]", this);
         }
 #endif
@@ -222,7 +233,7 @@ namespace SecondCatch.Boat
             _longitudinalSpeed = 0f;
             _yawSpeed = 0f;
             _waveVelocity = Vector3.zero;
-            _motorVelocity = Vector3.zero;
+            _propulsionVelocity = Vector3.zero;
         }
 
         private void OnDisable()

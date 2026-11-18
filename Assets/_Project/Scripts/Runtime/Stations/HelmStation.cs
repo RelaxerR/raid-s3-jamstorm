@@ -27,6 +27,7 @@ namespace SecondCatch.Stations
         public bool Active => _active && isActiveAndEnabled;
         public float Steering => RudderAngle / Mathf.Max(1f, _maxRudderAngle);
         public float CourseCorrection => Steering;
+        public bool RowingAvailable => Boat != null && Boat.RowingAvailable;
 
         private void Awake()
         {
