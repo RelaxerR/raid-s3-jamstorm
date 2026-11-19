@@ -14,6 +14,7 @@ namespace SecondCatch.Boat
         private Vector3 _waveVelocity;
         private Vector3 _propulsionVelocity;
         private Vector3 _lastHullDirection = Vector3.forward;
+        internal float PropulsionMultiplier { get; set; } = 1f;
         public bool IsRespawning { get; internal set; }
         public Vector3 TotalBoatVelocity => _propulsionVelocity + WaveDrift;
         public Vector3 Velocity => TotalBoatVelocity;
@@ -98,10 +99,10 @@ namespace SecondCatch.Boat
         public float SailEfficiency => WindCapture * Mathf.Max(0f, Vector3.Dot(ForceDirection, HullDirection));
         public Vector3 SailForce => Wind == null || _sail == null ? Vector3.zero
             : ForceDirection * (Wind.Speed * Wind.Strength * Wind.SailInfluence * Mathf.Max(0f, _sailSpeedMultiplier)
-                * WindCapture * _sail.ThrustMultiplier);
+                * WindCapture * _sail.ThrustMultiplier * PropulsionMultiplier);
         public float SailSpeedContribution => Mathf.Max(0f, Vector3.Dot(SailForce, HullDirection));
-        public float ForwardRowingContribution => IsRowing ? Mathf.Max(0f, _helm.RowingInput) * _rowingSpeed : 0f;
-        public float ReverseRowingContribution => IsRowing ? Mathf.Max(0f, -_helm.RowingInput) * _reverseRowingSpeed : 0f;
+        public float ForwardRowingContribution => IsRowing ? Mathf.Max(0f, _helm.RowingInput) * _rowingSpeed * PropulsionMultiplier : 0f;
+        public float ReverseRowingContribution => IsRowing ? Mathf.Max(0f, -_helm.RowingInput) * _reverseRowingSpeed * PropulsionMultiplier : 0f;
         public float RowingSpeedContribution => ForwardRowingContribution - ReverseRowingContribution;
         public float MaxHitPoints => Health != null ? Health.Maximum : Mathf.Max(1f, _maxHitPoints);
         public float HitPoints => Health != null ? Health.Current : Mathf.Clamp(_hitPoints, 0f, MaxHitPoints);
@@ -110,7 +111,8 @@ namespace SecondCatch.Boat
         {
             _health = GetComponent<BoatHealth>();
             if (_health == null) _health = gameObject.AddComponent<BoatHealth>();
-            if (GetComponent<BoatRespawnController>() == null) gameObject.AddComponent<BoatRespawnController>();
+            if (!_health.UsesVoyageState && GetComponent<BoatRespawnController>() == null)
+                gameObject.AddComponent<BoatRespawnController>();
             if (!_healthSettingsMigrated)
             {
                 _health.ImportLegacy(_maxHitPoints, _hitPoints);
@@ -159,14 +161,15 @@ namespace SecondCatch.Boat
             Vector3 forward = HullDirection;
             float currentSpeed = Vector3.Dot(_propulsionVelocity, forward);
             Vector3 lateral = _propulsionVelocity - forward * currentSpeed;
+            float maximumSpeed = Mathf.Max(0f, _maxSpeed) * PropulsionMultiplier;
             float targetSpeed = Mathf.Clamp(SailSpeedContribution + RowingSpeedContribution,
-                -Mathf.Max(0f, _reverseRowingSpeed), Mathf.Max(0f, _maxSpeed));
+                -Mathf.Max(0f, _reverseRowingSpeed) * PropulsionMultiplier, maximumSpeed);
             bool reversing = currentSpeed * targetSpeed < 0f;
             bool accelerating = !reversing && Mathf.Abs(targetSpeed) > Mathf.Abs(currentSpeed);
             float responseTime = accelerating ? _accelerationTime : _decelerationTime;
             float intermediateTarget = reversing ? 0f : targetSpeed;
             float speed = responseTime <= 0f ? intermediateTarget : Mathf.MoveTowards(currentSpeed,
-                intermediateTarget, Mathf.Max(0.01f, _maxSpeed) / (responseTime * MassRatio) * dt);
+                intermediateTarget, Mathf.Max(0.01f, maximumSpeed) / (responseTime * MassRatio) * dt);
             speed *= Mathf.Exp(-Mathf.Max(0f, _movementResistance) / MassRatio * dt);
             lateral *= Mathf.Exp(-Mathf.Max(0f, _lateralResistance) / MassRatio * dt);
             // Сохраняем рассчитанный разгон один раз. Дрейф не входит в обратную связь тяги.

@@ -1,9 +1,10 @@
 using System;
+using SecondCatch.Solo;
 using UnityEngine;
 
 namespace SecondCatch.Boat
 {
-    /// <summary>Хранит HP, принимает урон и сообщает об уничтожении лодки.</summary>
+    /// <summary>Принимает контактный урон и показывает HP сессии или автономного graybox.</summary>
     [DefaultExecutionOrder(-150)]
     [DisallowMultipleComponent]
     public sealed class BoatHealth : MonoBehaviour
@@ -13,8 +14,11 @@ namespace SecondCatch.Boat
         [SerializeField, Min(0f)] private float _damageFeedbackDuration = 1.2f;
         private bool _initialized;
         private float _lastDamageTime = float.NegativeInfinity;
-        public float Maximum => Mathf.Max(1f, _maximum);
-        public float Current => Mathf.Clamp(_current, 0f, Maximum);
+        private BoatState _voyageBoat;
+        private Func<int, int> _applyVoyageDamage;
+        internal bool UsesVoyageState => _voyageBoat != null;
+        public float Maximum => UsesVoyageState ? _voyageBoat.MaxHp : Mathf.Max(1f, _maximum);
+        public float Current => UsesVoyageState ? _voyageBoat.Hp : Mathf.Clamp(_current, 0f, Maximum);
         public bool IsDestroyed => Current <= 0f;
         public bool IsRespawning { get; private set; }
         public float LastDamage { get; private set; }
@@ -24,6 +28,14 @@ namespace SecondCatch.Boat
         public event Action Destroyed;
 
         private void Awake() => EnsureInitialized();
+
+        internal void BindVoyage(BoatState boat, Func<int, int> applyDamage)
+        {
+            _voyageBoat = boat;
+            _applyVoyageDamage = applyDamage;
+            Changed?.Invoke(Current, Maximum);
+        }
+
         private void EnsureInitialized()
         {
             if (_initialized) return;
@@ -41,7 +53,7 @@ namespace SecondCatch.Boat
         public void SetCurrent(float value)
         {
             EnsureInitialized();
-            if (IsRespawning || float.IsNaN(value)) return;
+            if (UsesVoyageState || IsRespawning || float.IsNaN(value)) return;
             bool wasDestroyed = IsDestroyed;
             _current = Mathf.Clamp(value, 0f, Maximum);
             Changed?.Invoke(Current, Maximum);
@@ -51,12 +63,16 @@ namespace SecondCatch.Boat
         {
             EnsureInitialized();
             if (!isActiveAndEnabled || IsDestroyed || IsRespawning || float.IsNaN(amount) || amount <= 0f) return;
-            LastDamage = Mathf.Min(Current, amount);
+            float appliedDamage = Mathf.Min(Current, amount);
+            if (UsesVoyageState)
+            {
+                appliedDamage = _applyVoyageDamage(Mathf.CeilToInt(appliedDamage));
+                if (appliedDamage <= 0f) return;
+            }
+            LastDamage = appliedDamage;
             _lastDamageTime = Time.time;
-            float remaining = Current - LastDamage;
-            // Подписчики получают уже применённый урон, включая состояние возврата при нулевом HP.
-            float appliedDamage = LastDamage;
-            SetCurrent(remaining);
+            if (UsesVoyageState) Changed?.Invoke(Current, Maximum);
+            else SetCurrent(Current - appliedDamage);
             Damaged?.Invoke(appliedDamage);
         }
         internal void BeginRespawn() => IsRespawning = true;

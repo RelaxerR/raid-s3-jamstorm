@@ -24,7 +24,8 @@ namespace SecondCatch.Application
         public bool NewGame() => Navigate(GameScenes.PORT, () => Session = new SoloGameSession());
         public bool ContinueGame() => Session != null && Navigate(Session.AtSea ? GameScenes.SEA : GameScenes.PORT, null);
         public bool Depart() => Session != null && !Session.AtSea && Navigate(GameScenes.SEA, () => Session.Depart());
-        public bool ReturnToPort() => Session != null && Navigate(GameScenes.PORT, () => Session.Dock());
+        public bool ReturnToPort() => Session != null && SceneManager.GetActiveScene().path == GameScenes.Path(GameScenes.SEA)
+            && Navigate(GameScenes.PORT, () => Session.Dock());
         private bool Navigate(string scene, Action commit)
         {
             if (IsLoading) return false;
