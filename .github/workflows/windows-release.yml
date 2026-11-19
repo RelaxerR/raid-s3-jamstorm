@@ -48,6 +48,7 @@ jobs:
       - name: Upload Windows archive
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.PROJECT_NAME }}-Windows.zip
           path: ${{ env.PROJECT_NAME }}-Windows.zip
           if-no-files-found: error
           archive: false
@@ -62,6 +63,7 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           name: ${{ env.PROJECT_NAME }}-Windows.zip
+          skip-decompress: true
 
       - name: Extract and launch standalone player
         shell: pwsh
@@ -125,6 +127,7 @@ jobs:
       - name: Upload macOS archive
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.PROJECT_NAME }}-macOS-Universal.zip
           path: ${{ env.PROJECT_NAME }}-macOS-Universal.zip
           if-no-files-found: error
           archive: false
@@ -143,6 +146,7 @@ jobs:
         with:
           pattern: ${{ env.PROJECT_NAME }}-*.zip
           merge-multiple: true
+          skip-decompress: true
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.RELEASE_VERSION }}
