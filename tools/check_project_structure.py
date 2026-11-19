@@ -7,10 +7,17 @@ import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parent.parent
+URP_SCENE_SCRIPTS = {
+    'a79441f348de89743a2939f4d699eac1',  # UniversalAdditionalCameraData
+    '474bcb49853aa07438625e644c072ee6',  # UniversalAdditionalLightData
+}
 
 
 def check(baseline=None):
     errors = []
+    manifest = json.loads((ROOT / 'Packages/manifest.json').read_text())['dependencies']
+    # CI runs this check before Unity has downloaded registry packages.
+    package_scripts = URP_SCENE_SCRIPTS if 'com.unity.render-pipelines.universal' in manifest else set()
     guids = {}
     for meta in (ROOT / 'Assets').rglob('*.meta'):
         match = re.search(r'^guid: ([0-9a-f]{32})$', meta.read_text(), re.M)
@@ -39,7 +46,7 @@ def check(baseline=None):
         scene_path = ROOT / path
         if scene_path.exists():
             for script_guid in re.findall(r'm_Script:.*guid: ([0-9a-f]{32})', scene_path.read_text()):
-                if script_guid not in guids:
+                if script_guid not in guids and script_guid not in package_scripts:
                     errors.append(f'Missing script GUID in {path}: {script_guid}')
     for doc in [ROOT / 'README.md', * (ROOT / 'docs').rglob('*.md')]:
         for link in re.findall(r'\]\(([^)]+)\)', doc.read_text()):
@@ -48,7 +55,6 @@ def check(baseline=None):
             target = link.split('#')[0]
             if not (doc.parent / target).exists():
                 errors.append(f'Broken link in {doc.relative_to(ROOT)}: {link}')
-    manifest = json.loads((ROOT / 'Packages/manifest.json').read_text())['dependencies']
     lock = json.loads((ROOT / 'Packages/packages-lock.json').read_text())['dependencies']
     for package, version in manifest.items():
         if lock.get(package, {}).get('version') != version:

@@ -11,7 +11,8 @@
 | `Application/MainMenuController.cs` | Новая игра и продолжение в памяти; подключён в MainMenu | [Приложение](entities/application.md) |
 | `Port/HomePortController.cs` | Портовые команды; подключён в HomePort | [Порт](entities/port.md) |
 | `Voyage/HomeShallowsController.cs` | Улов, урон, возврат и обработка гибели; подключён в HomeShallows | [Сессия](entities/session.md) |
-| `UI/SceneFlowPanel.cs` | Технический пульт переходов, debug-сигналы; подключён в трёх сценах | [Приложение](entities/application.md) |
+| `Voyage/PortZone.cs` | Физический триггер возврата по входу корпуса после выхода со стоянки | [Порт](entities/port.md) |
+| `UI/SceneFlowPanel.cs` | Меню, портовые действия и подсказка причала | [Приложение](entities/application.md) |
 | `Game/SoloGameSession.cs` | Состояние одиночной игры и проверяемые команды | [Сессия](entities/session.md) |
 | `Game/BoatState.cs` | HP, респавн, усиление скорости | [Лодка](entities/boat.md) |
 | `Game/FishCargo.cs` | Одна бочка одного вида с лимитом | [Груз](entities/cargo.md) |
@@ -19,7 +20,7 @@
 | `Boat/BoatController.cs` | Ход graybox, парус/гребля, инерция, руль, дрейф и сопротивление волн | [Движение](../boat-wind-movement.md) |
 | `Boat/WaveController.cs` | Радиальное давление моря и настройки амплитуды OceanPro | [Волны](../boat-waves-buoyancy.md) |
 | `Boat/BoatBuoyancy.cs` | Управляемая вертикальная поддержка и качка по четырём Transform | [Плавучесть](../boat-waves-buoyancy.md) |
-| `Boat/BoatHealth.cs` | HP 100, урон, Changed/Damaged/Destroyed, защита при возврате | [HP](../boat-waves-buoyancy.md) |
+| `Boat/BoatHealth.cs` | Адаптер HP и контактного урона для сессии, локальные HP автономной сцены | [HP](../boat-waves-buoyancy.md) |
 | `Boat/BoatRespawnController.cs` | Возврат в порт, освобождение станций, сброс движения, восстановление игрока/HP | [Респавн](../boat-waves-buoyancy.md) |
 | `Boat/BoatDamageSource.cs` | Reef/Rock/Debris, 15/25/5 HP, cooldown контактов | [Источники урона](../boat-waves-buoyancy.md) |
 | `Fishing/FishSchool.cs` | Заготовка одноразового источника улова через TryCollect | [Груз](entities/cargo.md) |
@@ -32,6 +33,6 @@
 
 `Foundation/GameSession.cs`, `SessionState.cs`, `LocalSessionHost.cs`, `Player/LifebuoyController.cs`, `Leviathan/*.cs` перенесены с сохранением GUID и поведения. Старый API описан в [архиве](../project-foundation.md). Новые сцены не ссылаются на LocalSessionHost. Плагины и их публичные API перечислены в [запуске проекта](../unity-project.md).
 
-Graybox `SecondCatchGraybox` использует `WaveController` и общий `OceanSystem` из `Plugins/OceanPro`, с четырьмя настраиваемыми Gerstner-волнами на CPU и в шейдере. `SeaEnvironment` остаётся прежним контрактом каркаса, в graybox не назначен. `OceanBuoyancy` сохраняется для остальных потребителей плагина. Управляемой лодкой graybox по вертикали владеет `BoatBuoyancy`. Существующий `GameplayHud/BoatStatusPanel` показывает HP, урон и состояние возврата.
+`HomeShallows` и автономный `SecondCatchGraybox` используют `WaveController` и общий `OceanSystem` из `Plugins/OceanPro`, с четырьмя настраиваемыми Gerstner-волнами на CPU и в шейдере. `SeaEnvironment` остаётся прежним контрактом каркаса, в graybox не назначен. `OceanBuoyancy` сохраняется для остальных потребителей плагина. Управляемой лодкой graybox по вертикали владеет `BoatBuoyancy`. Существующий `GameplayHud/BoatStatusPanel` показывает HP, урон и состояние возврата.
 
-Для общей интеграции с pipeline требуется согласовать владельца HP между `Game/BoatState` и локальным `BoatHealth`. Текущая graybox-сцена использует 100 HP и полное восстановление в порту, модель отдельной сессии сохраняет существующие правила. Рыбалка, дух и экономика остаются отдельными точками интеграции. Полная схема описана в [волнах и плавучести](../boat-waves-buoyancy.md).
+В одиночном рейсе состоянием HP владеет `SoloGameSession.Boat`. В автономном graybox действует локальный BoatHealth с 100 HP и полным восстановлением. Точки подключения улова и правила возврата описаны в [pipeline](loading-pipeline.md).
