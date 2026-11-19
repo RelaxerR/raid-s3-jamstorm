@@ -40,7 +40,7 @@ namespace SecondCatch.Tests
                         foreach (var component in root.GetComponentsInChildren<Transform>(true))
                             Assert.AreEqual(0, GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(component.gameObject));
                     if (expected[i] == GameScenes.MENU || expected[i] == GameScenes.PORT)
-                        Assert.IsTrue(System.Array.Exists(roots, root => root.TryGetComponent<Camera>(out var camera)
+                        Assert.IsTrue(Array.Exists(roots, root => root.TryGetComponent<UnityEngine.Camera>(out var camera)
                             && camera.isActiveAndEnabled), $"Для отрисовки IMGUI в Player нужна камера в {scene.name}");
                 }
             }
