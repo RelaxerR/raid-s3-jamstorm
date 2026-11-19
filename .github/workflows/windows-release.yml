@@ -1,14 +1,12 @@
 name: Release builds
 
 on:
-  # A merge into main produces a push event, so this runs after the merge is complete.
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   UNITY_VERSION: 6000.5.1f1
@@ -16,17 +14,18 @@ env:
   RELEASE_VERSION: 0.0.${{ github.run_number }}
 
 jobs:
-  build-and-release:
-    name: Build and publish game
+  windows:
+    name: Build Windows player
     runs-on: ubuntu-24.04
     timeout-minutes: 60
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           lfs: true
-          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Test Windows packaging
+        run: python3 tools/test_package_windows_player.py
 
       - name: Build Windows player
         uses: game-ci/unity-builder@v4
@@ -40,11 +39,62 @@ jobs:
           versioning: Custom
           version: ${{ env.RELEASE_VERSION }}
           targetPlatform: StandaloneWindows64
-          buildName: raid-s3-jamstorm
+          buildName: ${{ env.PROJECT_NAME }}
           buildsPath: build
 
-      - name: Archive Windows player
-        run: zip -r "${PROJECT_NAME}-Windows.zip" build/${PROJECT_NAME}
+      - name: Archive and verify Windows player
+        run: bash tools/package_windows_player.sh "$PROJECT_NAME"
+
+      - name: Upload Windows archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.PROJECT_NAME }}-Windows.zip
+          path: ${{ env.PROJECT_NAME }}-Windows.zip
+          if-no-files-found: error
+          archive: false
+          overwrite: true
+
+  windows-smoke:
+    name: Launch Windows player
+    needs: windows
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.PROJECT_NAME }}-Windows.zip
+          skip-decompress: true
+
+      - name: Extract and launch standalone player
+        shell: pwsh
+        run: |
+          Expand-Archive "$env:PROJECT_NAME-Windows.zip" -DestinationPath player
+          $exe = Join-Path "$PWD/player" "$env:PROJECT_NAME.exe"
+          $log = Join-Path "$PWD" "player.log"
+          $process = Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe) `
+            -ArgumentList "-batchmode", "-nographics", "-logFile", "`"$log`"" -PassThru
+          try {
+            Start-Sleep -Seconds 15
+            $process.Refresh()
+            if ($process.HasExited) { throw "Windows player exited early ($($process.ExitCode))." }
+            if (!(Test-Path $log) -or !(Select-String -Path $log -SimpleMatch 'Initialize engine version')) {
+              throw 'Windows player did not log Unity engine initialization.'
+            }
+            'Extracted Windows Player initialized and stayed running.' >> $env:GITHUB_STEP_SUMMARY
+          } finally {
+            if (!$process.HasExited) { Stop-Process -Id $process.Id -ErrorAction SilentlyContinue }
+            if (Test-Path $log) { Get-Content $log -Tail 80 }
+          }
+
+  macos:
+    name: Build macOS Universal player
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+          persist-credentials: false
 
       - name: Build macOS Universal player
         uses: game-ci/unity-builder@v4
@@ -58,18 +108,51 @@ jobs:
           versioning: Custom
           version: ${{ env.RELEASE_VERSION }}
           targetPlatform: StandaloneOSX
+          buildName: ${{ env.PROJECT_NAME }}
+          buildsPath: build
           buildMethod: RaidS3Jamstorm.Editor.CiBuild.BuildMacOSUniversal
-          customParameters: -outputPath build/${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}.app
+          customParameters: -outputPath build/StandaloneOSX/${{ env.PROJECT_NAME }}.app
 
-      - name: Archive macOS player
-        run: zip -r "${PROJECT_NAME}-macOS-Universal.zip" "build/${PROJECT_NAME}/${PROJECT_NAME}.app"
+      - name: Archive and verify macOS player
+        run: |
+          archive="$PWD/${PROJECT_NAME}-macOS-Universal.zip"
+          bundle="${PROJECT_NAME}.app"
+          cd build/StandaloneOSX
+          executable=$(python3 -c 'import plistlib, sys; print(plistlib.load(open(sys.argv[1], "rb"))["CFBundleExecutable"])' "$bundle/Contents/Info.plist")
+          test -x "$bundle/Contents/MacOS/$executable"
+          zip -qry "$archive" "$bundle"
+          unzip -tq "$archive"
+          unzip -Z -1 "$archive" "$bundle/Contents/MacOS/$executable"
 
-      - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
+      - name: Upload macOS archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.PROJECT_NAME }}-macOS-Universal.zip
+          path: ${{ env.PROJECT_NAME }}-macOS-Universal.zip
+          if-no-files-found: error
+          archive: false
+          overwrite: true
+
+  release:
+    name: Publish GitHub Release
+    if: github.ref == 'refs/heads/main'
+    needs: [windows-smoke, macos]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: ${{ env.PROJECT_NAME }}-*.zip
+          merge-multiple: true
+          skip-decompress: true
+      - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.RELEASE_VERSION }}
           name: raid-s3-jamstorm v${{ env.RELEASE_VERSION }}
           generate_release_notes: true
+          fail_on_unmatched_files: true
           files: |
             ${{ env.PROJECT_NAME }}-Windows.zip
             ${{ env.PROJECT_NAME }}-macOS-Universal.zip
