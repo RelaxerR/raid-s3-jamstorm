@@ -42,6 +42,14 @@ namespace SecondCatch.Tests
                     if (expected[i] == GameScenes.MENU || expected[i] == GameScenes.PORT)
                         Assert.IsTrue(Array.Exists(roots, root => root.TryGetComponent<UnityEngine.Camera>(out var camera)
                             && camera.isActiveAndEnabled), $"Для отрисовки IMGUI в Player нужна камера в {scene.name}");
+                    if (expected[i] == GameScenes.SEA)
+                    {
+                        var ocean = FindInActiveScene<OceanSystem>();
+                        using var serializedOcean = new SerializedObject(ocean);
+                        var shader = serializedOcean.FindProperty("surfaceShader").objectReferenceValue;
+                        Assert.NotNull(shader, "Прямая ссылка на шейдер воды нужна для включения в Player");
+                        Assert.AreEqual("OceanPro/Depth Foam Water", shader.name);
+                    }
                 }
             }
             finally { EditorSceneManager.RestoreSceneManagerSetup(setup); }

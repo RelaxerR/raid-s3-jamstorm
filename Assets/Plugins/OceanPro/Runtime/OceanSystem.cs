@@ -8,6 +8,7 @@ using UnityEngine;
 public class OceanSystem : MonoBehaviour
 {
     [Header("Поверхность")]
+    [SerializeField] private Shader surfaceShader;
     [Min(10f)] [SerializeField] private float oceanSize = 1000f;
     [Range(32, 256)] [SerializeField] private int resolution = 256;
     [Min(0.05f)] [SerializeField] private float waveHeight = 1.8f;
@@ -198,7 +199,7 @@ public class OceanSystem : MonoBehaviour
         generatedMesh.name = "Ocean Surface (generated)";
         filter.sharedMesh = generatedMesh;
 
-        Shader shader = Shader.Find("OceanPro/Depth Foam Water");
+        Shader shader = surfaceShader != null ? surfaceShader : Shader.Find("OceanPro/Depth Foam Water");
         if (shader == null)
         {
             Debug.LogError("OceanPro: shader OceanPro/Depth Foam Water not found. Check that OceanDepthFoam.shader imported without errors.", this);

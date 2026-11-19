@@ -3352,6 +3352,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b541a5e618547d7418556a886ff420ce, type: 3}
   m_Name:
   m_EditorClassIdentifier:
+  surfaceShader: {fileID: 4800000, guid: e87108908326e0148b130aa8abf501e2, type: 3}
   oceanSize: 400
   resolution: 128
   waveHeight: 1
