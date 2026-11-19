@@ -35,9 +35,13 @@ namespace SecondCatch.Tests
                     Assert.IsTrue(EditorBuildSettings.scenes[i].enabled);
                     Assert.AreEqual(GameScenes.Path(expected[i]), EditorBuildSettings.scenes[i].path);
                     var scene = EditorSceneManager.OpenScene(GameScenes.Path(expected[i]));
-                    foreach (var root in scene.GetRootGameObjects())
+                    var roots = scene.GetRootGameObjects();
+                    foreach (var root in roots)
                         foreach (var component in root.GetComponentsInChildren<Transform>(true))
                             Assert.AreEqual(0, GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(component.gameObject));
+                    if (expected[i] == GameScenes.MENU || expected[i] == GameScenes.PORT)
+                        Assert.IsTrue(System.Array.Exists(roots, root => root.TryGetComponent<Camera>(out var camera)
+                            && camera.isActiveAndEnabled), $"Для отрисовки IMGUI в Player нужна камера в {scene.name}");
                 }
             }
             finally { EditorSceneManager.RestoreSceneManagerSetup(setup); }
