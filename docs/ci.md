@@ -8,9 +8,14 @@ GitHub Actions проверяет версию проекта и согласо�
 
 В настройках [GitHub Actions secrets](https://github.com/RelaxerR/raid-s3-jamstorm/settings/secrets/actions) администратор добавляет `UNITY_EMAIL` и `UNITY_PASSWORD` для учётной записи CI и один из секретов по типу лицензии. Для Personal нужен `UNITY_LICENSE`, для Pro — `UNITY_SERIAL`. См. [инструкцию GameCI](https://game.ci/docs/github/activation/). Если активация не настроена или секреты недоступны событию PR, проверка Unity завершится ошибкой. Секреты доступны коду, выполняемому Unity. Запускайте CI с учётными данными только для доверенных веток.
 
-## Windows-релиз
+## Релизные сборки
 
-Workflow `.github/workflows/windows-release.yml` запускается после каждого push в `main` (в том числе после слияния PR) и вручную через `workflow_dispatch`. Он собирает `raid-s3-jamstorm-Windows.zip` и macOS Universal-сборку `raid-s3-jamstorm-macOS-Universal.zip`, после чего создаёт GitHub Release. Версия `0.0.<номер запуска>` записывается и в Unity Player Settings (`Application.version`/bundle version), и в GitHub Release tag (`v0.0.<номер запуска>`). Для публикации релиза workflow использует `contents: write`; Unity-активация использует те же `UNITY_EMAIL`, `UNITY_PASSWORD` и `UNITY_LICENSE` или `UNITY_SERIAL`.
+[Release builds](https://github.com/RelaxerR/raid-s3-jamstorm/actions/workflows/windows-release.yml) запускается после push в `main` и вручную через `workflow_dispatch`. Для проверки PR выберите его ветку при ручном запуске. Windows и macOS собираются параллельно и публикуют ZIP независимо в разделе **Artifacts** прогона.
+
+- **Windows x64**. GameCI кладёт Player в `build/StandaloneWindows64`. `raid-s3-jamstorm-Windows.zip` содержит в корне `raid-s3-jamstorm.exe`, `raid-s3-jamstorm_Data` и остальные файлы Player. Перед загрузкой CI проверяет входные файлы, целостность и содержимое ZIP. Задание **Launch Windows player** распаковывает его и запускает Player в режиме без графики на Windows runner. Чтобы проверить главное меню с графикой, на Windows распакуйте весь ZIP и откройте `raid-s3-jamstorm.exe` из распакованного каталога.
+- **macOS Universal**. `CiBuild.BuildMacOSUniversal` собирает `build/StandaloneOSX/raid-s3-jamstorm.app`. В корне `raid-s3-jamstorm-macOS-Universal.zip` лежит `.app` с исполняемым файлом. CI проверяет путь из `Info.plist` и целостность ZIP.
+
+GitHub Release создаётся для `main` после успешной сборки обеих платформ и запуска Windows Player. Версия `0.0.<номер запуска>` записывается в Unity Player Settings и используется в теге `v0.0.<номер запуска>`. Сбой macOS оставляет Windows ZIP доступным в артефактах прогона.
 
 ## Защита main
 
