@@ -1,0 +1,38 @@
+# Реестр компонентов и точек интеграции
+
+[Оглавление](../index.md) · [Архитектура](architecture.md) · [Проверки](validation.md)
+
+Все пути ниже относительно `Assets/_Project/Scripts/Runtime/`. Обозначение «заготовка» означает контракт для интегратора, без подключения к игровому миру и без заявления о завершённой механике.
+
+| Файл / тип | Ответственность и статус | Документ |
+| --- | --- | --- |
+| `Application/GameScenes.cs` | Полные пути четырёх сцен, используется приложением и сборкой | [Приложение](entities/application.md) |
+| `Application/GameApplication.cs` | Постоянный корень Boot, сессия, переходы, блокировка, ошибки; подключён | [Приложение](entities/application.md), [Pipeline](loading-pipeline.md) |
+| `Application/MainMenuController.cs` | Новая игра и продолжение в памяти; подключён в MainMenu | [Приложение](entities/application.md) |
+| `Port/HomePortController.cs` | Портовые команды; подключён в HomePort | [Порт](entities/port.md) |
+| `Voyage/HomeShallowsController.cs` | Улов, урон, возврат и обработка гибели; подключён в HomeShallows | [Сессия](entities/session.md) |
+| `Voyage/PortZone.cs` | Физический триггер возврата по входу корпуса после выхода со стоянки | [Порт](entities/port.md) |
+| `UI/SceneFlowPanel.cs` | Меню, портовые действия и подсказка причала | [Приложение](entities/application.md) |
+| `Game/SoloGameSession.cs` | Состояние одиночной игры и проверяемые команды | [Сессия](entities/session.md) |
+| `Game/BoatState.cs` | HP, респавн, усиление скорости | [Лодка](entities/boat.md) |
+| `Game/FishCargo.cs` | Одна бочка одного вида с лимитом | [Груз](entities/cargo.md) |
+| `Game/StationAssignment.cs` | Заготовка локального назначения исполнителей, StationRole для v2 | [Станции и экипаж](entities/stations-crew.md) |
+| `Boat/BoatController.cs` | Ход graybox, парус/гребля, инерция, руль, дрейф и сопротивление волн | [Движение](../boat-wind-movement.md) |
+| `Boat/WaveController.cs` | Радиальное давление моря и настройки амплитуды OceanPro | [Волны](../boat-waves-buoyancy.md) |
+| `Boat/BoatBuoyancy.cs` | Управляемая вертикальная поддержка и качка по четырём Transform | [Плавучесть](../boat-waves-buoyancy.md) |
+| `Boat/BoatHealth.cs` | Адаптер HP и контактного урона для сессии, локальные HP автономной сцены | [HP](../boat-waves-buoyancy.md) |
+| `Boat/BoatRespawnController.cs` | Возврат в порт, освобождение станций, сброс движения, восстановление игрока/HP | [Респавн](../boat-waves-buoyancy.md) |
+| `Boat/BoatDamageSource.cs` | Reef/Rock/Debris, 15/25/5 HP, cooldown контактов | [Источники урона](../boat-waves-buoyancy.md) |
+| `Fishing/FishSchool.cs` | Заготовка одноразового источника улова через TryCollect | [Груз](entities/cargo.md) |
+| `World/SeaEnvironment.cs` | Заготовка поля направленных сил моря и ветра | [Мир](entities/world.md) |
+| `Spirit/SeaSpiritDirector.cs` | Заготовка сигнала опасности от полной бочки, без AI | [Дух](entities/spirit.md) |
+
+`Scripts/Editor/ProjectBuild.cs` — команды `ValidateScenes` и `BuildWindows`, проверяют порядок четырёх сцен и собирают development Windows x64. Сборка Editor остаётся editor-only; Runtime не использует UnityEditor.
+
+`Scripts/Tests/SoloGameSessionTests.cs`, `StationAssignmentTests.cs`, `ScenePipelineTests.cs` — поведение модели, сохранение назначения при конфликте, порядок сцен/ссылки и реальный проход Boot → меню → порт → море → возврат, Continue, гибель, новая игра. Последний тест запускает Play Mode из EditMode через EnterPlayMode.
+
+`Foundation/GameSession.cs`, `SessionState.cs`, `LocalSessionHost.cs`, `Player/LifebuoyController.cs`, `Leviathan/*.cs` перенесены с сохранением GUID и поведения. Старый API описан в [архиве](../project-foundation.md). Новые сцены не ссылаются на LocalSessionHost. Плагины и их публичные API перечислены в [запуске проекта](../unity-project.md).
+
+`HomeShallows` и автономный `SecondCatchGraybox` используют `WaveController` и общий `OceanSystem` из `Plugins/OceanPro`, с четырьмя настраиваемыми Gerstner-волнами на CPU и в шейдере. `SeaEnvironment` остаётся прежним контрактом каркаса, в graybox не назначен. `OceanBuoyancy` сохраняется для остальных потребителей плагина. Управляемой лодкой graybox по вертикали владеет `BoatBuoyancy`. Существующий `GameplayHud/BoatStatusPanel` показывает HP, урон и состояние возврата.
+
+В одиночном рейсе состоянием HP владеет `SoloGameSession.Boat`. В автономном graybox действует локальный BoatHealth с 100 HP и полным восстановлением. Точки подключения улова и правила возврата описаны в [pipeline](loading-pipeline.md).

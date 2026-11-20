@@ -1,33 +1,22 @@
----
-aliases:
-  - Unity-проект
----
+# Запуск Unity-проекта
 
-# Unity-проект
+[Оглавление](index.md) · [Pipeline](v2/loading-pipeline.md) · [Компоненты](v2/components.md)
 
-[К оглавлению](index.md)
+Graybox-управление описано в [graybox-controls.md](graybox-controls.md), движение лодки и ветер — в [boat-wind-movement.md](boat-wind-movement.md), HUD — в [gameplay-hud.md](gameplay-hud.md).
 
-## Запуск из редактора
+Unity **6000.5.1f1**, URP 17.5.0, Input System 1.19.0. Открыть корень через Hub, дождаться импорта.
+Открыть `Assets/_Project/Scenes/Boot.unity`, нажать Play. Техническая панель позволяет пройти New game → Depart → debug collect fish → Return to port → Sell catch → Buy speed upgrade → Depart. Для апгрейда собрать не меньше 10 рыб. Это проверка каркаса, не готовый серый билд.
 
-1. В Unity Hub установите **Unity 6000.5.1f1** и добавьте корень репозитория как существующий проект. Версия зафиксирована в `ProjectSettings/ProjectVersion.txt`.
-2. Откройте проект и дождитесь импорта ассетов и загрузки пакетов. В `Packages/manifest.json` указаны, в частности, URP 17.5.0 и Input System 1.19.0.
-3. В окне Project откройте `Assets/Scenes/SampleScene.unity` и нажмите **Play**. Для первичной проверки найдите в Hierarchy объекты `Ocean System` и компонент `LeviathanSpawner`. В Play Mode проверьте поверхность воды и появление экземпляров назначенного префаба левиафана.
+Build Settings содержит ровно Boot, MainMenu, HomePort, HomeShallows в таком порядке. SampleScene исключена из сборки, но сохранена для автономной проверки океана, круга и левиафана: `Assets/_Project/Scenes/SampleScene.unity`.
+Прямой запуск трёх игровых сцен показывает кнопку Open Boot; скрытое создание сессии не производится.
 
-## Сцены
+| Система прототипа | Новый путь / API |
+| --- | --- |
+| Круг | `Assets/_Project/Scripts/Runtime/Player/LifebuoyController.cs` |
+| Левиафан | `Assets/_Project/Scripts/Runtime/Leviathan/LeviathanSpawner.cs`, `LeviathanSwimmer.cs` |
+| Старая сессия | `Assets/_Project/Scripts/Runtime/Foundation/LocalSessionHost.cs` |
+| Океан | `Assets/Plugins/OceanPro/Runtime/OceanSystem.cs`, `GetWaterHeight`, `SetWakeSource` |
+| Плавучесть | `Assets/Plugins/OceanPro/Runtime/OceanBuoyancy.cs` |
+| Погода / молнии | `Assets/Plugins/WeatherKit`, `Assets/Plugins/LightningBolt` — сохранены, не подключены к v2 |
 
-В `ProjectSettings/EditorBuildSettings.asset` включена только `SampleScene`. В `Assets/Scenes` также лежат `Boot`, `MainMenu`, `HomePort` и `HomeShallows`. Текущую точку входа при проверке сборки определяйте по списку сцен в настройках сборки.
-
-## Игровые системы
-
-Пути в таблице указаны от корня репозитория. Игровые компоненты находятся в `Assets/Scripts/Runtime`, а компоненты океана, погоды и молний — в `Assets/Plugins`.
-
-| Система | Где смотреть | Как устроена |
-| --- | --- | --- |
-| Океан | `Assets/Plugins/OceanPro/Runtime/OceanSystem.cs` | Генерирует поверхность воды. `GetWaterHeight` возвращает высоту волны в мировой позиции и через выходные параметры отдаёт нормаль и пену на гребне. `SetWakeSource` регистрирует источник следа для материала воды. |
-| Плавучесть | `Assets/Plugins/OceanPro/Runtime/OceanBuoyancy.cs` | В `FixedUpdate` вычисляет погружение точек корпуса по высоте воды и прикладывает силы к `Rigidbody`. |
-| Спасательный круг | `Assets/Scripts/Runtime/Player/LifebuoyController.cs` | Управляет `Rigidbody`, рассчитывает плавучесть круга и обновляет его след. Клавиши W/S задают тягу, A/D — поворот. |
-| Левиафаны | `Assets/Scripts/Runtime/Leviathan/LeviathanSpawner.cs` и `LeviathanSwimmer.cs` | Спавнер создаёт экземпляры префаба и передаёт им параметры движения и ссылку на океан. Пловец перемещается в заданной области и учитывает высоту поверхности при расчёте глубины. |
-| Погода | `Assets/Plugins/WeatherKit/Runtime/WeatherController.cs` | `SetWeather` переключает пресеты освещения, тумана и осадков. |
-| Молния | `Assets/Plugins/LightningBolt/Runtime/LightningBolt.cs` | `Strike` запускает эффект между двумя точками. У встроенного действия по умолчанию назначен пробел. |
-
-Префабы спасательного круга и левиафана находятся в `Assets/Prefabs/Enemies`. При переносе или переименовании ассетов сохраняйте соответствующие файлы `.meta`, чтобы ссылки Unity по GUID продолжали работать.
+Модели, префабы, настройки и скрипты перенесены вместе с `.meta`. Не добавлять одновременно LifebuoyController и новый BoatController к одному Rigidbody: это два независимых владельца движения. Сохраняйте GUID при последующих переносах.
