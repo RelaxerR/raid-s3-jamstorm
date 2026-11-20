@@ -1,3 +1,4 @@
+using SecondCatch.Application;
 using SecondCatch.Boat;
 using SecondCatch.Player;
 using UnityEngine;
@@ -9,6 +10,7 @@ namespace SecondCatch.UI
     public sealed class GameplayHud : MonoBehaviour
     {
         [SerializeField] private BoatController _boat;
+        [SerializeField] private HomeShallowsController _voyage;
         [SerializeField] private PlayerController _player;
         [SerializeField] private Transform _mapCenter;
         [SerializeField] private BoatStatusPanel _boatStatus;
@@ -45,6 +47,10 @@ namespace SecondCatch.UI
 
         private void Refresh()
         {
+            var cargo = _voyage != null ? _voyage.Session?.Cargo : null;
+            if (_futureIndicators != null && cargo != null)
+                _futureIndicators.SetCargo(cargo.Count, cargo.Capacity);
+
             bool boatAvailable = _boat != null && _boat.isActiveAndEnabled;
             bool playerAvailable = boatAvailable && !_boat.IsRespawning && _player != null && _player.isActiveAndEnabled;
             if (_boatStatus != null) _boatStatus.Render(boatAvailable ? _boat : null);

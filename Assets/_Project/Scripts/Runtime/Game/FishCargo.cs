@@ -8,11 +8,12 @@ namespace SecondCatch.Solo
         public int Capacity { get; } = 100;
         public int Count { get; private set; }
         public bool IsFull => Count == Capacity;
-        internal bool Add(string fishId)
+        internal int Add(string fishId, int requested)
         {
-            if (fishId != FishId || IsFull) return false;
-            Count++;
-            return true;
+            if (fishId != FishId || requested <= 0) return 0;
+            int accepted = Math.Min(requested, Capacity - Count);
+            Count += accepted;
+            return accepted;
         }
         internal void Clear() { Count = 0; }
         // При нечётном количестве теряется округлённая вверх половина.

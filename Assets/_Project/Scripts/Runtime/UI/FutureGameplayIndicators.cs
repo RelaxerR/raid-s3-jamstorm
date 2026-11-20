@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace SecondCatch.UI
 {
-    /// <summary>Хранит выключенные заготовки среза; будущие адаптеры явно подают подтверждённые данные.</summary>
+    /// <summary>Показывает груз и дополнительные индикаторы при поступлении данных.</summary>
     public sealed class FutureGameplayIndicators : MonoBehaviour
     {
         [SerializeField] private Text _cargo;
@@ -23,7 +23,7 @@ namespace SecondCatch.UI
             SetVisible(_spiritAppeared, false);
         }
 
-        public void SetCargo(int count, int capacity) => Show(_cargo, $"Трюм: {Mathf.Clamp(count, 0, Mathf.Max(0, capacity))}/{Mathf.Max(0, capacity)}");
+        public void SetCargo(int count, int capacity) => Show(_cargo, $"Улов {Mathf.Clamp(count, 0, Mathf.Max(0, capacity))}/{Mathf.Max(0, capacity)}");
         public void SetTension(float normalized) => Show(_tension, $"Натяжение троса: {Mathf.Clamp01(normalized):0%}");
         public void SetReeling(float normalized) => Show(_reeling, $"Вываживание: {Mathf.Clamp01(normalized):0%}");
         public void SetLowHitPoints(bool visible) => SetVisible(_lowHitPoints, visible);
@@ -33,7 +33,7 @@ namespace SecondCatch.UI
         private static void Show(Text label, string value)
         {
             if (label == null) return;
-            label.text = value;
+            if (label.text != value) label.text = value;
             SetVisible(label, true);
         }
 
