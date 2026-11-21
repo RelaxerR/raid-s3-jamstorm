@@ -73,6 +73,30 @@ namespace SecondCatch.Tests
             Assert.AreEqual(100, session.Cargo.Count);
         }
         [Test]
+        public void SaleByTypeRejectsWrongTypeAndUpdatesCargoCoinsAndRevisionTogether()
+        {
+            var session = new SoloGameSession();
+            var fishId = session.Cargo.FishId;
+            Assert.IsTrue(session.Depart());
+            Assert.AreEqual(10, session.CatchSchool(1, 10));
+            Assert.IsFalse(session.SellFish(fishId));
+            Assert.IsTrue(session.Dock());
+            long revision = session.Revision;
+
+            Assert.IsFalse(session.SellFish("fish.unknown"));
+            Assert.AreEqual(revision, session.Revision);
+            Assert.AreEqual(10, session.Cargo.Count);
+            Assert.AreEqual(0, session.Coins);
+            Assert.IsTrue(session.SellFish(fishId));
+            Assert.AreEqual(revision + 1, session.Revision);
+            Assert.AreEqual(0, session.Cargo.Count);
+            Assert.AreEqual(100, session.Coins);
+            Assert.IsFalse(session.SellFish(fishId));
+            Assert.IsFalse(session.Sell());
+            Assert.AreEqual(revision + 1, session.Revision);
+        }
+
+        [Test]
         public void SinkingLosesHalfOnceAndReturnsAtThirtyPercentHp()
         {
             var session = new SoloGameSession(); session.Depart();

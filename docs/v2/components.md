@@ -12,7 +12,7 @@
 | `Port/HomePortController.cs` | Портовые команды; подключён в HomePort | [Порт](entities/port.md) |
 | `Voyage/HomeShallowsController.cs` | Улов, урон, возврат и обработка гибели; подключён в HomeShallows | [Сессия](entities/session.md) |
 | `Voyage/PortZone.cs` | Физический триггер возврата по входу корпуса после выхода со стоянки | [Порт](entities/port.md) |
-| `UI/SceneFlowPanel.cs` | Меню, портовые действия и подсказка причала | [Приложение](entities/application.md) |
+| `UI/SceneFlowPanel.cs` | Главное меню, запуск Boot из автономной сцены и подсказка причала | [Приложение](entities/application.md) |
 | `Game/SoloGameSession.cs` | Состояние одиночной игры и проверяемые команды | [Сессия](entities/session.md) |
 | `Game/BoatState.cs` | HP, респавн, усиление скорости | [Лодка](entities/boat.md) |
 | `Game/FishCargo.cs` | Одна бочка одного вида с лимитом | [Груз](entities/cargo.md) |
@@ -23,7 +23,10 @@
 | `Boat/BoatHealth.cs` | Адаптер HP и контактного урона для сессии, локальные HP автономной сцены | [HP](../boat-waves-buoyancy.md) |
 | `Boat/BoatRespawnController.cs` | Возврат в порт, освобождение станций, сброс движения, восстановление игрока/HP | [Респавн](../boat-waves-buoyancy.md) |
 | `Boat/BoatDamageSource.cs` | Reef/Rock/Debris, 15/25/5 HP, cooldown контактов | [Источники урона](../boat-waves-buoyancy.md) |
-| `Fishing/FishSchool.cs` | Заготовка одноразового источника улова через TryCollect | [Груз](entities/cargo.md) |
+| `Fishing/FishSchool.cs` | Автолов порции по контакту с корпусом | [Груз](entities/cargo.md) |
+| `Fishing/CargoHold.cs`, `Fishing/CargoFish.cs` | Локальное отображение и укладка рыбы на лодке | [Груз](entities/cargo.md) |
+| `UI/PortTradePanel.cs` | Продажа и улучшение через HomePortController | [Порт](entities/port.md) |
+| `UI/GameplayHud.cs` | Статус лодки и счётчик улова в рейсе | [HUD](../gameplay-hud.md) |
 | `World/SeaEnvironment.cs` | Заготовка поля направленных сил моря и ветра | [Мир](entities/world.md) |
 | `Spirit/SeaSpiritDirector.cs` | Заготовка сигнала опасности от полной бочки, без AI | [Дух](entities/spirit.md) |
 

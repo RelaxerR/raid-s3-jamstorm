@@ -7,9 +7,13 @@ import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parent.parent
-URP_SCENE_SCRIPTS = {
-    'a79441f348de89743a2939f4d699eac1',  # UniversalAdditionalCameraData
-    '474bcb49853aa07438625e644c072ee6',  # UniversalAdditionalLightData
+PACKAGE_SCENE_SCRIPTS = {
+    'com.unity.render-pipelines.universal': {
+        'a79441f348de89743a2939f4d699eac1',  # UniversalAdditionalCameraData
+        '474bcb49853aa07438625e644c072ee6',  # UniversalAdditionalLightData
+    },
+    'com.unity.ugui': {'76c392e42b5098c458856cdf6ecaaaa1'},  # EventSystem
+    'com.unity.inputsystem': {'01614664b831546d2ae94a42149d80ac'},  # InputSystemUIInputModule
 }
 
 
@@ -17,7 +21,8 @@ def check(baseline=None):
     errors = []
     manifest = json.loads((ROOT / 'Packages/manifest.json').read_text())['dependencies']
     # CI runs this check before Unity has downloaded registry packages.
-    package_scripts = URP_SCENE_SCRIPTS if 'com.unity.render-pipelines.universal' in manifest else set()
+    package_scripts = {guid for package, guids in PACKAGE_SCENE_SCRIPTS.items()
+                       if package in manifest for guid in guids}
     guids = {}
     for meta in (ROOT / 'Assets').rglob('*.meta'):
         match = re.search(r'^guid: ([0-9a-f]{32})$', meta.read_text(), re.M)

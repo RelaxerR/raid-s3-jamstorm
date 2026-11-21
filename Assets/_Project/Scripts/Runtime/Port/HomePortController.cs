@@ -1,13 +1,24 @@
-using SecondCatch.Application;
+using SecondCatch.Solo;
 using UnityEngine;
+
 namespace SecondCatch.Application
 {
-    /// <summary>Портовые команды, доступные из кликабельных объектов и UI.</summary>
+    /// <summary>Port commands used by the scene UI and interactable objects.</summary>
     public sealed class HomePortController : MonoBehaviour
     {
-        public void Depart() { GameApplication.Instance?.Depart(); }
-        public bool Sell() => Ready && GameApplication.Instance.Session.Sell();
-        public bool BuyUpgrade() => Ready && GameApplication.Instance.Session.BuySpeedUpgrade();
-        private bool Ready => GameApplication.Instance != null && !GameApplication.Instance.IsLoading && GameApplication.Instance.Session != null;
+        public SoloGameSession Session
+        {
+            get
+            {
+                var app = GameApplication.Instance;
+                return app != null && !app.IsLoading ? app.Session : null;
+            }
+        }
+
+        public void Depart() => GameApplication.Instance?.Depart();
+        public void OpenMenu() => GameApplication.Instance?.OpenMenu();
+        public bool Sell() => Session?.Sell() == true;
+        public bool SellFish(string fishId) => Session?.SellFish(fishId) == true;
+        public bool BuyUpgrade() => Session?.BuySpeedUpgrade() == true;
     }
 }
