@@ -4661,6 +4661,7 @@ GameObject:
   - component: {fileID: 1001}
   - component: {fileID: 1100}
   - component: {fileID: 1101}
+  - component: {fileID: 1102}
   m_Layer: 0
   m_Name: HomeShallowsRoot
   m_TagString: Untagged
@@ -4695,6 +4696,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8578958fcdc432a9365483275047e3e, type: 3}
   m_Name:
   m_EditorClassIdentifier:
+--- !u!114 &1102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cafe3892140e4ab98313ea64b6d98548, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: SecondCatch.Spirit::SeaSpiritDirector
+  _voyage: {fileID: 1100}
+  _boat: {fileID: 2100000001}
+  _spiritPrefab: {fileID: 100000, guid: 83b0f8cfc0c44d18b46a0e5fdb8c1b22, type: 3}
+  _spawnDistance: 18
+  _spawnHeight: 1.5
+  _pursuitSpeed: 4.5
+  _attackDistance: 2.5
+  _attackInterval: 2
+  _attackDamage: 5
 --- !u!1 &2800000000
 GameObject:
   m_ObjectHideFlags: 0

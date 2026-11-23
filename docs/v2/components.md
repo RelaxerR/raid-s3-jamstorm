@@ -28,7 +28,7 @@
 | `UI/PortTradePanel.cs` | Продажа и улучшение через HomePortController | [Порт](entities/port.md) |
 | `UI/GameplayHud.cs` | Статус лодки и счётчик улова в рейсе | [HUD](../gameplay-hud.md) |
 | `World/SeaEnvironment.cs` | Заготовка поля направленных сил моря и ветра | [Мир](entities/world.md) |
-| `Spirit/SeaSpiritDirector.cs` | Заготовка сигнала опасности от полной бочки, без AI | [Дух](entities/spirit.md) |
+| `Spirit/SeaSpiritDirector.cs` | Один дух на рейс, прямое преследование и интервальный урон | [Дух](entities/spirit.md) |
 
 `Scripts/Editor/ProjectBuild.cs` — команды `ValidateScenes` и `BuildWindows`, проверяют порядок четырёх сцен и собирают development Windows x64. Сборка Editor остаётся editor-only; Runtime не использует UnityEditor.
 
