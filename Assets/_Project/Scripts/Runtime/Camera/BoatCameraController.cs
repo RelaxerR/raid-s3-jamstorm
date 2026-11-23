@@ -1,5 +1,6 @@
 using SecondCatch.Input;
 using SecondCatch.Player;
+using SecondCatch.Stations;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -25,13 +26,26 @@ namespace SecondCatch.Camera
         [SerializeField, Min(0.01f)] private float _returnSpeed = 4f;
         [SerializeField] private Vector3 _offset = new Vector3(0f, 0.4f, 0f);
         [SerializeField] private Vector3 _stationOffset = new Vector3(0f, 0.3f, 0.4f);
+        [SerializeField, Min(0f)] private float _deckLookAhead;
         [SerializeField] private bool _invertVerticalAxis;
+        private const float StationBlendTime = 0.4f;
+        private const float StationBlendSpeed = 12f;
+        private StationInteraction _station;
+        private float _stationBlendRemaining;
         private float _azimuth;
         private float _elevation;
         private float _distance;
         private float _targetDistance;
         private Vector3 _focus;
         private bool _returning = true;
+
+        private StationInteraction ActiveStation => _player != null && _player.isActiveAndEnabled
+            && _player.Boat != null && _player.Boat.isActiveAndEnabled && !_player.Boat.IsRespawning
+            ? _player.ActiveStation : null;
+
+        private StationCameraProfile Profile => _station != null && _station.CameraProfile.Distance > 0f
+            ? _station.CameraProfile
+            : new StationCameraProfile { Azimuth = _defaultAzimuth, Elevation = _defaultElevation, Distance = _defaultDistance };
 
         private float BoatHeading
         {
@@ -51,10 +65,13 @@ namespace SecondCatch.Camera
             if (_boat == null) return;
             if (transform.IsChildOf(_boat)) transform.SetParent(null, true);
             if (_player == null) _player = _boat.GetComponentInChildren<PlayerController>();
+            _station = ActiveStation;
+            _stationBlendRemaining = 0f;
+            StationCameraProfile profile = Profile;
             _returning = true;
-            _azimuth = BoatHeading + _defaultAzimuth;
-            _elevation = ClampElevation(_defaultElevation);
-            _distance = _targetDistance = ClampDistance(_defaultDistance);
+            _azimuth = BoatHeading + profile.Azimuth;
+            _elevation = ClampElevation(profile.Elevation);
+            _distance = _targetDistance = ClampDistance(profile.Distance);
             _focus = FocusPosition();
             transform.position = OrbitPosition();
             transform.rotation = Quaternion.LookRotation(_focus - transform.position, Vector3.up);
@@ -63,8 +80,15 @@ namespace SecondCatch.Camera
         private Vector3 FocusPosition()
         {
             Vector3 offset = _offset;
-            if (_player != null && _player.isActiveAndEnabled && _player.ActiveStation != null)
-                offset += _stationOffset + _player.ActiveStation.CameraOffset;
+            if (_station != null)
+                offset += _stationOffset + _station.CameraOffset;
+            else if (_deckLookAhead > 0f && _player != null && _player.isActiveAndEnabled
+                && _player.Boat != null && !_player.Boat.IsRespawning)
+            {
+                Vector3 deckPosition = _player.transform.localPosition;
+                deckPosition.y = 0f;
+                offset += Vector3.ClampMagnitude(deckPosition * 0.15f + _player.LocalWalkDirection * _deckLookAhead, 0.55f);
+            }
             // Используем только курс: крен корпуса не меняет горизонт и ось орбиты.
             return _boat.position + Quaternion.AngleAxis(BoatHeading, Vector3.up) * offset;
         }
@@ -80,23 +104,35 @@ namespace SecondCatch.Camera
         private void Advance(Vector2 look, float zoom, bool reset, float dt)
         {
             if (_boat == null || dt <= 0f) return;
-            if (reset)
+            StationInteraction station = ActiveStation;
+            bool stationChanged = !ReferenceEquals(_station, station);
+            if (stationChanged)
+            {
+                _station = station;
+                _stationBlendRemaining = StationBlendTime;
+            }
+            StationCameraProfile profile = Profile;
+            if (reset || stationChanged)
             {
                 _returning = true;
-                _targetDistance = ClampDistance(_defaultDistance);
+                _targetDistance = ClampDistance(profile.Distance);
             }
             if (look.sqrMagnitude > 0f || Mathf.Abs(zoom) > 0.001f) _returning = false;
             _azimuth = Mathf.Repeat(_azimuth + look.x * _mouseSensitivity, 360f);
             _elevation = ClampElevation(_elevation + look.y * _mouseSensitivity * (_invertVerticalAxis ? 1f : -1f));
             _targetDistance = ClampDistance(_targetDistance - zoom * _wheelSensitivity);
-            float returning = 1f - Mathf.Exp(-Mathf.Max(0.01f, _returnSpeed) * dt);
+            bool blending = _stationBlendRemaining > 0f;
+            _stationBlendRemaining -= dt;
+            float returnSpeed = blending ? StationBlendSpeed : _returnSpeed;
+            float returning = 1f - Mathf.Exp(-Mathf.Max(0.01f, returnSpeed) * dt);
             if (_returning)
             {
-                _azimuth = Mathf.LerpAngle(_azimuth, BoatHeading + _defaultAzimuth, returning);
-                _elevation = Mathf.Lerp(_elevation, ClampElevation(_defaultElevation), returning);
+                _azimuth = Mathf.LerpAngle(_azimuth, BoatHeading + profile.Azimuth, returning);
+                _elevation = Mathf.Lerp(_elevation, ClampElevation(profile.Elevation), returning);
             }
             _distance = Mathf.Lerp(_distance, _targetDistance, returning);
-            float following = 1f - Mathf.Exp(-Mathf.Max(0.01f, _followSpeed) * dt);
+            float followSpeed = blending ? StationBlendSpeed : _followSpeed;
+            float following = 1f - Mathf.Exp(-Mathf.Max(0.01f, followSpeed) * dt);
             _focus = Vector3.Lerp(_focus, FocusPosition(), following);
             transform.position = Vector3.Lerp(transform.position, OrbitPosition(), following);
             Quaternion rotation = Quaternion.LookRotation(_focus - transform.position, Vector3.up);

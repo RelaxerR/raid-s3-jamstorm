@@ -3029,9 +3029,9 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _boat: {fileID: 254610246}
   _player: {fileID: 2100000002}
-  _defaultAzimuth: 0
-  _defaultElevation: 42
-  _defaultDistance: 7.4
+  _defaultAzimuth: 34
+  _defaultElevation: 53
+  _defaultDistance: 7.5
   _minimumDistance: 3
   _maximumDistance: 15
   _mouseSensitivity: 0.2
@@ -3041,7 +3041,8 @@ MonoBehaviour:
   _followSpeed: 8
   _returnSpeed: 4
   _offset: {x: 0, y: 0.4, z: 0}
-  _stationOffset: {x: 0, y: 0.3, z: 0.4}
+  _stationOffset: {x: 0, y: 0.1, z: 0}
+  _deckLookAhead: 0.3
   _invertVerticalAxis: 0
 --- !u!114 &2100000004
 MonoBehaviour:
@@ -3058,7 +3059,11 @@ MonoBehaviour:
   _boat: {fileID: 2100000001}
   _interactionPoint: {fileID: 1592356771}
   _interactionRadius: 0.8
-  _cameraOffset: {x: 0, y: 0, z: -0.4}
+  _cameraOffset: {x: 0, y: 0, z: 2.4}
+  _cameraProfile:
+    Azimuth: 0
+    Elevation: 24
+    Distance: 7
   _rudderVisual: {fileID: 2400000001}
   _maxRudderAngle: 35
   _deflectionAccelerationTime: 0.5
@@ -5155,7 +5160,11 @@ MonoBehaviour:
   _boat: {fileID: 2100000001}
   _interactionPoint: {fileID: 339207598}
   _interactionRadius: 0.85
-  _cameraOffset: {x: -0.65, y: -0.1, z: 0.8}
+  _cameraOffset: {x: -0.75, y: -0.1, z: 1.45}
+  _cameraProfile:
+    Azimuth: 48
+    Elevation: 37
+    Distance: 7
   _voyage: {fileID: 1100}
   _netVisual: {fileID: 1940369344}
   _deployedOffset: {x: -0.8, y: -0.18, z: -0.45}

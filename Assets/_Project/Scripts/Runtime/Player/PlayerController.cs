@@ -21,6 +21,7 @@ namespace SecondCatch.Player
         private Vector3 _startPosition;
         private Quaternion _startRotation;
 
+        public Vector3 LocalWalkDirection { get; private set; }
         public BoatController Boat => _boat;
         public StationInteraction ActiveStation => _activeStation;
         public PlayerControlMode ControlMode { get; private set; } = PlayerControlMode.Walking;
@@ -45,6 +46,7 @@ namespace SecondCatch.Player
 
         private void Update()
         {
+            LocalWalkDirection = Vector3.zero;
             if (_boat == null || !_boat.isActiveAndEnabled || _boat.IsRespawning)
             {
                 ExitStation();
@@ -70,8 +72,11 @@ namespace SecondCatch.Player
             if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
             Vector3 right = Vector3.Cross(Vector3.up, forward);
             Vector3 direction = Vector3.ClampMagnitude(right * input.x + forward * input.y, 1f);
+            Vector3 before = transform.localPosition;
             transform.position += direction * (_walkSpeed * Mathf.Max(0f, MovementSpeedMultiplier) * Time.deltaTime);
             ConstrainToDeck();
+            Vector3 localStep = transform.localPosition - before;
+            LocalWalkDirection = Vector3.ClampMagnitude(localStep / Mathf.Max(0.001f, _walkSpeed * Time.deltaTime), 1f);
         }
 
         private void ConstrainToDeck()

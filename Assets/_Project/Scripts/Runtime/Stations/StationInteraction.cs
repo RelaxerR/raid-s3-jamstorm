@@ -4,6 +4,14 @@ using UnityEngine;
 
 namespace SecondCatch.Stations
 {
+    [System.Serializable]
+    public struct StationCameraProfile
+    {
+        public float Azimuth;
+        [Range(1f, 89f)] public float Elevation;
+        [Tooltip("Zero uses the deck orbit settings.")] [Min(0f)] public float Distance;
+    }
+
     /// <summary>Определяет доступность станции и эксклюзивно передаёт ей управление игрока.</summary>
     public abstract class StationInteraction : MonoBehaviour
     {
@@ -11,6 +19,8 @@ namespace SecondCatch.Stations
         [SerializeField] private Transform _interactionPoint;
         [SerializeField, Min(0.1f)] private float _interactionRadius = 0.8f;
         [SerializeField] private Vector3 _cameraOffset;
+        [SerializeField] private StationCameraProfile _cameraProfile;
+        public StationCameraProfile CameraProfile => _cameraProfile;
         public Vector3 CameraOffset => _cameraOffset;
         protected BoatController Boat => _boat;
         public PlayerController Operator { get; private set; }
