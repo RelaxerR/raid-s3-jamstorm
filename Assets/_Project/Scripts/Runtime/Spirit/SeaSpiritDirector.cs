@@ -30,7 +30,7 @@ namespace SecondCatch.Spirit
         private void Awake()
         {
             if (_voyage == null) _voyage = GetComponent<HomeShallowsController>();
-            if (_boat == null) _boat = FindFirstObjectByType<BoatController>();
+            if (_boat == null) _boat = FindAnyObjectByType<BoatController>();
         }
 
         private void Update()
@@ -53,7 +53,7 @@ namespace SecondCatch.Spirit
                 return;
             }
 
-            if (_boat == null) _boat = FindFirstObjectByType<BoatController>();
+            if (_boat == null) _boat = FindAnyObjectByType<BoatController>();
             if (!_spawnedThisVoyage && _boat != null && _spiritPrefab != null)
                 SpawnSpirit();
             if (_activeSpirit != null && _boat != null)
