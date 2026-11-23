@@ -4,15 +4,129 @@ using NUnit.Framework;
 using SecondCatch.Application;
 using SecondCatch.Boat;
 using SecondCatch.Fishing;
+using SecondCatch.Player;
+using SecondCatch.Solo;
+using SecondCatch.Stations;
+using SecondCatch.UI;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace SecondCatch.Tests
 {
     public sealed class FishSchoolTests : VoyageTestFixture
     {
         [UnityTest]
-        public IEnumerator HullCollectsOnceAndFishFollowTheBoatEvenAfterContinuingTheVoyage()
+        public IEnumerator BootVoyageUsesNetAndMouseOnTheMovingBoat()
+        {
+            yield return StartNewGame();
+            Assert.IsTrue(App.Depart());
+            yield return WaitForScene(GameScenes.SEA);
+            var session = App.Session;
+            var boat = SceneComponent<BoatController>();
+            var player = SceneComponent<PlayerController>();
+            var sail = SceneComponent<SailStation>();
+            var net = SceneComponent<NetStation>();
+            var school = Schools()[0];
+            var deck = SceneComponent<DeckCatch>();
+            var camera = SceneComponent<UnityEngine.Camera>();
+
+            var background = InputSystem.settings.backgroundBehavior;
+#if UNITY_EDITOR
+            var editorInput = InputSystem.settings.editorInputBehaviorInPlayMode;
+            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+#endif
+            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            var mouse = InputSystem.AddDevice<Mouse>();
+            try
+            {
+                PlacePlayer(player, net);
+                Assert.AreSame(net, player.GetAvailableStation());
+                yield return Press(keyboard, Key.E);
+                Assert.AreSame(net, player.ActiveStation);
+                Assert.AreEqual(NetState.Stowed, net.State);
+                StringAssert.Contains("0/100", Hint());
+
+                yield return Press(keyboard, Key.E);
+                Assert.AreSame(net, player.ActiveStation);
+                Assert.AreEqual(NetState.Lowering, net.State);
+                yield return WaitFor(() => net.State == NetState.Deployed, "Net did not lower");
+                yield return Press(keyboard, Key.Escape);
+                Assert.AreEqual(PlayerControlMode.Walking, player.ControlMode);
+                StringAssert.DoesNotContain("Сеть:", Hint());
+                Assert.AreEqual(NetState.Deployed, net.State);
+
+                player.transform.localPosition = new Vector3(0f, player.transform.localPosition.y, 0f);
+                Assert.IsTrue(sail.TryEnter(player));
+                boat.SetSailRaised(true);
+                player.ExitStation();
+                PlacePlayer(player, net);
+                yield return Press(keyboard, Key.E);
+                Assert.AreSame(net, player.ActiveStation);
+
+                yield return WaitFor(() => !school.gameObject.activeSelf, "Sailing through the first school did not yield fish");
+                Assert.Greater(boat.LongitudinalSpeed, 0.5f);
+                AssertInFrame(camera, school.transform.position);
+                AssertInFrame(camera, net.transform.position);
+                Assert.AreEqual(10, net.Count);
+                Assert.AreEqual(0, session.Cargo.Count);
+                Assert.AreEqual(0, session.DeckFishCount);
+                yield return Press(keyboard, Key.E);
+                Assert.AreEqual(NetState.Raising, net.State);
+                yield return Press(keyboard, Key.E);
+                Assert.AreEqual(NetState.Raising, net.State);
+                yield return Press(keyboard, Key.Escape);
+                Assert.AreEqual(PlayerControlMode.Walking, player.ControlMode);
+
+                yield return WaitFor(() => deck.GetComponentsInChildren<FishOnDeck>().Length == 10, "Raise did not spawn deck fish");
+                Assert.AreEqual(NetState.Stowed, net.State);
+                Assert.AreEqual(0, net.Count);
+                Assert.AreEqual(0, session.Cargo.Count);
+                Assert.AreEqual("Улов 0/100", CargoLabel().text);
+                StringAssert.Contains("ЛКМ", Hint());
+
+                foreach (float x in new[] { -1f, 1f })
+                    foreach (float z in new[] { -2f, 2f })
+                        AssertInFrame(camera, boat.transform.TransformPoint(new Vector3(x, 0f, z)));
+
+                FishOnDeck fish = PickableFish(deck, camera);
+                Assert.AreSame(boat.transform, fish.transform.parent.parent);
+                Vector2 target = camera.WorldToScreenPoint(fish.transform.position);
+                yield return Click(mouse, target);
+                Assert.AreEqual(1, session.Cargo.Count);
+                Assert.AreEqual(9, session.DeckFishCount);
+                Assert.IsTrue(fish == null);
+                yield return WaitFor(() => CargoLabel().text == "Улов 1/100", "HUD did not show the stored fish");
+
+                Vector2 plainDeck = camera.WorldToScreenPoint(boat.transform.TransformPoint(new Vector3(0.65f, 0.06f, 1.65f)));
+                Assert.IsTrue(camera.pixelRect.Contains(plainDeck));
+                yield return Click(mouse, plainDeck);
+                Assert.AreEqual(1, session.Cargo.Count);
+
+                while (!session.Cargo.IsFull)
+                    Assert.IsTrue(session.CatchFish(session.Cargo.FishId));
+                FishOnDeck rejected = PickableFish(deck, camera);
+                yield return Click(mouse, camera.WorldToScreenPoint(rejected.transform.position));
+                yield return WaitFor(() => Hint().Contains("Бочка заполнена"), "HUD did not explain the rejection");
+                Assert.IsTrue(rejected.gameObject.activeSelf);
+                Assert.AreEqual(9, session.DeckFishCount);
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(mouse);
+                InputSystem.RemoveDevice(keyboard);
+                InputSystem.settings.backgroundBehavior = background;
+#if UNITY_EDITOR
+                InputSystem.settings.editorInputBehaviorInPlayMode = editorInput;
+#endif
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ContactRequiresDeployedNetAndPendingCatchSurvivesContinue()
         {
             yield return StartNewGame();
             Assert.IsTrue(App.Depart());
@@ -21,79 +135,123 @@ namespace SecondCatch.Tests
             Assert.AreSame(session, SceneComponent<HomeShallowsController>().Session);
             var boat = SceneComponent<BoatController>();
             var first = Schools()[0];
-            first.name = "Renamed School";
-            var stranger = GameObject.CreatePrimitive(PrimitiveType.Cube).GetComponent<Collider>();
-            stranger.gameObject.AddComponent<Rigidbody>().isKinematic = true;
-            stranger.transform.position = first.transform.position;
+            var player = SceneComponent<PlayerController>();
+            var net = SceneComponent<NetStation>();
+            PlaceBoat(boat, first.transform.position + Vector3.up);
             yield return new WaitForFixedUpdate();
-
-            Assert.IsFalse(first.TryCollect(stranger));
+            yield return new WaitForFixedUpdate();
             Assert.IsTrue(first.gameObject.activeSelf);
             Assert.AreEqual(0, session.Cargo.Count);
-            Object.Destroy(stranger.gameObject);
-            long revision = session.Revision;
+            Assert.AreEqual(0, net.Count);
 
-            PlaceBoat(boat, first.transform.position + Vector3.up);
-            yield return WaitFor(() => !first.gameObject.activeSelf, "The hull did not trigger the school");
-            Assert.AreEqual(10, session.Cargo.Count);
-            Assert.AreEqual(revision + 1, session.Revision);
-            Assert.IsFalse(first.TryCollect(Hull(boat)));
-            Assert.AreEqual(revision + 1, session.Revision);
-
-            var hold = SceneComponent<CargoHold>();
-            yield return WaitFor(() => hold.GetComponentsInChildren<CargoFish>().Length == 10,
-                "The hold did not render the session catch");
-            var fish = hold.GetComponentInChildren<CargoFish>();
-            var body = fish.GetComponent<Rigidbody>();
-            Assert.IsTrue(body.isKinematic);
-            Assert.IsFalse(body.useGravity);
-            Assert.IsFalse(body.detectCollisions);
-            yield return new WaitForSeconds(0.5f);
-            Vector3 slot = fish.transform.localPosition;
-            Quaternion heading = fish.transform.localRotation;
-
-            PlaceBoat(boat, new Vector3(-15f, 1.6f, 26f));
-            boat.transform.rotation = Quaternion.Euler(0f, 83f, 0f);
-            yield return new WaitForFixedUpdate();
-            Assert.AreSame(hold.transform, fish.transform.parent);
-            Assert.That(Vector3.Distance(slot, fish.transform.localPosition), Is.LessThan(0.001f));
-            Assert.That(Quaternion.Angle(heading, fish.transform.localRotation), Is.LessThan(0.01f));
+            PlacePlayer(player, net);
+            Assert.IsTrue(net.TryEnter(player));
+            yield return SetNetState(net, NetState.Deployed);
+            yield return WaitFor(() => net.Count == 10, "A school in contact with the lowered net was missed");
+            Collider hull = boat.GetComponentsInChildren<Collider>().Single(SceneComponent<HomeShallowsController>().IsHull);
+            Assert.IsFalse(first.TryCollect(hull));
 
             Assert.IsTrue(App.OpenMenu());
             yield return WaitForScene(GameScenes.MENU);
             Assert.IsTrue(App.ContinueGame());
             yield return WaitForScene(GameScenes.SEA);
+            net = SceneComponent<NetStation>();
+            player = SceneComponent<PlayerController>();
+            Assert.AreEqual(NetState.Deployed, net.State);
+            Assert.AreEqual(10, net.Count);
             Assert.IsFalse(Schools()[0].gameObject.activeSelf);
-            Assert.AreEqual(10, session.Cargo.Count);
-            Assert.AreEqual(10, SceneComponent<CargoHold>().GetComponentsInChildren<CargoFish>().Length);
+            PlacePlayer(player, net);
+            Assert.IsTrue(net.TryEnter(player));
+            yield return SetNetState(net, NetState.Stowed);
+            player.ExitStation();
+
+            var deck = SceneComponent<DeckCatch>();
+            yield return WaitFor(() => deck.GetComponentsInChildren<FishOnDeck>().Length == 10, "Loose fish did not appear");
+            var fish = deck.GetComponentInChildren<FishOnDeck>();
+            Assert.AreEqual(DeckFishStoreResult.Stored, fish.TryStore(session));
+            Assert.AreEqual(DeckFishStoreResult.Unavailable, fish.TryStore(session));
+            yield return WaitFor(() => SceneComponent<CargoHold>().GetComponentsInChildren<CargoFish>().Length == 1,
+                "The hold did not render the stored fish");
+
+            Assert.IsTrue(App.OpenMenu());
+            yield return WaitForScene(GameScenes.MENU);
+            Assert.IsTrue(App.ContinueGame());
+            yield return WaitForScene(GameScenes.SEA);
+            Assert.AreEqual(1, session.Cargo.Count);
+            Assert.AreEqual(9, SceneComponent<DeckCatch>().GetComponentsInChildren<FishOnDeck>().Length);
+            Assert.IsFalse(Schools()[0].gameObject.activeSelf);
         }
 
         [UnityTest]
-        public IEnumerator SchoolFillsOnlyRemainingSpaceAndFullHoldLeavesTheNextSchoolAvailable()
+        public IEnumerator FullNetLeavesSchoolAvailableAndLosesPartOfCatchUnderSail()
         {
             yield return StartNewGame();
             Assert.IsTrue(App.Depart());
             yield return WaitForScene(GameScenes.SEA);
-            var cargo = App.Session.Cargo;
-            for (int i = 0; i < cargo.Capacity - 3; i++)
-                Assert.IsTrue(App.Session.CatchFish(cargo.FishId));
-
             var boat = SceneComponent<BoatController>();
+            var player = SceneComponent<PlayerController>();
+            var net = SceneComponent<NetStation>();
+            PlacePlayer(player, net);
+            Assert.IsTrue(net.TryEnter(player));
+            yield return SetNetState(net, NetState.Deployed);
+
             var schools = Schools();
+            Assert.IsTrue(net.TryCapture(99, 100));
             PlaceBoat(boat, schools[0].transform.position + Vector3.up);
-            yield return WaitFor(() => cargo.IsFull, "The first school did not fill the remaining cargo space");
-            Assert.IsFalse(schools[0].gameObject.activeSelf);
-            long revision = App.Session.Revision;
-            PlaceBoat(boat, schools[1].transform.position + Vector3.up);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            Assert.IsTrue(schools[1].gameObject.activeSelf);
-            Assert.IsFalse(schools[1].TryCollect(Hull(boat)));
-            Assert.AreEqual(cargo.Capacity, cargo.Count);
-            Assert.AreEqual(revision, App.Session.Revision);
+            Assert.AreEqual(100, net.Count);
+            Assert.IsTrue(schools[0].gameObject.activeSelf);
+            Assert.AreEqual(0, App.Session.Cargo.Count);
+
+            PlaceBoat(boat, new Vector3(-15f, boat.transform.position.y, 26f));
+            boat.SetSailRaised(true);
+            yield return WaitFor(() => net.Count < 100, "A moving deployed net never lost fish");
+            Assert.Greater(boat.CurrentSpeed, 0.2f);
+            int remaining = net.Count;
+            Assert.That(remaining, Is.InRange(1, 99));
+            yield return SetNetState(net, NetState.Stowed);
+            Assert.AreEqual(remaining, App.Session.DeckFishCount);
+            Assert.AreEqual(0, net.Count);
+            Assert.AreEqual(0, App.Session.Cargo.Count);
         }
 
-        private static Collider Hull(BoatController boat) => boat.GetComponentsInChildren<Collider>()
-            .Single(SceneComponent<HomeShallowsController>().IsHull);
+        private static FishOnDeck PickableFish(DeckCatch deck, UnityEngine.Camera camera)
+        {
+            Physics.SyncTransforms();
+            return deck.GetComponentsInChildren<FishOnDeck>().First(candidate =>
+            {
+                Vector3 point = camera.WorldToScreenPoint(candidate.transform.position);
+                return camera.pixelRect.Contains(point)
+                    && Physics.Raycast(camera.ScreenPointToRay(point), out var hit, 100f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                    && hit.collider.gameObject == candidate.gameObject;
+            });
+        }
+
+        private static void AssertInFrame(UnityEngine.Camera camera, Vector3 worldPoint)
+        {
+            Vector3 point = camera.WorldToViewportPoint(worldPoint);
+            Assert.That(point.x, Is.InRange(0f, 1f));
+            Assert.That(point.y, Is.InRange(0f, 1f));
+            Assert.Greater(point.z, 0f);
+        }
+
+        private static string Hint() => SceneComponent<InteractionHintView>().GetComponentInChildren<Text>().text;
+
+        private static IEnumerator Press(Keyboard keyboard, Key key)
+        {
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(key));
+            yield return null;
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+            yield return null;
+        }
+
+        private static IEnumerator Click(Mouse mouse, Vector2 position)
+        {
+            InputSystem.QueueStateEvent(mouse, new MouseState { position = position }.WithButton(MouseButton.Left));
+            yield return null;
+            InputSystem.QueueStateEvent(mouse, new MouseState { position = position });
+            yield return null;
+        }
     }
 }

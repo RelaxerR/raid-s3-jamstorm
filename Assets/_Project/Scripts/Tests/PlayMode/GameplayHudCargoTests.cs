@@ -20,7 +20,7 @@ namespace SecondCatch.Tests
             Assert.IsTrue(cargo.gameObject.activeInHierarchy);
             Assert.AreEqual("Улов 0/100", cargo.text);
             var school = Schools()[0];
-            PlaceBoat(SceneComponent<BoatController>(), school.transform.position + Vector3.up);
+            yield return LandSchoolAndStoreFish(SceneComponent<BoatController>(), school, 10);
             yield return WaitFor(() => cargo.text == "Улов 10/100", "The cargo indicator did not refresh");
             Assert.AreEqual(10, App.Session.Cargo.Count);
         }
