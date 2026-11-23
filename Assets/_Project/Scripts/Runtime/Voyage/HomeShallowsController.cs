@@ -14,7 +14,7 @@ namespace SecondCatch.Application
         private SoloGameSession _session;
         public SoloGameSession Session => _session;
 
-        private bool Voyaging => _session != null && _session.AtSea && !_application.IsLoading;
+        public bool Voyaging => _session != null && _session.AtSea && !_application.IsLoading;
 
         private void Awake()
         {

@@ -24,6 +24,18 @@ namespace SecondCatch.Input
             }
         }
 
+        public static bool TryGetPrimaryClick(out Vector2 screenPosition)
+        {
+#if ENABLE_INPUT_SYSTEM
+            Mouse mouse = Mouse.current;
+            screenPosition = mouse != null ? mouse.position.ReadValue() : Vector2.zero;
+            return mouse != null && mouse.leftButton.wasPressedThisFrame;
+#else
+            screenPosition = UnityEngine.Input.mousePosition;
+            return UnityEngine.Input.GetMouseButtonDown(0);
+#endif
+        }
+
         public static bool OrbitHeld
         {
             get
