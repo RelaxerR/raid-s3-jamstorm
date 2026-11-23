@@ -52,7 +52,9 @@ namespace SecondCatch.Player
             }
             if (ControlMode != PlayerControlMode.Walking)
             {
-                if (_activeStation == null || !_activeStation.isActiveAndEnabled || GameplayInput.InteractPressed || GameplayInput.CancelPressed)
+                if (_activeStation == null || !_activeStation.isActiveAndEnabled || GameplayInput.CancelPressed)
+                    ExitStation();
+                else if (GameplayInput.InteractPressed && !_activeStation.TryInteract())
                     ExitStation();
                 else
                     _activeStation.HandleInput(GameplayInput.Movement);

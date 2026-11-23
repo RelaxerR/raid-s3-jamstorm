@@ -1,5 +1,6 @@
 using SecondCatch.Application;
 using SecondCatch.Boat;
+using SecondCatch.Fishing;
 using SecondCatch.Player;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ namespace SecondCatch.UI
         [SerializeField] private BoatController _boat;
         [SerializeField] private HomeShallowsController _voyage;
         [SerializeField] private PlayerController _player;
+        [SerializeField] private DeckCatch _deckCatch;
         [SerializeField] private Transform _mapCenter;
         [SerializeField] private BoatStatusPanel _boatStatus;
         [SerializeField] private InteractionHintView _interactionHint;
@@ -55,7 +57,7 @@ namespace SecondCatch.UI
             bool playerAvailable = boatAvailable && !_boat.IsRespawning && _player != null && _player.isActiveAndEnabled;
             if (_boatStatus != null) _boatStatus.Render(boatAvailable ? _boat : null);
             if (_controlMode != null) _controlMode.Render(playerAvailable ? _player.ControlMode : PlayerControlMode.Walking, playerAvailable);
-            if (_interactionHint != null) _interactionHint.Render(playerAvailable ? _player : null);
+            if (_interactionHint != null) _interactionHint.Render(playerAvailable ? _player : null, _deckCatch);
             if (_compass != null) _compass.Render(boatAvailable ? _boat.transform.forward : Vector3.zero);
             if (_minimap != null)
                 _minimap.Render(boatAvailable ? _boat.transform : null, _mapCenter != null ? _mapCenter.position : Vector3.zero);

@@ -41,6 +41,7 @@ namespace SecondCatch.Stations
             Operator = null;
         }
 
+        public virtual bool TryInteract() => false;
         public abstract void HandleInput(Vector2 input);
         protected virtual void OnEntered() { }
         protected virtual void OnExited() { }

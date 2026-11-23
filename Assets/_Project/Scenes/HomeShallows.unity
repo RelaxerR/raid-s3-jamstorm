@@ -419,6 +419,7 @@ Transform:
   - {fileID: 862684962}
   - {fileID: 1943054899}
   - {fileID: 1521205972}
+  - {fileID: 2400000004}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &339207597
@@ -430,6 +431,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 339207598}
+  - component: {fileID: 339207599}
   m_Layer: 0
   m_Name: NetStation
   m_TagString: Untagged
@@ -3012,6 +3014,7 @@ MonoBehaviour:
   _stations:
   - {fileID: 2100000004}
   - {fileID: 2100000005}
+  - {fileID: 339207599}
 --- !u!114 &2100000003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3150,6 +3153,10 @@ PrefabInstance:
       propertyPath: _voyage
       value:
       objectReference: {fileID: 1100}
+    - target: {fileID: 1004, guid: be15f63793d644fe8669ffaba2218c19, type: 3}
+      propertyPath: _deckCatch
+      value:
+      objectReference: {fileID: 2400000005}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4842,6 +4849,10 @@ PrefabInstance:
       value:
       objectReference: {fileID: 1100}
     - target: {fileID: 8026184327704064569, guid: 8bc782853c69e42d5bb09b74b7a9f6b9, type: 3}
+      propertyPath: _net
+      value:
+      objectReference: {fileID: 339207599}
+    - target: {fileID: 8026184327704064569, guid: 8bc782853c69e42d5bb09b74b7a9f6b9, type: 3}
       propertyPath: _portion
       value: 45
       objectReference: {fileID: 0}
@@ -4910,6 +4921,10 @@ PrefabInstance:
       propertyPath: _voyage
       value:
       objectReference: {fileID: 1100}
+    - target: {fileID: 8026184327704064569, guid: 8bc782853c69e42d5bb09b74b7a9f6b9, type: 3}
+      propertyPath: _net
+      value:
+      objectReference: {fileID: 339207599}
     - target: {fileID: 8026184327704064569, guid: 8bc782853c69e42d5bb09b74b7a9f6b9, type: 3}
       propertyPath: _portion
       value: 45
@@ -5116,11 +5131,87 @@ PrefabInstance:
       propertyPath: _voyage
       value:
       objectReference: {fileID: 1100}
+    - target: {fileID: 8026184327704064569, guid: 8bc782853c69e42d5bb09b74b7a9f6b9, type: 3}
+      propertyPath: _net
+      value:
+      objectReference: {fileID: 339207599}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8bc782853c69e42d5bb09b74b7a9f6b9, type: 3}
+--- !u!114 &339207599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 339207597}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33719739967d45e2b5595529b14950f2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Runtime::SecondCatch.Stations.NetStation
+  _boat: {fileID: 2100000001}
+  _interactionPoint: {fileID: 339207598}
+  _interactionRadius: 0.85
+  _cameraOffset: {x: -0.65, y: -0.1, z: 0.8}
+  _voyage: {fileID: 1100}
+  _netVisual: {fileID: 1940369344}
+  _deployedOffset: {x: -0.8, y: -0.18, z: -0.45}
+  _capacity: 100
+  _lowerSeconds: 0.5
+  _raiseSeconds: 1.5
+  _spillDelay: 3
+  _fishLostPerSecond: 2
+  _spillSpeed: 0.2
+--- !u!1 &2400000003
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2400000004}
+  - component: {fileID: 2400000005}
+  m_Layer: 0
+  m_Name: DeckCatch
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2400000004
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2400000003}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.11, z: -0.50}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 254610246}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2400000005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2400000003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b495d8943d48e39a099517420c020e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Runtime::SecondCatch.Fishing.DeckCatch
+  _voyage: {fileID: 1100}
+  _player: {fileID: 2100000002}
+  _camera: {fileID: 1193594397}
+  _fishPrefab: {fileID: 8343508557334242772, guid: 6f211defa59b4825293828a36d33ea6a, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

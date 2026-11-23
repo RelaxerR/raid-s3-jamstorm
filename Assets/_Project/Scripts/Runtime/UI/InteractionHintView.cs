@@ -1,3 +1,4 @@
+using SecondCatch.Fishing;
 using SecondCatch.Player;
 using SecondCatch.Stations;
 using UnityEngine;
@@ -12,10 +13,15 @@ namespace SecondCatch.UI
 
         private const string CameraHint = "\nПКМ + мышь — обзор · колесо — приближение · V — вернуть камеру";
 
-        public void Render(PlayerController player)
+        public void Render(PlayerController player, DeckCatch deckCatch = null)
         {
             if (_label == null) return;
             if (player == null) { _label.text = "Управление недоступно"; return; }
+            if (player.ActiveStation is NetStation net)
+            {
+                _label.text = net.Status + "\n" + net.ActionHint + " · Esc — выйти" + CameraHint;
+                return;
+            }
             switch (player.ControlMode)
             {
                 case PlayerControlMode.Helm:
@@ -27,7 +33,14 @@ namespace SecondCatch.UI
             }
             StationInteraction station = player.GetAvailableStation();
             string action = station == null ? "" : station is HelmStation ? "\nE — управлять рулём"
-                : station is SailStation ? "\nE — управлять парусом" : "\nE — взаимодействовать";
+                : station is SailStation ? "\nE — управлять парусом"
+                : station is NetStation ? "\nE — занять станцию сетей" : "\nE — взаимодействовать";
+            if (deckCatch != null && deckCatch.Count > 0)
+            {
+                string catchHint = deckCatch.Feedback ?? $"ЛКМ по рыбе — в бочку · На палубе {deckCatch.Count}";
+                _label.text = "WASD — перемещение" + action + "\n" + catchHint + CameraHint;
+                return;
+            }
             _label.text = "WASD — перемещение" + action + CameraHint;
         }
     }

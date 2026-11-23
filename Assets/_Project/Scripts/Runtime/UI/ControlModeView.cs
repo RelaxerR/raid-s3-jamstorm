@@ -17,6 +17,7 @@ namespace SecondCatch.UI
             {
                 case PlayerControlMode.Helm: _label.text = "Режим: Руль · Управление лодкой"; break;
                 case PlayerControlMode.Sail: _label.text = "Режим: Парус · Управление парусом"; break;
+                case PlayerControlMode.Net: _label.text = "Режим: Сети"; break;
                 default: _label.text = "Режим: Ходьба · На палубе"; break;
             }
         }
