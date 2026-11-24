@@ -7,6 +7,7 @@ using UnityEngine;
 namespace SecondCatch.UI
 {
     /// <summary>Передаёт состояние контроллеров отдельным представлениям после движения лодки.</summary>
+    [DefaultExecutionOrder(120)]
     [DisallowMultipleComponent]
     public sealed class GameplayHud : MonoBehaviour
     {
@@ -21,6 +22,8 @@ namespace SecondCatch.UI
         [SerializeField] private CompassView _compass;
         [SerializeField] private MinimapView _minimap;
         [SerializeField] private FutureGameplayIndicators _futureIndicators;
+        [SerializeField] private BoatRepairView _repairView;
+        [SerializeField] private UnityEngine.Camera _repairCamera;
 
         /// <summary>Подключает prefab HUD к контроллерам другой сцены без поиска объектов.</summary>
         public void Bind(BoatController boat, PlayerController player, Transform mapCenter = null)
@@ -49,9 +52,13 @@ namespace SecondCatch.UI
 
         private void Refresh()
         {
-            var cargo = _voyage != null ? _voyage.Session?.Cargo : null;
-            if (_futureIndicators != null && cargo != null)
-                _futureIndicators.SetCargo(cargo.Count, cargo.Capacity);
+            var session = _voyage != null ? _voyage.Session : null;
+            if (_futureIndicators != null && session != null)
+            {
+                _futureIndicators.SetCargo(session.Cargo.Count, session.Cargo.Capacity);
+                _futureIndicators.SetWood(session.Wood);
+            }
+            if (_repairView != null) _repairView.Render(_voyage != null ? _voyage.Repair : null, _repairCamera);
 
             bool boatAvailable = _boat != null && _boat.isActiveAndEnabled;
             bool playerAvailable = boatAvailable && !_boat.IsRespawning && _player != null && _player.isActiveAndEnabled;

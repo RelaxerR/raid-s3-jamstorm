@@ -20,5 +20,6 @@ namespace SecondCatch.Application
         public bool Sell() => Session?.Sell() == true;
         public bool SellFish(string fishId) => Session?.SellFish(fishId) == true;
         public bool BuyUpgrade() => Session?.BuySpeedUpgrade() == true;
+        public bool BuyWood() => Session?.BuyWood() == true;
     }
 }

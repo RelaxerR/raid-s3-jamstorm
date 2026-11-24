@@ -4,7 +4,9 @@ using NUnit.Framework;
 using SecondCatch.Application;
 using SecondCatch.Boat;
 using SecondCatch.Player;
+using SecondCatch.Solo;
 using SecondCatch.Stations;
+using SecondCatch.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -49,6 +51,9 @@ namespace SecondCatch.Tests
                         var shader = serializedOcean.FindProperty("surfaceShader").objectReferenceValue;
                         Assert.NotNull(shader, "Прямая ссылка на шейдер воды нужна для включения в Player");
                         Assert.AreEqual("OceanPro/Depth Foam Water", shader.name);
+                        using var hud = new SerializedObject(FindInActiveScene<GameplayHud>());
+                        Assert.AreSame(FindInActiveScene<UnityEngine.Camera>(),
+                            hud.FindProperty("_repairCamera").objectReferenceValue);
                     }
                 }
             }
@@ -103,9 +108,9 @@ namespace SecondCatch.Tests
             Assert.Greater(boat.WaveDrift.sqrMagnitude, 0f);
 
             boat.SetSailRaised(false);
-            yield return HitObstacle(boat, "Reef", 45);
-            yield return HitObstacle(boat, "WaterDebris", 40);
-            yield return HitObstacle(boat, "Rock", 15);
+            yield return HitObstacle(boat, "Reef", new Vector3(-0.6f, 0f, 0.8f), BoatZone.FrontLeft, 45);
+            yield return HitObstacle(boat, "WaterDebris", new Vector3(0.6f, 0f, 0.8f), BoatZone.FrontRight, 40);
+            yield return HitObstacle(boat, "Rock", new Vector3(-0.6f, 0f, -0.8f), BoatZone.RearLeft, 15);
             for (int i = 0; i < 10; i++)
                 Assert.IsTrue(FindInActiveScene<HomeShallowsController>().CollectFish());
 
@@ -179,14 +184,21 @@ namespace SecondCatch.Tests
             return null;
         }
 
-        private static IEnumerator HitObstacle(BoatController boat, string obstacleName, float expectedHp)
+        private static IEnumerator HitObstacle(BoatController boat, string obstacleName, Vector3 impactDirection,
+            BoatZone zone, int expectedHp)
         {
             var obstacle = GameObject.Find(obstacleName).GetComponent<Collider>();
             Assert.IsTrue(obstacle.isTrigger);
-            PlaceBoat(boat, obstacle.bounds.center);
+            var bounds = obstacle.bounds;
+            float radius = Mathf.Max(bounds.extents.x, bounds.extents.z);
+            int hpBefore = GameApplication.Instance.Session.Boat.Hp;
+            boat.transform.rotation = Quaternion.identity;
+            PlaceBoat(boat, bounds.center - impactDirection * (radius + 1.15f));
             yield return WaitUntil(() => boat.HitPoints <= expectedHp);
             Assert.AreEqual(expectedHp, boat.HitPoints);
-            Assert.AreEqual(expectedHp, GameApplication.Instance.Session.Boat.Hp);
+            var state = GameApplication.Instance.Session.Boat;
+            Assert.AreEqual(expectedHp, state.Hp);
+            Assert.AreEqual(hpBefore - expectedHp, state.GetZoneDamage(zone));
         }
 
         private static void PlaceBoat(BoatController boat, Vector3 position)

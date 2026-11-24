@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using SecondCatch.Application;
@@ -10,6 +11,8 @@ using SecondCatch.Solo;
 using SecondCatch.Stations;
 using SecondCatch.UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -20,6 +23,35 @@ namespace SecondCatch.Tests
     public abstract class VoyageTestFixture
     {
         protected static GameApplication App => GameApplication.Instance;
+
+        protected sealed class GameViewInputScope : IDisposable
+        {
+            private readonly InputSettings _settings = InputSystem.settings;
+            private readonly InputSettings.BackgroundBehavior _background;
+#if UNITY_EDITOR
+            private readonly InputSettings.EditorInputBehaviorInPlayMode _editorInput;
+#endif
+
+            public GameViewInputScope()
+            {
+                // Batch-mode PlayMode has no focused Game view to receive synthetic keys.
+                _background = _settings.backgroundBehavior;
+#if UNITY_EDITOR
+                _editorInput = _settings.editorInputBehaviorInPlayMode;
+                _settings.editorInputBehaviorInPlayMode =
+                    InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+#endif
+                _settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            }
+
+            public void Dispose()
+            {
+                _settings.backgroundBehavior = _background;
+#if UNITY_EDITOR
+                _settings.editorInputBehaviorInPlayMode = _editorInput;
+#endif
+            }
+        }
 
         [UnityTearDown]
         public IEnumerator UnloadVoyage()
@@ -114,6 +146,30 @@ namespace SecondCatch.Tests
             boat.ResetMotion();
             boat.transform.position = position;
             Physics.SyncTransforms();
+        }
+
+        protected static Button ButtonIn(PortTradePanel panel, string name) =>
+            panel.GetComponentsInChildren<Button>(true).Single(button => button.name == name);
+
+        protected static bool HasText(PortTradePanel panel, string fragment) =>
+            panel.GetComponentsInChildren<Text>().Any(text => text.text.Contains(fragment));
+
+        protected static void Click(Button button)
+        {
+            Assert.IsTrue(button.gameObject.activeInHierarchy, button.name);
+            Assert.IsTrue(button.interactable, button.name);
+            Canvas.ForceUpdateCanvases();
+            var rect = (RectTransform)button.transform;
+            var pointer = new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left,
+                position = RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center))
+            };
+            var hits = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(pointer, hits);
+            Assert.IsNotEmpty(hits, $"{button.name} at {pointer.position} on {Screen.width}×{Screen.height}");
+            Assert.AreSame(button.gameObject, hits[0].gameObject, button.name);
+            ExecuteEvents.Execute(hits[0].gameObject, pointer, ExecuteEvents.pointerClickHandler);
         }
     }
 }

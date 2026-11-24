@@ -10,11 +10,13 @@ namespace SecondCatch.Application
     {
         [SerializeField] private BoatController _boat;
         [SerializeField] private Collider _hull;
+        [SerializeField] private BoatRepairController _repair;
 
         private PlayerController _player;
         private GameApplication _application;
         private SoloGameSession _session;
         public SoloGameSession Session => _session;
+        public BoatRepairController Repair => _repair;
 
         public bool Voyaging => _session != null && _session.AtSea && !_application.IsLoading;
 
@@ -41,11 +43,19 @@ namespace SecondCatch.Application
             if (Voyaging && _application.ReturnToPort()) _player?.ExitStation();
         }
 
-        private int ApplyDamage(int amount)
+        internal bool TryRepair(BoatZone zone)
+        {
+            if (!Voyaging || !_session.TryRepairZone(zone)) return false;
+            _boat.Health.NotifyVoyageRepair();
+            return true;
+        }
+
+        private int ApplyDamage(int amount, Vector3? worldImpact)
         {
             if (!Voyaging) return 0;
             int before = _session.Boat.Hp;
-            if (!_session.Damage(amount)) return before - _session.Boat.Hp;
+            BoatZone? zone = worldImpact.HasValue && _repair != null ? _repair.ZoneAt(worldImpact.Value) : null;
+            if (!_session.Damage(amount, zone)) return before - _session.Boat.Hp;
 
             _boat.IsRespawning = true;
             _player?.ExitStation();

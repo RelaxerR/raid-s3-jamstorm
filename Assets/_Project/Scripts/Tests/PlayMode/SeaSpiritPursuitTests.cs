@@ -97,5 +97,43 @@ namespace SecondCatch.Tests
             Assert.IsTrue(SceneComponent<HomePortController>().Sell());
             Assert.AreEqual(1000, App.Session.Coins);
         }
+
+        [UnityTest]
+        public IEnumerator SpiritAtHullCenterKeepsAttackingUntilTheBoatSinks()
+        {
+            yield return StartNewGame();
+            var session = App.Session;
+            Assert.IsTrue(App.Depart());
+            yield return WaitForScene(GameScenes.SEA);
+
+            var boat = SceneComponent<BoatController>();
+            var director = SceneComponent<SeaSpiritDirector>();
+            var openWater = new Vector3(-20f, boat.transform.position.y, 20f);
+            PlaceBoat(boat, openWater);
+            while (!session.Cargo.IsFull)
+                Assert.IsTrue(session.CatchFish(session.Cargo.FishId));
+
+            yield return WaitFor(() => director.IsPursuing, "A full hold did not attract the spirit");
+            var spirit = director.ActiveSpirit;
+            spirit.transform.position = boat.transform.position + Vector3.up * 1.5f;
+
+            int startingHp = session.Boat.MaxHp;
+            for (int hit = 1; hit <= 11; hit++)
+            {
+                int expectedHp = startingHp - 5 * hit;
+                yield return WaitFor(() => session.Boat.Hp <= expectedHp,
+                    $"Spirit attack {hit} did not lower the hull to {expectedHp} HP");
+                Assert.That(session.Boat.Hp, Is.EqualTo(expectedHp));
+                if (hit == 5 || hit == 6)
+                    Assert.That(session.Boat.GetZoneHp(BoatZone.Mast), Is.Zero);
+            }
+
+            yield return WaitForScene(GameScenes.PORT);
+            Assert.AreSame(session, App.Session);
+            Assert.IsFalse(session.AtSea);
+            Assert.That(session.Boat.Hp, Is.EqualTo(18));
+            Assert.That(session.Cargo.Count, Is.EqualTo(50));
+            Assert.IsTrue(spirit == null, "The spirit must unload when the damaged boat returns to port");
+        }
     }
 }

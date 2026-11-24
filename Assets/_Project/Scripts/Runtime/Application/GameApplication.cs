@@ -8,6 +8,8 @@ namespace SecondCatch.Application
     /// <summary>Корень приложения из Boot; владеет сессией и последовательной загрузкой сцен.</summary>
     public sealed class GameApplication : MonoBehaviour
     {
+        [SerializeField, Min(1)] private int _woodPrice = SoloGameSession.DEFAULT_WOOD_PRICE;
+
         public static GameApplication Instance { get; private set; }
         public SoloGameSession Session { get; private set; }
         public bool IsLoading { get; private set; }
@@ -21,7 +23,7 @@ namespace SecondCatch.Application
         private void Start() { if (Instance == this) OpenMenu(); }
         private void OnDestroy() { if (Instance == this) Instance = null; }
         public bool OpenMenu() => Navigate(GameScenes.MENU, null);
-        public bool NewGame() => Navigate(GameScenes.PORT, () => Session = new SoloGameSession());
+        public bool NewGame() => Navigate(GameScenes.PORT, () => Session = new SoloGameSession(_woodPrice));
         public bool ContinueGame() => Session != null && Navigate(Session.AtSea ? GameScenes.SEA : GameScenes.PORT, null);
         public bool Depart() => Session != null && !Session.AtSea && Navigate(GameScenes.SEA, () => Session.Depart());
         public bool ReturnToPort() => Session != null && SceneManager.GetActiveScene().path == GameScenes.Path(GameScenes.SEA)

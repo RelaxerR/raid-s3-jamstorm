@@ -18,17 +18,34 @@ namespace SecondCatch.Boat
         public float Damage => Mathf.Max(0f, _type == BoatObstacleType.Reef ? _reefDamage
             : _type == BoatObstacleType.Rock ? _rockDamage : _debrisDamage);
 
+        private Collider _obstacle;
+
+        private void Awake() => _obstacle = GetComponent<Collider>();
         private void OnTriggerEnter(Collider other) => TryDamage(other);
         private void OnTriggerStay(Collider other) => TryDamage(other);
-        private void OnCollisionEnter(Collision collision) => TryDamage(collision.collider);
-        private void OnCollisionStay(Collision collision) => TryDamage(collision.collider);
-        private void TryDamage(Collider other)
+        private void OnCollisionEnter(Collision collision) => DamageOnContact(collision);
+        private void OnCollisionStay(Collision collision) => DamageOnContact(collision);
+
+        private void DamageOnContact(Collision collision) => ApplyDamage(collision.collider,
+            collision.contactCount > 0 ? collision.GetContact(0).point : (Vector3?)null);
+
+        private void TryDamage(Collider other) => ApplyDamage(other, null);
+
+        private void ApplyDamage(Collider other, Vector3? contact)
         {
             BoatHealth health = other.GetComponentInParent<BoatHealth>();
             if (health == null || health.IsDestroyed || health.IsRespawning || !health.isActiveAndEnabled) return;
             if (_nextDamageTimes.TryGetValue(health, out float nextTime) && Time.time < nextTime) return;
             _nextDamageTimes[health] = Time.time + Mathf.Max(0.01f, _cooldown);
-            health.TakeDamage(Damage);
+            if (health.UsesVoyageState)
+            {
+                Vector3 source = contact ?? (_obstacle != null ? _obstacle.ClosestPoint(other.bounds.center) : transform.position);
+                health.TakeDamage(Damage, source);
+            }
+            else
+            {
+                health.TakeDamage(Damage);
+            }
         }
         private void OnDisable() => _nextDamageTimes.Clear();
     }

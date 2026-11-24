@@ -7,6 +7,7 @@ namespace SecondCatch.UI
     public sealed class FutureGameplayIndicators : MonoBehaviour
     {
         [SerializeField] private Text _cargo;
+        [SerializeField] private Text _wood;
         [SerializeField] private Text _tension;
         [SerializeField] private Text _reeling;
         [SerializeField] private Text _lowHitPoints;
@@ -16,6 +17,7 @@ namespace SecondCatch.UI
         public void HideAll()
         {
             SetVisible(_cargo, false);
+            SetVisible(_wood, false);
             SetVisible(_tension, false);
             SetVisible(_reeling, false);
             SetVisible(_lowHitPoints, false);
@@ -24,6 +26,7 @@ namespace SecondCatch.UI
         }
 
         public void SetCargo(int count, int capacity) => Show(_cargo, $"Улов {Mathf.Clamp(count, 0, Mathf.Max(0, capacity))}/{Mathf.Max(0, capacity)}");
+        public void SetWood(int count) => Show(_wood, $"Древесина: {count}");
         public void SetTension(float normalized) => Show(_tension, $"Натяжение троса: {Mathf.Clamp01(normalized):0%}");
         public void SetReeling(float normalized) => Show(_reeling, $"Вываживание: {Mathf.Clamp01(normalized):0%}");
         public void SetLowHitPoints(bool visible) => SetVisible(_lowHitPoints, visible);
