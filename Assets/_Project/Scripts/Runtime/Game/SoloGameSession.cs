@@ -148,17 +148,18 @@ namespace SecondCatch.Solo
         }
 
         /// <summary>Возвращает true при гибели. Портовую сцену загружает контроллер рейса.</summary>
-        public bool Damage(int amount, BoatZone zone = BoatZone.Mast)
+        public bool Damage(int amount, BoatZone? zone = null)
         {
-            if (!AtSea || amount <= 0 || !BoatState.IsZone(zone)) return false;
-            bool sunk = Boat.Damage(amount, zone);
+            if (!AtSea || amount <= 0 || (zone.HasValue && !BoatState.IsZone(zone.Value))) return false;
+            if (Boat.Damage(amount, zone) == 0) return false;
+            bool sunk = Boat.Hp == 0;
             if (sunk) { Boat.Respawn(); Cargo.LoseHalf(); ClearLooseFish(); AtSea = false; }
             Revision++; return sunk;
         }
 
         public bool TryRepairZone(BoatZone zone)
         {
-            if (!AtSea || Boat.GetZoneDamage(zone) == 0 || !TrySpendWood()) return false;
+            if (!AtSea || !Boat.IsZoneDamaged(zone) || !TrySpendWood()) return false;
             Boat.Repair(zone);
             return true;
         }

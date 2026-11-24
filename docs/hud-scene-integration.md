@@ -44,11 +44,13 @@ Presentation
         PlaceholderLabel              Text
       FutureGameplayIndicators        FutureGameplayIndicators
         CargoIndicator                включается в HomeShallows при наличии сессии
+        WoodIndicator                 включается в HomeShallows при наличии сессии
         TensionPlaceholder            выключен, Image + дочерний Label
         ReelingPlaceholder            выключен, Image + дочерний Label
         LowHitPointsWarning           выключен, Image + дочерний Label
         FishReceivedNotification      выключен, Image + дочерний Label
         SpiritAppearedNotification    выключен, Image + дочерний Label
+      RepairPrompt                   BoatRepairView, Label, ProgressTrack → ProgressFill
 ```
 
 В сцене `BoatController` явно получает `Wind`, `HelmStation` и `SailStation`. `WindController._boat` указывает на `Boat`, `_islandCenter` на `Environment/HomeIsland`, `_seaSurface` на BoxCollider `Sea/SeaSurface`. Руль ссылается на `RudderPivot`, под которым размещена балка `RudderBeam`, вытянутая вдоль носа. В сохранённой версии сцены отдельной балки не было, она добавлена вместе с точкой поворота. Парус хранит три положения и угол в собственной станции, визуал остаётся в `SailCloth`.
@@ -67,6 +69,12 @@ Presentation
 Автоматические проверки перечислены в [валидации](v2/validation.md). Визуальная оценка поведения и читаемости на 16:9 выполняется вручную.
 
 Отдельные ограничения: [локальный HP и респавн](hud-boat-status.md), [схематичная карта](hud-minimap.md), [выключенные механики среза](hud-future-indicators.md).
+
+## Подключение ремонта в HomeShallows
+
+В экземпляре `GameplayHud` назначьте `_voyage` на `HomeShallowsController`, а `_repairCamera` — на компонент `Camera` объекта `Main Camera` в той же сцене. `_repairView` ссылается на `SafeArea/RepairPrompt` внутри префаба. В `LateUpdate` представление проецирует `BoatRepairController.PromptPosition` через эту камеру и скрывает подсказку за пределами кадра. В автономном graybox ссылки на рейс и камеру ремонта пустые, подсказка скрыта.
+
+В `BoatRepairController` привяжите `_repairVisual` к `Player/Body/RepairVisual`. Временный наклон и движение этого меша начинаются со шкалой и сбрасываются при завершении и отмене. Коллайдер остаётся на `Body`, позиция игрока и ввод станций управляются прежними компонентами. [Параметры зон и сценарий проверки](v2/entities/boat.md#повреждения-и-ремонт)
 
 ## Подключение волн и HP
 

@@ -54,7 +54,7 @@ namespace SecondCatch.Application
         {
             if (!Voyaging) return 0;
             int before = _session.Boat.Hp;
-            BoatZone zone = worldImpact.HasValue && _repair != null ? _repair.ZoneAt(worldImpact.Value) : BoatZone.Mast;
+            BoatZone? zone = worldImpact.HasValue && _repair != null ? _repair.ZoneAt(worldImpact.Value) : null;
             if (!_session.Damage(amount, zone)) return before - _session.Boat.Hp;
 
             _boat.IsRespawning = true;

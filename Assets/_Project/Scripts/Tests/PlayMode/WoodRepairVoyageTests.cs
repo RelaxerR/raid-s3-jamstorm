@@ -72,21 +72,31 @@ namespace SecondCatch.Tests
             Assert.IsTrue(wood.gameObject.activeInHierarchy);
 
             boat = SceneComponent<BoatController>();
+            var repair = voyage.Repair;
+            var player = SceneComponent<PlayerController>();
+            var visual = player.transform.Find("Body/RepairVisual");
+            Assert.NotNull(visual);
+            Assert.IsNull(visual.GetComponent<Collider>());
+            var mark = boat.transform.Find("FrontLeftDamage").gameObject;
+            SetDeckPosition(player, -0.8f, 0.79f);
+            boat.Health.TakeDamage(1f, boat.transform.TransformPoint(new Vector3(-0.72f, 0f, 1.52f)));
+            yield return null;
+            Assert.That(boat.Health.Current, Is.EqualTo(59));
+            Assert.IsFalse(mark.activeSelf, "The mark must wait until the zone damage reaches its threshold");
+            Assert.IsNull(repair.SelectedZone);
+
             var debris = Object.FindObjectsByType<BoatDamageSource>(FindObjectsInactive.Exclude)
                 .Single(source => source.name == "WaterDebris");
             Vector3 debrisCenter = debris.GetComponent<Collider>().bounds.center;
             PlaceBoat(boat, debrisCenter - boat.transform.TransformVector(new Vector3(-1.4f, 0f, 1.8f)));
-            yield return WaitFor(() => session.Boat.Hp < 60, "The debris did not hit the hull");
+            yield return WaitFor(() => session.Boat.Hp < 59, "The debris did not hit the hull");
             PlaceBoat(boat, new Vector3(-14f, 1.65f, 15f));
-            Assert.That(session.Boat.GetZoneDamage(BoatZone.FrontLeft), Is.EqualTo(5));
-            Assert.That(boat.Health.Current, Is.EqualTo(55));
+            Assert.That(session.Boat.GetZoneDamage(BoatZone.FrontLeft), Is.EqualTo(6));
+            Assert.That(boat.Health.Current, Is.EqualTo(54));
 
-            var repair = voyage.Repair;
-            var player = SceneComponent<PlayerController>();
             var prompt = hud.GetComponentInChildren<BoatRepairView>(true);
             var track = (RectTransform)prompt.transform.Find("ProgressTrack");
             var fill = (RectTransform)track.Find("ProgressFill");
-            var mark = boat.transform.Find("FrontLeftDamage").gameObject;
 
             _input = new GameViewInputScope();
             _keyboard = InputSystem.AddDevice<Keyboard>();
@@ -97,7 +107,7 @@ namespace SecondCatch.Tests
             Assert.AreSame(helm, player.GetAvailableStation());
             yield return Keys(Key.E);
             Assert.AreSame(helm, player.ActiveStation);
-            yield return AssertInterrupted(repair, track, boat, 50);
+            yield return AssertInterrupted(repair, track, visual, boat, 49);
             yield return Keys();
             yield return Keys(Key.E);
             Assert.IsNull(player.ActiveStation);
@@ -107,7 +117,7 @@ namespace SecondCatch.Tests
             PlacePlayer(player, net);
             yield return Keys(Key.E);
             Assert.AreSame(net, player.ActiveStation);
-            yield return AssertInterrupted(repair, track, boat, 50);
+            yield return AssertInterrupted(repair, track, visual, boat, 49);
             yield return Keys();
             yield return Keys(Key.E);
             yield return WaitFor(() => net.State == NetState.Deployed, "E did not lower the net");
@@ -123,31 +133,37 @@ namespace SecondCatch.Tests
             Assert.IsTrue(mark.activeInHierarchy);
             Assert.IsFalse(track.gameObject.activeInHierarchy);
 
+            ExpectRepairLog("[BoatRepair] zone=FrontLeft state=started reason=- woodSpent=0 wood=1");
             yield return Keys(Key.E);
-            yield return WaitFor(() => fill.anchorMax.x > 0.1f, "The repair bar did not fill");
             Assert.IsTrue(track.gameObject.activeInHierarchy);
-            Assert.That(boat.Health.Current, Is.EqualTo(50));
+            Quaternion firstStroke = visual.localRotation;
+            Assert.That(Quaternion.Angle(Quaternion.identity, firstStroke), Is.GreaterThan(1f));
+            yield return WaitFor(() => fill.anchorMax.x > 0.1f
+                && Quaternion.Angle(firstStroke, visual.localRotation) > 1f, "Repair did not animate while the bar filled");
+            Assert.That(boat.Health.Current, Is.EqualTo(49));
             Assert.That(session.Wood, Is.EqualTo(1));
+            ExpectRepairLog("[BoatRepair] zone=FrontLeft state=interrupted reason=released woodSpent=0 wood=1");
             yield return Keys();
-            yield return AssertInterrupted(repair, track, boat, 50);
+            yield return AssertInterrupted(repair, track, visual, boat, 49);
 
             yield return Keys(Key.E);
             yield return WaitFor(() => repair.Progress > 0.1f, "Repair did not restart after releasing E");
             yield return Keys(Key.E, Key.S);
             yield return WaitFor(() => !repair.IsRepairing, "Leaving the zone did not cancel repair");
-            yield return AssertInterrupted(repair, track, boat, 50);
+            yield return AssertInterrupted(repair, track, visual, boat, 49);
 
             yield return Keys(Key.E);
             SetDeckPosition(player, -0.8f, 0.79f);
             yield return new WaitForSeconds(0.2f);
-            yield return AssertInterrupted(repair, track, boat, 50);
+            yield return AssertInterrupted(repair, track, visual, boat, 49);
             yield return Keys();
             revision = session.Revision;
             float holdStarted = Time.time;
             yield return Keys(Key.E);
             yield return WaitFor(() => repair.Progress > 0.75f, "The repair did not approach completion");
             Assert.That(session.Wood, Is.EqualTo(1));
-            Assert.That(boat.Health.Current, Is.EqualTo(50));
+            Assert.That(boat.Health.Current, Is.EqualTo(49));
+            ExpectRepairLog("[BoatRepair] zone=FrontLeft state=completed reason=- woodSpent=1 wood=0");
             yield return WaitFor(() => session.Wood == 0, "Three seconds of holding E did not repair the zone");
             Assert.That(Time.time - holdStarted, Is.GreaterThanOrEqualTo(3f));
             Assert.That(session.Revision, Is.EqualTo(revision + 1));
@@ -157,6 +173,7 @@ namespace SecondCatch.Tests
             yield return WaitFor(() => wood.text == "Древесина: 0", "The sea HUD did not reflect the repair");
             Assert.IsFalse(mark.activeSelf);
             Assert.IsFalse(track.gameObject.activeInHierarchy);
+            AssertRestPose(visual);
             Assert.IsTrue(hud.GetComponentsInChildren<Text>().Any(label => label.text.Contains("HP 55/60")));
             yield return Keys();
 
@@ -165,6 +182,7 @@ namespace SecondCatch.Tests
                 && prompt.GetComponentInChildren<Text>().text == "Нужна древесина",
                 "The damaged stern did not show the missing wood prompt");
             revision = session.Revision;
+            ExpectRepairLog("[BoatRepair] zone=RearLeft state=rejected reason=no_wood woodSpent=0 wood=0");
             yield return Keys(Key.E);
             yield return new WaitForSeconds(3.1f);
             Assert.That(session.Revision, Is.EqualTo(revision));
@@ -172,6 +190,7 @@ namespace SecondCatch.Tests
             Assert.That(boat.Health.Current, Is.EqualTo(55));
             Assert.That(repair.Progress, Is.Zero);
             Assert.IsFalse(track.gameObject.activeInHierarchy);
+            AssertRestPose(visual);
             yield return Keys();
 
             PlaceBoat(boat, departure);
@@ -183,14 +202,25 @@ namespace SecondCatch.Tests
             Assert.That(session.Boat.Hp, Is.EqualTo(55));
         }
 
-        private IEnumerator AssertInterrupted(BoatRepairController repair, RectTransform track, BoatController boat, int hp)
+        private IEnumerator AssertInterrupted(BoatRepairController repair, RectTransform track,
+            Transform visual, BoatController boat, int hp)
         {
             yield return null;
             Assert.That(repair.Progress, Is.Zero);
             Assert.That(boat.Health.Current, Is.EqualTo(hp));
             Assert.That(App.Session.Wood, Is.EqualTo(1));
             Assert.IsFalse(track.gameObject.activeInHierarchy);
+            AssertRestPose(visual);
         }
+
+        private static void AssertRestPose(Transform visual)
+        {
+            Assert.That(visual.localPosition, Is.EqualTo(Vector3.zero));
+            Assert.That(visual.localRotation, Is.EqualTo(Quaternion.identity));
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR"), System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        private static void ExpectRepairLog(string message) => LogAssert.Expect(LogType.Log, message);
 
         private IEnumerator Keys(params Key[] keys)
         {
