@@ -96,6 +96,18 @@ namespace SecondCatch.Input
             }
         }
 
+        public static bool InteractHeld
+        {
+            get
+            {
+#if ENABLE_INPUT_SYSTEM
+                return Keyboard.current != null && Keyboard.current.eKey.isPressed;
+#else
+                return UnityEngine.Input.GetKey(KeyCode.E);
+#endif
+            }
+        }
+
         public static bool CancelPressed
         {
             get

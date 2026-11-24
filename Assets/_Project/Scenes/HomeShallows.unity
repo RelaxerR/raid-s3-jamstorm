@@ -390,6 +390,7 @@ GameObject:
   - component: {fileID: 2500000003}
   - component: {fileID: 2500000020}
   - component: {fileID: 2500000022}
+  - component: {fileID: 2500000023}
   m_Layer: 0
   m_Name: Boat
   m_TagString: Untagged
@@ -422,6 +423,41 @@ Transform:
   - {fileID: 2400000004}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2500000023
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 254610245}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bed92cfdc74f78ba66c004b53ae264, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _voyage: {fileID: 1100}
+  _player: {fileID: 2100000002}
+  _zones:
+  - Id: 0
+    LocalPoint: {x: -0.72, y: 0.061, z: 1.52}
+    MarkSize: {x: 0.5, y: 0.025, z: 0.64}
+  - Id: 1
+    LocalPoint: {x: 0.72, y: 0.061, z: 1.52}
+    MarkSize: {x: 0.5, y: 0.025, z: 0.64}
+  - Id: 2
+    LocalPoint: {x: -0.72, y: 0.061, z: -1.18}
+    MarkSize: {x: 0.5, y: 0.025, z: 0.64}
+  - Id: 3
+    LocalPoint: {x: 0.72, y: 0.061, z: -1.18}
+    MarkSize: {x: 0.5, y: 0.025, z: 0.64}
+  - Id: 4
+    LocalPoint: {x: 0, y: 0.97, z: 0}
+    MarkSize: {x: 0.23, y: 0.23, z: 0.23}
+  _markMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  _markMaterial: {fileID: 2100000, guid: 00316031302ce49a093dcd12af914ca9, type: 2}
+  _radius: 0.9
+  _holdSeconds: 3
+  _promptHeight: 0.7
 --- !u!1 &339207597
 GameObject:
   m_ObjectHideFlags: 0
@@ -3159,6 +3195,10 @@ PrefabInstance:
       value:
       objectReference: {fileID: 1100}
     - target: {fileID: 1004, guid: be15f63793d644fe8669ffaba2218c19, type: 3}
+      propertyPath: _repairCamera
+      value:
+      objectReference: {fileID: 1193594397}
+    - target: {fileID: 1004, guid: be15f63793d644fe8669ffaba2218c19, type: 3}
       propertyPath: _deckCatch
       value:
       objectReference: {fileID: 2400000005}
@@ -4704,6 +4744,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _boat: {fileID: 2100000001}
   _hull: {fileID: 352167184}
+  _repair: {fileID: 2500000023}
 --- !u!114 &1101
 MonoBehaviour:
   m_ObjectHideFlags: 0

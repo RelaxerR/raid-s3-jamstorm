@@ -15,7 +15,7 @@ namespace SecondCatch.Boat
         private bool _initialized;
         private float _lastDamageTime = float.NegativeInfinity;
         private BoatState _voyageBoat;
-        private Func<int, int> _applyVoyageDamage;
+        private Func<int, Vector3?, int> _applyVoyageDamage;
         internal bool UsesVoyageState => _voyageBoat != null;
         public float Maximum => UsesVoyageState ? _voyageBoat.MaxHp : Mathf.Max(1f, _maximum);
         public float Current => UsesVoyageState ? _voyageBoat.Hp : Mathf.Clamp(_current, 0f, Maximum);
@@ -29,7 +29,7 @@ namespace SecondCatch.Boat
 
         private void Awake() => EnsureInitialized();
 
-        internal void BindVoyage(BoatState boat, Func<int, int> applyDamage)
+        internal void BindVoyage(BoatState boat, Func<int, Vector3?, int> applyDamage)
         {
             _voyageBoat = boat;
             _applyVoyageDamage = applyDamage;
@@ -59,14 +59,16 @@ namespace SecondCatch.Boat
             Changed?.Invoke(Current, Maximum);
             if (!wasDestroyed && IsDestroyed) Destroyed?.Invoke();
         }
-        public void TakeDamage(float amount)
+        public void TakeDamage(float amount) => TakeDamage(amount, null);
+
+        public void TakeDamage(float amount, Vector3? worldImpact)
         {
             EnsureInitialized();
             if (!isActiveAndEnabled || IsDestroyed || IsRespawning || float.IsNaN(amount) || amount <= 0f) return;
             float appliedDamage = Mathf.Min(Current, amount);
             if (UsesVoyageState)
             {
-                appliedDamage = _applyVoyageDamage(Mathf.CeilToInt(appliedDamage));
+                appliedDamage = _applyVoyageDamage(Mathf.CeilToInt(appliedDamage), worldImpact);
                 if (appliedDamage <= 0f) return;
             }
             LastDamage = appliedDamage;
@@ -75,6 +77,9 @@ namespace SecondCatch.Boat
             else SetCurrent(Current - appliedDamage);
             Damaged?.Invoke(appliedDamage);
         }
+
+        internal void NotifyVoyageRepair() => Changed?.Invoke(Current, Maximum);
+
         internal void BeginRespawn() => IsRespawning = true;
         internal void CompleteRespawn()
         {
