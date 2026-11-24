@@ -17,9 +17,18 @@ namespace SecondCatch.Solo
         public FishCargo Cargo { get; } = new FishCargo();
         public bool AtSea { get; private set; }
         public long Coins { get; private set; }
+        public int Wood { get; private set; }
+        public int WoodPrice { get; }
         public long Revision { get; private set; }
         public const int FISH_PRICE = 10;
         public const int UPGRADE_PRICE = 100;
+        public const int DEFAULT_WOOD_PRICE = 10;
+
+        public SoloGameSession(int woodPrice = DEFAULT_WOOD_PRICE)
+        {
+            WoodPrice = System.Math.Max(1, woodPrice);
+        }
+
         public bool Depart()
         {
             if (AtSea) return false;
@@ -102,6 +111,7 @@ namespace SecondCatch.Solo
         public bool CanSell => !AtSea && Cargo.Count > 0 && Coins <= long.MaxValue - SaleValue;
         public long SaleValue => (long)Cargo.Count * FISH_PRICE;
         public bool CanBuySpeedUpgrade => !AtSea && !Boat.SpeedUpgrade && Coins >= UPGRADE_PRICE;
+        public bool CanBuyWood => !AtSea && Coins >= WoodPrice && Wood < int.MaxValue;
 
         public bool Sell()
         {
@@ -119,6 +129,24 @@ namespace SecondCatch.Solo
             if (!CanBuySpeedUpgrade) return false;
             Coins -= UPGRADE_PRICE; Boat.SpeedUpgrade = true; Revision++; return true;
         }
+
+        public bool BuyWood()
+        {
+            if (!CanBuyWood) return false;
+            Coins -= WoodPrice;
+            Wood++;
+            Revision++;
+            return true;
+        }
+
+        public bool TrySpendWood()
+        {
+            if (Wood == 0) return false;
+            Wood--;
+            Revision++;
+            return true;
+        }
+
         /// <summary>Возвращает true при гибели. Портовую сцену загружает контроллер рейса.</summary>
         public bool Damage(int amount)
         {

@@ -12,12 +12,15 @@ namespace SecondCatch.UI
         [SerializeField] private GameObject _tradeBody;
         [SerializeField] private Text _cargo;
         [SerializeField] private Text _coins;
+        [SerializeField] private Text _wood;
+        [SerializeField] private Text _buyWoodLabel;
         [SerializeField] private Text _speedUpgrade;
         [SerializeField] private Button _open;
         [SerializeField] private Button _close;
         [SerializeField] private Button _sellFish;
         [SerializeField] private Button _sellAll;
         [SerializeField] private Button _buyUpgrade;
+        [SerializeField] private Button _buyWood;
         [SerializeField] private Button _depart;
         [SerializeField] private Button _menu;
 
@@ -31,6 +34,7 @@ namespace SecondCatch.UI
             _sellFish.onClick.AddListener(SellFish);
             _sellAll.onClick.AddListener(SellAll);
             _buyUpgrade.onClick.AddListener(BuyUpgrade);
+            _buyWood.onClick.AddListener(BuyWood);
             _depart.onClick.AddListener(Depart);
             _menu.onClick.AddListener(OpenMenu);
             Close();
@@ -72,6 +76,12 @@ namespace SecondCatch.UI
             Refresh();
         }
 
+        private void BuyWood()
+        {
+            _port?.BuyWood();
+            Refresh();
+        }
+
         private void Depart()
         {
             _port?.Depart();
@@ -98,10 +108,13 @@ namespace SecondCatch.UI
             _menu.interactable = ready;
             _sellAll.interactable = _sellFish.interactable = session?.CanSell == true;
             _buyUpgrade.interactable = session?.CanBuySpeedUpgrade == true;
+            _buyWood.interactable = session?.CanBuyWood == true;
             if (!ready) return;
 
             _cargo.text = $"Улов {session.Cargo.Count}/{session.Cargo.Capacity} · {SoloGameSession.FISH_PRICE} монет за рыбу";
             _coins.text = $"Монеты: {session.Coins}";
+            _wood.text = $"Древесина: {session.Wood}";
+            _buyWoodLabel.text = $"Купить древесину · {session.WoodPrice} монет";
             _speedUpgrade.text = session.Boat.SpeedUpgrade
                 ? $"Куплено · скорость ×{session.Boat.SpeedMultiplier:0.0}"
                 : $"Улучшение скорости · {SoloGameSession.UPGRADE_PRICE} монет";

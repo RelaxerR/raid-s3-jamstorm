@@ -49,9 +49,12 @@ namespace SecondCatch.UI
 
         private void Refresh()
         {
-            var cargo = _voyage != null ? _voyage.Session?.Cargo : null;
-            if (_futureIndicators != null && cargo != null)
-                _futureIndicators.SetCargo(cargo.Count, cargo.Capacity);
+            var session = _voyage != null ? _voyage.Session : null;
+            if (_futureIndicators != null && session != null)
+            {
+                _futureIndicators.SetCargo(session.Cargo.Count, session.Cargo.Capacity);
+                _futureIndicators.SetWood(session.Wood);
+            }
 
             bool boatAvailable = _boat != null && _boat.isActiveAndEnabled;
             bool playerAvailable = boatAvailable && !_boat.IsRespawning && _player != null && _player.isActiveAndEnabled;
