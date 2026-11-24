@@ -2978,7 +2978,7 @@ MonoBehaviour:
   _turnDecelerationTime: 2.5
   _movementResistance: 0.06
   _lateralResistance: 2.5
-  _waveDriftResistance: 1
+  _waveDriftResponse: 1
   _accelerationTime: 4
   _decelerationTime: 24
   _turnSpeed: 12
@@ -3218,7 +3218,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   _direction: {x: 0, y: 0, z: 1}
   _strength: 1
-  _minSpeed: 0
+  _minSpeed: 1.8
   _maxSpeed: 3
   _speed: 3
   _gizmoColor: {r: 0, g: 1, b: 1, a: 1}
@@ -3228,13 +3228,16 @@ MonoBehaviour:
   _boat: {fileID: 254610246}
   _islandCenter: {fileID: 2700000001}
   _seaSurface: {fileID: 799446956}
+  _shoreRadius: 12
   _maxZoneRadius: 200
-  _randomChanges: 0
+  _randomChanges: 1
   _changeInterval: {x: 20, y: 40}
   _transitionDuration: 6
+  _speedChangeInterval: {x: 4, y: 7}
+  _speedTransitionDuration: 1.5
   _maxDirectionChange: 100
   _centerReturnProbability: 0.05
-  _distanceExponent: 2
+  _distanceExponent: 1
 --- !u!1 &2400000000
 GameObject:
   m_ObjectHideFlags: 0
@@ -3395,7 +3398,9 @@ MonoBehaviour:
   _minimumForce: 0.015
   _maximumForce: 1.2
   _opposingResistance: 1.5
-  _returnMultiplier: 1
+  _minimumDriftSpeed: 0.12
+  _maximumDriftSpeed: 1.2
+  _driftSpeedMultiplier: 1
   _centerAmplitude: 0.08
   _outerAmplitude: 0.9
 --- !u!1 &2500000010

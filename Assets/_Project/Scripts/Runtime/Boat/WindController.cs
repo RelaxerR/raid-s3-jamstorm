@@ -46,11 +46,14 @@ namespace SecondCatch.Boat
         [SerializeField] private bool _randomChanges = true;
         [SerializeField] private Vector2 _changeInterval = new Vector2(20f, 40f);
         [SerializeField, Min(0.01f)] private float _transitionDuration = 6f;
+        [SerializeField] private Vector2 _speedChangeInterval = new Vector2(4f, 7f);
+        [SerializeField, Min(0.01f)] private float _speedTransitionDuration = 1.5f;
         [SerializeField, Range(0f, 180f)] private float _maxDirectionChange = 100f;
         [SerializeField] private Vector2 _strengthVariation = new Vector2(0.8f, 1.2f);
         [SerializeField] private Transform _boat;
         [SerializeField] private Transform _islandCenter;
         [SerializeField] private BoxCollider _seaSurface;
+        [SerializeField, Min(0f)] private float _shoreRadius;
         [SerializeField, Min(0.1f)] private float _maxZoneRadius = 200f;
         [SerializeField, Range(0f, 1f)] private float _centerReturnProbability = 0.05f;
         [SerializeField, Min(0.01f)] private float _distanceExponent = 2f;
@@ -70,6 +73,8 @@ namespace SecondCatch.Boat
         private Color _targetColor;
         private float _elapsed;
         private bool _transitioning;
+        private float _timeUntilSpeedChange;
+        private float _speedBlendRemaining;
         private float _startStormIntensity;
         private float _targetStormIntensity;
 
@@ -103,9 +108,16 @@ namespace SecondCatch.Boat
         public float StormIntensity { get; private set; }
         /// <summary>Будущая погода может подписаться на смену типа и читать StormIntensity.</summary>
         public event Action<WindType> WindTypeChanged;
-        public float NormalizedDistance => _boat == null || _islandCenter == null ? 0f
-            : Mathf.Clamp01(Vector3.ProjectOnPlane(_boat.position - _islandCenter.position, Vector3.up).magnitude
-                / Mathf.Max(0.1f, _maxZoneRadius));
+        public float NormalizedDistance
+        {
+            get
+            {
+                if (_boat == null || _islandCenter == null) return 0f;
+                float radius = Vector3.ProjectOnPlane(_boat.position - _islandCenter.position, Vector3.up).magnitude;
+                float shore = Mathf.Clamp(_shoreRadius, 0f, Mathf.Max(0f, _maxZoneRadius - 0.1f));
+                return Mathf.Clamp01((radius - shore) / Mathf.Max(0.1f, _maxZoneRadius - shore));
+            }
+        }
         public float IslandReturnProbability
         {
             get
@@ -153,23 +165,32 @@ namespace SecondCatch.Boat
             if (_type == WindType.Calm) _speed = _strength = _sailInfluence = 0f;
             StormIntensity = _type == WindType.Storm ? 1f : 0f;
             ScheduleChange();
+            _timeUntilSpeedChange = SampleInterval(_speedChangeInterval);
         }
 
-        private void ScheduleChange()
+        private void ScheduleChange() => TimeUntilChange = SampleInterval(_changeInterval);
+
+        private static float SampleInterval(Vector2 interval)
         {
-            float min = Mathf.Max(0.01f, _changeInterval.x);
-            TimeUntilChange = UnityEngine.Random.Range(min, Mathf.Max(min, _changeInterval.y));
+            float min = Mathf.Max(0.01f, interval.x);
+            return UnityEngine.Random.Range(min, Mathf.Max(min, interval.y));
         }
 
-        private void Update()
+        private void Update() => Advance(Time.deltaTime);
+
+        private void Advance(float dt)
         {
             if (_randomChanges)
             {
-                TimeUntilChange = Mathf.Max(0f, TimeUntilChange - Time.deltaTime);
+                TimeUntilChange = Mathf.Max(0f, TimeUntilChange - dt);
                 if (TimeUntilChange <= 0f) ChooseNextWind();
             }
-            if (!_transitioning) return;
-            _elapsed += Time.deltaTime;
+            if (!_transitioning)
+            {
+                AdvanceSpeed(dt);
+                return;
+            }
+            _elapsed += dt;
             float progress = Mathf.Clamp01(_elapsed / Mathf.Max(0.01f, _transitionDuration));
             float t = Mathf.SmoothStep(0f, 1f, progress);
             _direction = Quaternion.AngleAxis(Mathf.LerpAngle(_startHeading, _targetHeading, t), Vector3.up) * Vector3.forward;
@@ -181,8 +202,34 @@ namespace SecondCatch.Boat
             if (progress >= 1f)
             {
                 _transitioning = false;
+                _timeUntilSpeedChange = SampleInterval(_speedChangeInterval);
                 SetType(_targetType);
             }
+        }
+
+        private void AdvanceSpeed(float dt)
+        {
+            float duration = Mathf.Max(0.01f, _speedTransitionDuration);
+            if (_speedBlendRemaining > 0f)
+            {
+                _speedBlendRemaining = Mathf.Max(0f, _speedBlendRemaining - dt);
+                _speed = Mathf.SmoothStep(_startSpeed, _targetSpeed, 1f - _speedBlendRemaining / duration);
+            }
+            if (!_randomChanges || _type == WindType.Calm) return;
+            _timeUntilSpeedChange -= dt;
+            if (_timeUntilSpeedChange <= 0f)
+            {
+                _startSpeed = Speed;
+                _targetSpeed = SampleSpeed(Profile(_type));
+                _speedBlendRemaining = duration;
+                _timeUntilSpeedChange = SampleInterval(_speedChangeInterval);
+            }
+        }
+
+        private static float SampleSpeed(WindProfile profile)
+        {
+            float min = Mathf.Max(0f, profile.MinSpeed);
+            return UnityEngine.Random.Range(min, Mathf.Max(min, profile.MaxSpeed));
         }
 
         private bool IsAtSeaBoundary()
@@ -212,8 +259,7 @@ namespace SecondCatch.Boat
                 Vector3 toIsland = Vector3.ProjectOnPlane(_islandCenter.position - _boat.position, Vector3.up);
                 if (toIsland.sqrMagnitude > 0.0001f) direction = toIsland.normalized;
             }
-            float min = Mathf.Max(0f, profile.MinSpeed);
-            float speed = UnityEngine.Random.Range(min, Mathf.Max(min, profile.MaxSpeed));
+            float speed = SampleSpeed(profile);
             float minStrength = Mathf.Max(0f, _strengthVariation.x);
             float strength = profile.Strength * UnityEngine.Random.Range(minStrength, Mathf.Max(minStrength, _strengthVariation.y));
             BeginTransition(type, direction, speed, strength, profile.SailInfluence, profile.Color);
@@ -248,6 +294,7 @@ namespace SecondCatch.Boat
             // Штиль объявляется после затухания, выход из штиля начинается с нулевой силы.
             if (type != WindType.Calm) SetType(type);
             _elapsed = 0f;
+            _speedBlendRemaining = 0f;
             _transitioning = true;
         }
 

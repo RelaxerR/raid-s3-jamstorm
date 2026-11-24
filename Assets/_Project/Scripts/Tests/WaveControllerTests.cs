@@ -53,7 +53,9 @@ namespace SecondCatch.Tests
             Set(waves, "_islandCenter", center);
             Vector3 near = center.position + Vector3.right * 20f;
             Vector3 far = center.position + Vector3.right * 180f;
-            VectorEqual(Vector3.left, waves.ReturnAcceleration(far).normalized);
+            VectorEqual(Vector3.left, waves.DriftVelocityAt(far).normalized);
+            VectorEqual(Vector3.zero, waves.DriftVelocityAt(center.position));
+            Assert.Greater(waves.DriftVelocityAt(far).magnitude, waves.DriftVelocityAt(near).magnitude);
             Assert.Greater(waves.ForceAt(far), waves.ForceAt(near));
             Assert.Greater(waves.ResistanceAt(far), waves.ResistanceAt(near));
             Assert.AreEqual(0f, waves.DistanceFactor(center.position));
@@ -100,9 +102,18 @@ namespace SecondCatch.Tests
             Set(Wind, "_islandCenter", center);
             Set(Wind, "_boat", Boat.transform);
             Set(Wind, "_seaSurface", boundary);
-            Boat.transform.position = Vector3.right * 100f;
+            Set(Wind, "_shoreRadius", 12f);
+            Set(Wind, "_distanceExponent", 1f);
+            Boat.transform.position = Vector3.right * 12f;
+            Assert.AreEqual(0f, Wind.NormalizedDistance);
+            Assert.AreEqual(0.05f, Wind.IslandReturnProbability, 0.001f);
+            Boat.transform.position = Vector3.right * 106f;
             Assert.AreEqual(0.5f, Wind.NormalizedDistance);
             float middleProbability = Wind.IslandReturnProbability;
+            Assert.AreEqual(0.525f, middleProbability, 0.001f);
+            Boat.transform.position = Vector3.right * 180f;
+            Assert.Greater(Wind.IslandReturnProbability, middleProbability);
+            Assert.Less(Wind.IslandReturnProbability, 1f);
             Boat.transform.position = Vector3.right * 200f;
             Assert.AreEqual(1f, Wind.IslandReturnProbability);
             Assert.Greater(Wind.IslandReturnProbability, middleProbability);
@@ -120,6 +131,69 @@ namespace SecondCatch.Tests
                 Assert.AreEqual(type, Wind.TargetType);
             }
             finally { Random.state = randomState; }
+        }
+
+        [Test]
+        public void WindChangesSpeedBeforeItChangesCourseOrType()
+        {
+            Set(Wind, "_randomChanges", true);
+            Set(Wind, "_changeInterval", new Vector2(20f, 20f));
+            Set(Wind, "_speedChangeInterval", new Vector2(4f, 4f));
+            Set(Wind, "_speedTransitionDuration", 2f);
+            Set(Wind, "_normal", new WindProfile { MinSpeed = 1f, MaxSpeed = 2f });
+            Set(Wind, "_speed", 2f);
+            Call(Wind, "Awake");
+            // Фиксируем следующий выбор скорости, оставляя направление и тип прежними.
+            Get<WindProfile>(Wind, "_normal").MaxSpeed = 1f;
+
+            Call(Wind, "Advance", 3.9f);
+            Assert.AreEqual(2f, Wind.Speed);
+            Call(Wind, "Advance", 0.2f);
+            Call(Wind, "Advance", 1f);
+            Assert.AreEqual(1.5f, Wind.Speed, 0.0001f);
+            Call(Wind, "Advance", 1f);
+            Assert.AreEqual(1f, Wind.Speed);
+            VectorEqual(Vector3.forward, Wind.Direction);
+            Assert.AreEqual(WindType.Normal, Wind.Type);
+            Assert.AreEqual(13.9f, Wind.TimeUntilChange, 0.001f);
+        }
+
+        [Test]
+        public void WavesMoveTheBoatTowardsIslandWithoutInput()
+        {
+            var waves = Create("Waves").AddComponent<WaveController>();
+            Set(Boat, "_waves", waves);
+            Vector3 start = Vector3.back * 100f;
+            Boat.transform.position = start;
+
+            for (int i = 0; i < 150; i++) Call(Boat, "AdvanceMotion", 0.02f);
+
+            Assert.Greater(Boat.transform.position.z - start.z, 0.5f);
+            Assert.AreEqual(0f, Boat.LongitudinalSpeed, 0.0001f);
+            VectorEqual(Boat.WaveDrift, Boat.Velocity);
+            Assert.Greater(Boat.WaveDrift.z, 0f);
+            Assert.Less(Boat.WaveDrift.magnitude, 1.2f);
+        }
+
+        [TestCase(SailPosition.Folded)]
+        [TestCase(SailPosition.Full)]
+        public void WaveSpeedAddsToRowingAndSailingTowardsIsland(SailPosition position)
+        {
+            var waves = Create("Waves").AddComponent<WaveController>();
+            Set(waves, "_minimumDriftSpeed", 0.4f);
+            Set(waves, "_maximumDriftSpeed", 0.4f);
+            Boat.transform.position = Vector3.back * 100f;
+            Deploy(position);
+            if (position == SailPosition.Folded) Row(1f);
+            for (int i = 0; i < 300; i++) Call(Boat, "AdvanceMotion", 0.02f);
+            float poweredSpeed = Boat.CurrentSpeed;
+            Assert.Greater(poweredSpeed, 0.1f);
+
+            Set(Boat, "_waves", waves);
+            for (int i = 0; i < 300; i++) Call(Boat, "AdvanceMotion", 0.02f);
+
+            Assert.AreEqual(poweredSpeed, Boat.LongitudinalSpeed, 0.001f);
+            Assert.AreEqual(poweredSpeed + 0.4f, Boat.CurrentSpeed, 0.003f);
         }
 
         [TestCase(SailPosition.Folded)]

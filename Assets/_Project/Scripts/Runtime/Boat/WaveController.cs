@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SecondCatch.Boat
 {
@@ -15,7 +16,10 @@ namespace SecondCatch.Boat
         [SerializeField, Min(0f)] private float _maximumForce = 1.2f;
         [SerializeField] private AnimationCurve _forceByDistance = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
         [SerializeField, Min(0f)] private float _opposingResistance = 1.5f;
-        [SerializeField, Min(0f)] private float _returnMultiplier = 1f;
+        [SerializeField, Min(0f)] private float _minimumDriftSpeed = 0.12f;
+        [SerializeField, Min(0f)] private float _maximumDriftSpeed = 1.2f;
+        [FormerlySerializedAs("_returnMultiplier")]
+        [SerializeField, Min(0f)] private float _driftSpeedMultiplier = 1f;
         [SerializeField, Min(0f)] private float _centerAmplitude = 0.08f;
         [SerializeField, Min(0f)] private float _outerAmplitude = 0.9f;
 
@@ -27,13 +31,20 @@ namespace SecondCatch.Boat
             float distance = Vector3.ProjectOnPlane(position - Center, Vector3.up).magnitude;
             return Mathf.Clamp01((distance - _calmRadius) / Mathf.Max(0.01f, _maximumForceRadius - _calmRadius));
         }
-        public float ForceAt(Vector3 position)
+        private float StrengthAt(Vector3 position)
         {
             float t = DistanceFactor(position);
-            float strength = _forceByDistance == null ? t : Mathf.Clamp01(_forceByDistance.Evaluate(t));
-            return Mathf.Lerp(_minimumForce, Mathf.Max(_minimumForce, _maximumForce), strength);
+            return _forceByDistance == null ? t : Mathf.Clamp01(_forceByDistance.Evaluate(t));
         }
-        public Vector3 ReturnAcceleration(Vector3 position) => DirectionToCenter(position) * (ForceAt(position) * _returnMultiplier);
+
+        public float ForceAt(Vector3 position) => Mathf.Lerp(_minimumForce, Mathf.Max(_minimumForce, _maximumForce), StrengthAt(position));
+
+        public Vector3 DriftVelocityAt(Vector3 position)
+        {
+            float speed = Mathf.Lerp(_minimumDriftSpeed, Mathf.Max(_minimumDriftSpeed, _maximumDriftSpeed), StrengthAt(position));
+            return DirectionToCenter(position) * (speed * _driftSpeedMultiplier);
+        }
+
         public float ResistanceAt(Vector3 position) => _opposingResistance * ForceAt(position);
 
         private void Awake() => ConfigureSurface();
