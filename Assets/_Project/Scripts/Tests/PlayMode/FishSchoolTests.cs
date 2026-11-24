@@ -19,13 +19,15 @@ namespace SecondCatch.Tests
     public sealed class FishSchoolTests : VoyageTestFixture
     {
         [UnityTest]
-        public IEnumerator BootVoyageUsesNetAndMouseOnTheMovingBoat()
+        public IEnumerator BootVoyageUsesNetAndMouseOnTheMovingBoatAndReturnsToPort()
         {
             yield return StartNewGame();
             Assert.IsTrue(App.Depart());
             yield return WaitForScene(GameScenes.SEA);
             var session = App.Session;
             var boat = SceneComponent<BoatController>();
+            Vector3 departure = boat.transform.position;
+            var portZone = SceneComponent<PortZone>();
             var player = SceneComponent<PlayerController>();
             var sail = SceneComponent<SailStation>();
             var net = SceneComponent<NetStation>();
@@ -61,6 +63,8 @@ namespace SecondCatch.Tests
 
                 player.transform.localPosition = new Vector3(0f, player.transform.localPosition.y, 0f);
                 Assert.IsTrue(sail.TryEnter(player));
+                // Держим курс западнее рифа, оставаясь в зоне первого косяка.
+                boat.transform.rotation = Quaternion.Euler(0f, -10f, 0f);
                 boat.SetSailRaised(true);
                 player.ExitStation();
                 PlacePlayer(player, net);
@@ -113,6 +117,16 @@ namespace SecondCatch.Tests
                 yield return WaitFor(() => Hint().Contains("Бочка заполнена"), "HUD did not explain the rejection");
                 Assert.IsTrue(rejected.gameObject.activeSelf);
                 Assert.AreEqual(9, session.DeckFishCount);
+
+                Assert.IsTrue(portZone.ReadyToDock);
+                Vector3 homeward = Vector3.ProjectOnPlane(departure - boat.transform.position, Vector3.up).normalized;
+                boat.ResetMotion();
+                boat.transform.rotation = Quaternion.LookRotation(homeward, Vector3.up);
+                boat.Wind.SetWind(homeward, boat.Wind.MaxSpeed, 1f);
+                yield return WaitForScene(GameScenes.PORT);
+                Assert.IsFalse(session.AtSea);
+                Assert.AreEqual(0, session.DeckFishCount);
+                Assert.AreEqual(session.Cargo.Capacity, session.Cargo.Count, "Docking must preserve the barrel");
             }
             finally
             {
@@ -126,7 +140,7 @@ namespace SecondCatch.Tests
         }
 
         [UnityTest]
-        public IEnumerator ContactRequiresDeployedNetAndPendingCatchSurvivesContinue()
+        public IEnumerator StationaryHullInsideSchoolCatchesOnlyAfterStartingToMove()
         {
             yield return StartNewGame();
             Assert.IsTrue(App.Depart());
@@ -137,6 +151,7 @@ namespace SecondCatch.Tests
             var first = Schools()[0];
             var player = SceneComponent<PlayerController>();
             var net = SceneComponent<NetStation>();
+            SceneComponent<WaveController>().enabled = false;
             PlaceBoat(boat, first.transform.position + Vector3.up);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
@@ -147,9 +162,35 @@ namespace SecondCatch.Tests
             PlacePlayer(player, net);
             Assert.IsTrue(net.TryEnter(player));
             yield return SetNetState(net, NetState.Deployed);
-            yield return WaitFor(() => net.Count == 10, "A school in contact with the lowered net was missed");
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.AreEqual(0f, boat.CurrentSpeed, 0.001f);
+            Assert.AreEqual(0, net.Count, "Lowering the net at rest must not take fish");
+            Assert.IsTrue(first.gameObject.activeSelf);
+
+            boat.SetSailRaised(true);
+            yield return WaitFor(() => net.Count == 10, "The net missed the school when the hull began to move");
+            Assert.GreaterOrEqual(boat.CurrentSpeed, 0.05f);
+            Assert.AreEqual(0, session.Cargo.Count);
             Collider hull = boat.GetComponentsInChildren<Collider>().Single(SceneComponent<HomeShallowsController>().IsHull);
             Assert.IsFalse(first.TryCollect(hull));
+        }
+
+        [UnityTest]
+        public IEnumerator NetAndDeckCatchSurviveContinue()
+        {
+            yield return StartNewGame();
+            Assert.IsTrue(App.Depart());
+            yield return WaitForScene(GameScenes.SEA);
+            var session = App.Session;
+            var net = SceneComponent<NetStation>();
+            var player = SceneComponent<PlayerController>();
+            PlacePlayer(player, net);
+            Assert.IsTrue(net.TryEnter(player));
+            yield return SetNetState(net, NetState.Deployed);
+            var school = Schools()[0];
+            PlaceBoat(SceneComponent<BoatController>(), school.transform.position + Vector3.up);
+            yield return WaitFor(() => net.Count == 10, "The drifting hull did not catch the school");
 
             Assert.IsTrue(App.OpenMenu());
             yield return WaitForScene(GameScenes.MENU);
@@ -196,9 +237,9 @@ namespace SecondCatch.Tests
             yield return SetNetState(net, NetState.Deployed);
 
             var schools = Schools();
-            Assert.IsTrue(net.TryCapture(99, 100));
+            Assert.AreEqual(100, App.Session.TakeSchoolIntoNet(99, 100, 100));
             PlaceBoat(boat, schools[0].transform.position + Vector3.up);
-            yield return new WaitForFixedUpdate();
+            yield return WaitFor(() => boat.CurrentSpeed >= 0.05f, "Hull did not start drifting");
             yield return new WaitForFixedUpdate();
             Assert.AreEqual(100, net.Count);
             Assert.IsTrue(schools[0].gameObject.activeSelf);
@@ -206,14 +247,43 @@ namespace SecondCatch.Tests
 
             PlaceBoat(boat, new Vector3(-15f, boat.transform.position.y, 26f));
             boat.SetSailRaised(true);
-            yield return WaitFor(() => net.Count < 100, "A moving deployed net never lost fish");
+            yield return CheckSpill(net, 100, 90, 81);
             Assert.Greater(boat.CurrentSpeed, 0.2f);
-            int remaining = net.Count;
-            Assert.That(remaining, Is.InRange(1, 99));
             yield return SetNetState(net, NetState.Stowed);
-            Assert.AreEqual(remaining, App.Session.DeckFishCount);
+            Assert.AreEqual(81, App.Session.DeckFishCount);
             Assert.AreEqual(0, net.Count);
             Assert.AreEqual(0, App.Session.Cargo.Count);
+        }
+
+        [UnityTest]
+        public IEnumerator SmallCatchLosesTenPercentEachSecondRoundedUp()
+        {
+            yield return StartNewGame();
+            Assert.IsTrue(App.Depart());
+            yield return WaitForScene(GameScenes.SEA);
+            var boat = SceneComponent<BoatController>();
+            var player = SceneComponent<PlayerController>();
+            var net = SceneComponent<NetStation>();
+            PlacePlayer(player, net);
+            Assert.IsTrue(net.TryEnter(player));
+            yield return SetNetState(net, NetState.Deployed);
+            PlaceBoat(boat, new Vector3(-15f, boat.transform.position.y, 26f));
+            Assert.AreEqual(10, App.Session.TakeSchoolIntoNet(99, 10, 100));
+            yield return new WaitForSeconds(4.1f);
+            Assert.AreEqual(10, net.Count, "No fish should be lost while the boat is below the spill speed");
+
+            boat.SetSailRaised(true);
+            yield return CheckSpill(net, 10, 9, 8);
+        }
+
+        private static IEnumerator CheckSpill(NetStation net, int initial, int first, int second)
+        {
+            yield return new WaitForSeconds(2.9f);
+            Assert.AreEqual(initial, net.Count, "Loss started before the grace period ended");
+            yield return WaitFor(() => net.Count < initial, "First second of loss did not finish");
+            Assert.AreEqual(first, net.Count);
+            yield return WaitFor(() => net.Count < first, "Second second of loss did not finish");
+            Assert.AreEqual(second, net.Count);
         }
 
         private static FishOnDeck PickableFish(DeckCatch deck, UnityEngine.Camera camera)

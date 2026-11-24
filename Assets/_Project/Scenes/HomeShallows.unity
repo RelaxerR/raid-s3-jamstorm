@@ -5176,8 +5176,9 @@ MonoBehaviour:
   _capacity: 100
   _lowerSeconds: 0.5
   _raiseSeconds: 1.5
+  _minimumCaptureSpeed: 0.05
   _spillDelay: 3
-  _fishLostPerSecond: 2
+  _spillPercentPerSecond: 10
   _spillSpeed: 0.2
 --- !u!1 &2400000003
 GameObject:
