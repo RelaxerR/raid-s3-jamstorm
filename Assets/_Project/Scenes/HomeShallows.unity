@@ -2047,6 +2047,7 @@ Transform:
   - {fileID: 2800000121}
   - {fileID: 2800000131}
   - {fileID: 2500000051}
+  - {fileID: 3800000101}
   - {fileID: 1065740984}
   - {fileID: 646171242}
   - {fileID: 1281076290}
@@ -3712,7 +3713,7 @@ MonoBehaviour:
   _reefDamage: 15
   _rockDamage: 25
   _debrisDamage: 5
-  _cooldown: 1
+  _cooldown: 2
 --- !u!1 &2500000050
 GameObject:
   m_ObjectHideFlags: 0
@@ -3842,7 +3843,7 @@ MonoBehaviour:
   _reefDamage: 15
   _rockDamage: 25
   _debrisDamage: 5
-  _cooldown: 1
+  _cooldown: 2
 --- !u!1 &2500000060
 GameObject:
   m_ObjectHideFlags: 0
@@ -3972,7 +3973,7 @@ MonoBehaviour:
   _reefDamage: 15
   _rockDamage: 25
   _debrisDamage: 5
-  _cooldown: 1
+  _cooldown: 2
 --- !u!1 &2600000000
 GameObject:
   m_ObjectHideFlags: 0
@@ -4299,7 +4300,7 @@ MonoBehaviour:
   _reefDamage: 15
   _rockDamage: 25
   _debrisDamage: 5
-  _cooldown: 1
+  _cooldown: 2
 --- !u!1 &2800000120
 GameObject:
   m_ObjectHideFlags: 0
@@ -4429,7 +4430,7 @@ MonoBehaviour:
   _reefDamage: 15
   _rockDamage: 25
   _debrisDamage: 5
-  _cooldown: 1
+  _cooldown: 2
 --- !u!1 &2800000130
 GameObject:
   m_ObjectHideFlags: 0
@@ -4559,7 +4560,1349 @@ MonoBehaviour:
   _reefDamage: 15
   _rockDamage: 25
   _debrisDamage: 5
-  _cooldown: 1
+  _cooldown: 2
+--- !u!1 &3800000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3800000001}
+  - component: {fileID: 3800000002}
+  - component: {fileID: 3800000003}
+  - component: {fileID: 3800000004}
+  - component: {fileID: 3800000005}
+  m_Layer: 0
+  m_Name: Outer Reef Northwest
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3800000001
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -25, y: 1.2, z: 38}
+  m_LocalScale: {x: 4, y: 1, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+--- !u!135 &3800000002
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3800000000}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3800000003
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000000}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3800000004
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000000}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3800000005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000000}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 0
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3800000010
+GameObject:
+  m_ObjectHideFlags: 0
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3800000011}
+  - component: {fileID: 3800000012}
+  - component: {fileID: 3800000013}
+  - component: {fileID: 3800000014}
+  - component: {fileID: 3800000015}
+  m_Layer: 0
+  m_Name: Outer Reef Northeast
+  m_IsActive: 1
+--- !u!4 &3800000011
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000010}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 12, y: 1.2, z: 38}
+  m_LocalScale: {x: 4, y: 1, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+--- !u!135 &3800000012
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3800000010}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3800000013
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000010}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3800000014
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000010}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3800000015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000010}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 0
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3800000020
+GameObject:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000021}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3800000021}
+  - component: {fileID: 3800000022}
+  - component: {fileID: 3800000023}
+  - component: {fileID: 3800000024}
+  - component: {fileID: 3800000025}
+  m_Layer: 0
+  m_Name: Outer Rock West
+  m_IsActive: 1
+--- !u!4 &3800000021
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000020}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -25, y: 1.4, z: 32}
+  m_LocalScale: {x: 2, y: 3, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+--- !u!135 &3800000022
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3800000020}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3800000023
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000020}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3800000024
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000020}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3800000025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000020}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 1
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3800000030
+GameObject:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000031}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3800000031}
+  - component: {fileID: 3800000032}
+  - component: {fileID: 3800000033}
+  - component: {fileID: 3800000034}
+  - component: {fileID: 3800000035}
+  m_Layer: 0
+  m_Name: Outer Debris East
+  m_IsActive: 1
+--- !u!4 &3800000031
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000030}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 14, y: 1.6, z: 27}
+  m_LocalScale: {x: 1.4, y: 0.5, z: 1.4}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+--- !u!135 &3800000032
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3800000030}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3800000033
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000030}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3800000034
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000030}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3800000035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000030}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 2
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3800000040
+GameObject:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000041}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3800000041}
+  - component: {fileID: 3800000042}
+  - component: {fileID: 3800000043}
+  - component: {fileID: 3800000044}
+  - component: {fileID: 3800000045}
+  m_Layer: 0
+  m_Name: Outer Reef Southeast
+  m_IsActive: 1
+--- !u!4 &3800000041
+Transform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000040}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 18, y: 1.2, z: 19}
+  m_LocalScale: {x: 4, y: 1, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+--- !u!135 &3800000042
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3800000040}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3800000043
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000040}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3800000044
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000040}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3800000045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 3800000040}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 0
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3800000100
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3800000101}
+  m_Layer: 0
+  m_Name: OuterObstacleRing
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3800000101
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3800000100}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 3800000001}
+  - {fileID: 3800000011}
+  - {fileID: 3800000021}
+  - {fileID: 3800000031}
+  - {fileID: 3800000041}
+  - {fileID: 3810000001}
+  - {fileID: 3810000011}
+  - {fileID: 3810000021}
+  - {fileID: 3810000031}
+  - {fileID: 3810000041}
+  - {fileID: 3810000051}
+  - {fileID: 3810000061}
+  - {fileID: 3810000071}
+  - {fileID: 3810000081}
+  - {fileID: 3810000091}
+  - {fileID: 3810000101}
+  - {fileID: 3810000111}
+  m_Father: {fileID: 1514831060}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3810000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000001}
+  - component: {fileID: 3810000002}
+  - component: {fileID: 3810000003}
+  - component: {fileID: 3810000004}
+  - component: {fileID: 3810000005}
+  m_Layer: 0
+  m_Name: Outer North
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.2, z: 150}
+  m_LocalScale: {x: 4, y: 1, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000002
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000000}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000003
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000000}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000004
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000000}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000000}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 0
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3810000010
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000011}
+  - component: {fileID: 3810000012}
+  - component: {fileID: 3810000013}
+  - component: {fileID: 3810000014}
+  - component: {fileID: 3810000015}
+  m_Layer: 0
+  m_Name: Outer Northeast
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000011
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000010}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 130, y: 1.2, z: 75}
+  m_LocalScale: {x: 2, y: 3, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000012
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000010}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000013
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000010}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000014
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000010}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000010}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 1
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3810000020
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000021}
+  - component: {fileID: 3810000022}
+  - component: {fileID: 3810000023}
+  - component: {fileID: 3810000024}
+  - component: {fileID: 3810000025}
+  m_Layer: 0
+  m_Name: Outer East
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000021
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000020}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 130, y: 1.2, z: -75}
+  m_LocalScale: {x: 1.4, y: 0.5, z: 1.4}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000022
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000020}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000023
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000020}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000024
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000020}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000020}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 2
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3810000030
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000031}
+  - component: {fileID: 3810000032}
+  - component: {fileID: 3810000033}
+  - component: {fileID: 3810000034}
+  - component: {fileID: 3810000035}
+  m_Layer: 0
+  m_Name: Outer South
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000031
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000030}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.2, z: -150}
+  m_LocalScale: {x: 4, y: 1, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000032
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000030}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000033
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000030}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000034
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000030}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000030}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 0
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3810000040
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000041}
+  - component: {fileID: 3810000042}
+  - component: {fileID: 3810000043}
+  - component: {fileID: 3810000044}
+  - component: {fileID: 3810000045}
+  m_Layer: 0
+  m_Name: Outer Southwest
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000041
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000040}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -130, y: 1.2, z: -75}
+  m_LocalScale: {x: 2, y: 3, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000042
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000040}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000043
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000040}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000044
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000040}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000040}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 1
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3810000050
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000051}
+  - component: {fileID: 3810000052}
+  - component: {fileID: 3810000053}
+  - component: {fileID: 3810000054}
+  - component: {fileID: 3810000055}
+  m_Layer: 0
+  m_Name: Outer Northwest
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000051
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000050}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -130, y: 1.2, z: 75}
+  m_LocalScale: {x: 4, y: 1, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000052
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000050}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000053
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000050}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000054
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000050}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000050}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 0
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3810000060
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000061}
+  - component: {fileID: 3810000062}
+  - component: {fileID: 3810000063}
+  - component: {fileID: 3810000064}
+  - component: {fileID: 3810000065}
+  m_Layer: 0
+  m_Name: Outer Far North
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000061
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000060}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 48, y: 1.2, z: 179}
+  m_LocalScale: {x: 2, y: 3, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000062
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000060}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000063
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000060}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000064
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000060}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000060}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 1
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3810000070
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000071}
+  - component: {fileID: 3810000072}
+  - component: {fileID: 3810000073}
+  - component: {fileID: 3810000074}
+  - component: {fileID: 3810000075}
+  m_Layer: 0
+  m_Name: Outer Far Northeast
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000071
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000070}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 160, y: 1.2, z: 93}
+  m_LocalScale: {x: 4, y: 1, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000072
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000070}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000073
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000070}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000074
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000070}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000070}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 0
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3810000080
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000081}
+  - component: {fileID: 3810000082}
+  - component: {fileID: 3810000083}
+  - component: {fileID: 3810000084}
+  - component: {fileID: 3810000085}
+  m_Layer: 0
+  m_Name: Outer Far East
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000081
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000080}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 160, y: 1.2, z: -93}
+  m_LocalScale: {x: 1.4, y: 0.5, z: 1.4}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000082
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000080}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000083
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000080}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000084
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000080}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000085
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000080}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 2
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3810000090
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000091}
+  - component: {fileID: 3810000092}
+  - component: {fileID: 3810000093}
+  - component: {fileID: 3810000094}
+  - component: {fileID: 3810000095}
+  m_Layer: 0
+  m_Name: Outer Far South
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000091
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000090}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 48, y: 1.2, z: -179}
+  m_LocalScale: {x: 4, y: 1, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000092
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000090}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000093
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000090}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000094
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000090}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000090}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 0
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3810000100
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000101}
+  - component: {fileID: 3810000102}
+  - component: {fileID: 3810000103}
+  - component: {fileID: 3810000104}
+  - component: {fileID: 3810000105}
+  m_Layer: 0
+  m_Name: Outer Far Southwest
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000101
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000100}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -160, y: 1.2, z: -93}
+  m_LocalScale: {x: 2, y: 3, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000102
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000100}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000103
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000100}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000104
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000100}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000100}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 1
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
+--- !u!1 &3810000110
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3810000111}
+  - component: {fileID: 3810000112}
+  - component: {fileID: 3810000113}
+  - component: {fileID: 3810000114}
+  - component: {fileID: 3810000115}
+  m_Layer: 0
+  m_Name: Outer Far Northwest
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &3810000111
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000110}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -160, y: 1.2, z: 93}
+  m_LocalScale: {x: 4, y: 1, z: 2}
+  m_Children: []
+  m_Father: {fileID: 3800000101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3810000112
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000110}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+--- !u!23 &3810000113
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000110}
+  m_Enabled: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 6909bff376ea549d4bda83b75d271a2c, type: 2}
+--- !u!33 &3810000114
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000110}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &3810000115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3810000110}
+  m_Enabled: 1
+  m_Script: {fileID: 11500000, guid: 7ae80de6e6f044a4905de1468f6ff7b3, type: 3}
+  _type: 0
+  _reefDamage: 15
+  _rockDamage: 25
+  _debrisDamage: 5
+  _cooldown: 2
 --- !u!1 &2800000010
 GameObject:
   m_ObjectHideFlags: 0
