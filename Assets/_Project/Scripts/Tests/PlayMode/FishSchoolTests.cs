@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using SecondCatch.Application;
 using SecondCatch.Boat;
@@ -33,6 +34,9 @@ namespace SecondCatch.Tests
             var net = SceneComponent<NetStation>();
             var school = Schools()[0];
             var deck = SceneComponent<DeckCatch>();
+            var hold = SceneComponent<CargoHold>();
+            var feedbackAudio = deck.GetComponent<AudioSource>();
+            Assert.NotNull(feedbackAudio);
             var camera = SceneComponent<UnityEngine.Camera>();
 
             var background = InputSystem.settings.backgroundBehavior;
@@ -99,10 +103,24 @@ namespace SecondCatch.Tests
                 FishOnDeck fish = PickableFish(deck, camera);
                 Assert.AreSame(boat.transform, fish.transform.parent.parent);
                 Vector2 target = camera.WorldToScreenPoint(fish.transform.position);
+                Vector3 start = hold.transform.InverseTransformPoint(fish.transform.position);
+                float clickedAt = Time.time;
                 yield return Click(mouse, target);
                 Assert.AreEqual(1, session.Cargo.Count);
                 Assert.AreEqual(9, session.DeckFishCount);
-                Assert.IsTrue(fish == null);
+                Assert.AreSame(hold.transform, fish.transform.parent);
+                Assert.IsTrue(fish.gameObject.activeInHierarchy);
+                Assert.IsTrue(fish.GetComponent<MeshRenderer>().enabled);
+                Assert.IsFalse(fish.GetComponent<Collider>().enabled);
+                Assert.AreEqual(DeckFishStoreResult.Unavailable, fish.TryStore(session));
+                Assert.AreEqual(1, session.Cargo.Count);
+                Assert.IsEmpty(hold.GetComponentsInChildren<CargoFish>());
+                Assert.AreEqual("sfx_fish_pickup", feedbackAudio.clip.name);
+                yield return WaitFor(() => fish != null && Vector3.Distance(start, fish.transform.localPosition) > 0.08f,
+                    "The selected fish did not travel to the hold");
+                yield return WaitFor(() => fish == null, "The transfer did not finish");
+                Assert.That(Time.time - clickedAt, Is.InRange(0.19f, 0.4f));
+                Assert.AreEqual(1, hold.GetComponentsInChildren<CargoFish>().Length);
                 yield return WaitFor(() => CargoLabel().text == "Улов 1/100", "HUD did not show the stored fish");
 
                 Vector2 plainDeck = camera.WorldToScreenPoint(boat.transform.TransformPoint(new Vector3(0.65f, 0.06f, 1.65f)));
@@ -110,12 +128,26 @@ namespace SecondCatch.Tests
                 yield return Click(mouse, plainDeck);
                 Assert.AreEqual(1, session.Cargo.Count);
 
+                FishOnDeck incompatible = PickableFish(deck, camera);
+                FieldInfo fishId = typeof(FishOnDeck).GetField("_fishId", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.NotNull(fishId);
+                fishId.SetValue(incompatible, "fish.other");
+                yield return Click(mouse, camera.WorldToScreenPoint(incompatible.transform.position));
+                yield return WaitFor(() => Hint().Contains("Этот вид рыбы"), "HUD did not explain the incompatible fish");
+                Assert.AreEqual("sfx_ui_error", feedbackAudio.clip.name);
+                Assert.IsTrue(incompatible.GetComponent<Collider>().enabled);
+                Assert.AreSame(deck.transform, incompatible.transform.parent);
+                Assert.AreEqual(1, session.Cargo.Count);
+                fishId.SetValue(incompatible, session.Cargo.FishId);
+
                 while (!session.Cargo.IsFull)
                     Assert.IsTrue(session.CatchFish(session.Cargo.FishId));
                 FishOnDeck rejected = PickableFish(deck, camera);
                 yield return Click(mouse, camera.WorldToScreenPoint(rejected.transform.position));
                 yield return WaitFor(() => Hint().Contains("Бочка заполнена"), "HUD did not explain the rejection");
+                Assert.AreEqual("sfx_barrel_full", feedbackAudio.clip.name);
                 Assert.IsTrue(rejected.gameObject.activeSelf);
+                Assert.IsTrue(rejected.GetComponent<Collider>().enabled);
                 Assert.AreEqual(9, session.DeckFishCount);
 
                 Assert.IsTrue(portZone.ReadyToDock);
@@ -137,6 +169,58 @@ namespace SecondCatch.Tests
                 InputSystem.settings.editorInputBehaviorInPlayMode = editorInput;
 #endif
             }
+        }
+
+        [UnityTest]
+        public IEnumerator NetRaisesUseDifferentFreeDeckPoints()
+        {
+            yield return StartNewGame();
+            Assert.IsTrue(App.Depart());
+            yield return WaitForScene(GameScenes.SEA);
+            var deck = SceneComponent<DeckCatch>();
+            var net = SceneComponent<NetStation>();
+            var player = SceneComponent<PlayerController>();
+            PlacePlayer(player, net);
+            Assert.IsTrue(net.TryEnter(player));
+            Vector2Int[] firstPoints = null;
+            var randomState = Random.state;
+            try
+            {
+                for (int haul = 0; haul < 3; haul++)
+                {
+                    yield return SetNetState(net, NetState.Deployed);
+                    int catchSize = haul < 2 ? 10 : 15;
+                    Assert.AreEqual(catchSize, App.Session.TakeSchoolIntoNet(90 + haul, catchSize, 100));
+                    Random.InitState(124 + haul);
+                    yield return SetNetState(net, NetState.Stowed);
+                    int visible = haul < 2 ? 10 : 20;
+                    yield return WaitFor(() => deck.GetComponentsInChildren<FishOnDeck>().Length == visible,
+                        "The raise did not fill the available deck points");
+                    var fish = deck.GetComponentsInChildren<FishOnDeck>();
+                    Vector2Int[] occupied = fish.Select(DeckPoint).ToArray();
+                    Assert.AreEqual(visible, occupied.Distinct().Count());
+                    Assert.IsTrue(occupied.All(point => point.x >= 0 && point.x < 4 && point.y >= 0 && point.y < 5));
+
+                    if (haul == 0)
+                    {
+                        firstPoints = occupied;
+                        foreach (FishOnDeck selected in fish)
+                            Assert.AreEqual(DeckFishStoreResult.Stored, selected.TryStore(App.Session));
+                    }
+                    else if (haul == 1)
+                    {
+                        Assert.IsFalse(firstPoints.ToHashSet().SetEquals(occupied), "Different seeds chose the same deck points");
+                    }
+                }
+                Assert.AreEqual(25, App.Session.DeckFishCount);
+            }
+            finally { Random.state = randomState; }
+        }
+
+        private static Vector2Int DeckPoint(FishOnDeck fish)
+        {
+            Vector3 position = fish.transform.localPosition;
+            return new Vector2Int(Mathf.RoundToInt(position.x / 0.38f + 1.5f), Mathf.RoundToInt(position.z / 0.33f + 2f));
         }
 
         [UnityTest]

@@ -15,9 +15,17 @@ namespace SecondCatch.Fishing
         [SerializeField] private PlayerController _player;
         [SerializeField] private UnityEngine.Camera _camera;
         [SerializeField] private FishOnDeck _fishPrefab;
+        [SerializeField] private CargoHold _cargoHold;
+        [SerializeField] private AudioSource _feedbackAudio;
+        [SerializeField] private AudioClip _pickupSound;
+        [SerializeField] private AudioClip _fullSound;
+        [SerializeField] private AudioClip _incompatibleSound;
+
         private const int Columns = 4;
         private const int Rows = 5;
-        private readonly List<FishOnDeck> _batch = new();
+        private readonly FishOnDeck[] _slots = new FishOnDeck[Columns * Rows];
+        private readonly List<int> _availableSlots = new(Columns * Rows);
+        private int _lastCount;
         private float _feedbackUntil;
         private string _feedback;
 
@@ -27,22 +35,37 @@ namespace SecondCatch.Fishing
         private void LateUpdate()
         {
             if (_voyage == null || !_voyage.Voyaging || _fishPrefab == null) return;
-            _batch.RemoveAll(fish => fish == null);
-            if (_batch.Count == 0 && Count > 0) SpawnBatch();
+            if (Count > 0) RefreshDeck(Count);
             if (GameplayInput.TryGetPrimaryClick(out Vector2 position))
                 TryPickFish(position);
+            _lastCount = Count;
         }
 
-        private void SpawnBatch()
+        private void RefreshDeck(int count)
         {
-            // Освобождаем место для следующей порции по мере сбора.
-            int count = Mathf.Min(Count, Columns * Rows);
-            for (int i = 0; i < count; i++)
+            _availableSlots.Clear();
+            for (int slot = 0; slot < _slots.Length; slot++)
+                if (_slots[slot] == null || _slots[slot].IsStored)
+                    _availableSlots.Add(slot);
+
+            int visible = _slots.Length - _availableSlots.Count;
+            // Дополняем порцию новым уловом или выкладываем остаток после сбора текущей.
+            if (visible > 0 && count <= _lastCount) return;
+            int toSpawn = Mathf.Min(count, _slots.Length) - visible;
+            int remaining = _availableSlots.Count;
+            for (int i = 0; i < toSpawn; i++)
             {
+                int choice = Random.Range(0, remaining);
+                int slot = _availableSlots[choice];
+                _availableSlots[choice] = _availableSlots[--remaining];
+
+                Vector3 position = new(
+                    (slot % Columns - 1.5f) * 0.38f + Random.Range(-0.035f, 0.035f), 0f,
+                    (slot / Columns - 2) * 0.33f + Random.Range(-0.022f, 0.022f));
                 FishOnDeck fish = Instantiate(_fishPrefab, transform);
-                Vector3 slot = new((i % Columns - 1.5f) * 0.38f, 0f, (i / Columns - 2) * 0.33f);
-                fish.transform.SetLocalPositionAndRotation(slot, Quaternion.Euler(0f, i % 2 == 0 ? -25f : 24f, 0f));
-                _batch.Add(fish);
+                fish.transform.SetLocalPositionAndRotation(position, Quaternion.Euler(0f, Random.Range(-25f, 25f), 0f));
+                fish.SetCargoHold(_cargoHold);
+                _slots[slot] = fish;
             }
         }
 
@@ -56,15 +79,30 @@ namespace SecondCatch.Fishing
             Physics.SyncTransforms();
             Ray ray = _camera.ScreenPointToRay(position);
             if (!Physics.Raycast(ray, out RaycastHit hit, _camera.farClipPlane, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
-                || !hit.collider.TryGetComponent(out FishOnDeck fish) || !_batch.Contains(fish)) return;
+                || !hit.collider.TryGetComponent(out FishOnDeck fish) || fish.transform.parent != transform) return;
 
-            _feedback = fish.TryStore(_voyage.Session) switch
+            DeckFishStoreResult result = fish.TryStore(_voyage.Session);
+            _feedback = result switch
             {
                 DeckFishStoreResult.Full => "Бочка заполнена",
                 DeckFishStoreResult.Incompatible => "Этот вид рыбы не помещается в бочку",
                 _ => null
             };
             _feedbackUntil = Time.time + 2.5f;
+
+            AudioClip sound = result switch
+            {
+                DeckFishStoreResult.Stored => _pickupSound,
+                DeckFishStoreResult.Full => _fullSound,
+                DeckFishStoreResult.Incompatible => _incompatibleSound,
+                _ => null
+            };
+            if (_feedbackAudio != null && sound != null)
+            {
+                _feedbackAudio.spatialBlend = result == DeckFishStoreResult.Stored ? 1f : 0f;
+                _feedbackAudio.clip = sound;
+                _feedbackAudio.Play();
+            }
         }
     }
 }

@@ -5190,6 +5190,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2400000004}
   - component: {fileID: 2400000005}
+  - component: {fileID: 2400000006}
   m_Layer: 0
   m_Name: DeckCatch
   m_TagString: Untagged
@@ -5227,6 +5228,38 @@ MonoBehaviour:
   _player: {fileID: 2100000002}
   _camera: {fileID: 1193594397}
   _fishPrefab: {fileID: 8343508557334242772, guid: 6f211defa59b4825293828a36d33ea6a, type: 3}
+  _cargoHold: {fileID: 1521205973}
+  _feedbackAudio: {fileID: 2400000006}
+  _pickupSound: {fileID: 8300000, guid: f788318245714116b8d1b9a69efaf27a, type: 3}
+  _fullSound: {fileID: 8300000, guid: 62753148320e45a990a71d8f3fa241aa, type: 3}
+  _incompatibleSound: {fileID: 8300000, guid: cebad263fd9f41398e92598d4d576c36, type: 3}
+--- !u!82 &2400000006
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2400000003}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 0.8
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 0
+  MinDistance: 8
+  MaxDistance: 24
+  Pan2D: 0
+  rolloffMode: 1
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
