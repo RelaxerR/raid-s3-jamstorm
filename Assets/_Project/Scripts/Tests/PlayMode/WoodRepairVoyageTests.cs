@@ -18,17 +18,18 @@ namespace SecondCatch.Tests
     public sealed class WoodRepairVoyageTests : VoyageTestFixture
     {
         private Keyboard _keyboard;
+        private GameViewInputScope _input;
 
         [TearDown]
         public void RemoveKeyboard()
         {
             if (_keyboard != null && _keyboard.added) InputSystem.RemoveDevice(_keyboard);
+            _input?.Dispose();
         }
 
         [UnityTest]
         public IEnumerator BootToPurchaseAndRepairUsesOneStockAndRealDeckInput()
         {
-            _keyboard = InputSystem.AddDevice<Keyboard>();
             yield return StartNewGame();
 
             var session = App.Session;
@@ -87,10 +88,13 @@ namespace SecondCatch.Tests
             var fill = (RectTransform)track.Find("ProgressFill");
             var mark = boat.transform.Find("FrontLeftDamage").gameObject;
 
+            _input = new GameViewInputScope();
+            _keyboard = InputSystem.AddDevice<Keyboard>();
             // Damage overlaps the helm and net interaction areas. Both still own E at their stations.
             boat.Health.TakeDamage(5f, boat.transform.TransformPoint(new Vector3(-0.72f, 0f, -1.18f)));
             var helm = SceneComponent<HelmStation>();
             SetDeckPosition(player, 0f, -1.78f);
+            Assert.AreSame(helm, player.GetAvailableStation());
             yield return Keys(Key.E);
             Assert.AreSame(helm, player.ActiveStation);
             yield return AssertInterrupted(repair, track, boat, 50);

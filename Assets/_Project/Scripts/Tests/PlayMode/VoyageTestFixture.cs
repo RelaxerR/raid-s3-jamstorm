@@ -12,6 +12,7 @@ using SecondCatch.Stations;
 using SecondCatch.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -22,6 +23,35 @@ namespace SecondCatch.Tests
     public abstract class VoyageTestFixture
     {
         protected static GameApplication App => GameApplication.Instance;
+
+        protected sealed class GameViewInputScope : IDisposable
+        {
+            private readonly InputSettings _settings = InputSystem.settings;
+            private readonly InputSettings.BackgroundBehavior _background;
+#if UNITY_EDITOR
+            private readonly InputSettings.EditorInputBehaviorInPlayMode _editorInput;
+#endif
+
+            public GameViewInputScope()
+            {
+                // Batch-mode PlayMode has no focused Game view to receive synthetic keys.
+                _background = _settings.backgroundBehavior;
+#if UNITY_EDITOR
+                _editorInput = _settings.editorInputBehaviorInPlayMode;
+                _settings.editorInputBehaviorInPlayMode =
+                    InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+#endif
+                _settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            }
+
+            public void Dispose()
+            {
+                _settings.backgroundBehavior = _background;
+#if UNITY_EDITOR
+                _settings.editorInputBehaviorInPlayMode = _editorInput;
+#endif
+            }
+        }
 
         [UnityTearDown]
         public IEnumerator UnloadVoyage()

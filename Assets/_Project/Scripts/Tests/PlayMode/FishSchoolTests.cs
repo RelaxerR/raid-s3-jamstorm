@@ -39,12 +39,7 @@ namespace SecondCatch.Tests
             Assert.NotNull(feedbackAudio);
             var camera = SceneComponent<UnityEngine.Camera>();
 
-            var background = InputSystem.settings.backgroundBehavior;
-#if UNITY_EDITOR
-            var editorInput = InputSystem.settings.editorInputBehaviorInPlayMode;
-            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
-#endif
-            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            using var input = new GameViewInputScope();
             var keyboard = InputSystem.AddDevice<Keyboard>();
             var mouse = InputSystem.AddDevice<Mouse>();
             try
@@ -164,10 +159,6 @@ namespace SecondCatch.Tests
             {
                 InputSystem.RemoveDevice(mouse);
                 InputSystem.RemoveDevice(keyboard);
-                InputSystem.settings.backgroundBehavior = background;
-#if UNITY_EDITOR
-                InputSystem.settings.editorInputBehaviorInPlayMode = editorInput;
-#endif
             }
         }
 
