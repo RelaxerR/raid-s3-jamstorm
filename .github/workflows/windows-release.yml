@@ -11,11 +11,30 @@ permissions:
 env:
   UNITY_VERSION: 6000.5.1f1
   PROJECT_NAME: raid-s3-jamstorm
-  RELEASE_VERSION: 0.0.${{ github.run_number }}
 
 jobs:
+  version:
+    name: Read Unity player version
+    runs-on: ubuntu-24.04
+    outputs:
+      number: ${{ steps.settings.outputs.number }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Read version from project settings
+        id: settings
+        run: |
+          version=$(sed -n 's/^  bundleVersion: //p' ProjectSettings/ProjectSettings.asset)
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo '::error::Unity bundleVersion must use major.minor.patch.'
+            exit 1
+          fi
+          echo "number=$version" >> "$GITHUB_OUTPUT"
+
   windows:
     name: Build Windows player
+    needs: version
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -37,7 +56,7 @@ jobs:
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
           versioning: Custom
-          version: ${{ env.RELEASE_VERSION }}
+          version: ${{ needs.version.outputs.number }}
           targetPlatform: StandaloneWindows64
           buildName: ${{ env.PROJECT_NAME }}
           buildsPath: build
@@ -88,6 +107,7 @@ jobs:
 
   macos:
     name: Build macOS Universal player
+    needs: version
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -106,7 +126,7 @@ jobs:
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
           versioning: Custom
-          version: ${{ env.RELEASE_VERSION }}
+          version: ${{ needs.version.outputs.number }}
           targetPlatform: StandaloneOSX
           buildName: ${{ env.PROJECT_NAME }}
           buildsPath: build
@@ -136,21 +156,43 @@ jobs:
   release:
     name: Publish GitHub Release
     if: github.ref == 'refs/heads/main'
-    needs: [windows-smoke, macos]
+    needs: [version, windows-smoke, macos]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    concurrency:
+      group: release-${{ needs.version.outputs.number }}
+      cancel-in-progress: false
+    env:
+      RELEASE_VERSION: ${{ needs.version.outputs.number }}
     permissions:
       contents: write
     steps:
+      - name: Check the version tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="refs/tags/v$RELEASE_VERSION"
+          refs=$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/${tag#refs/}" --jq '.[] | [.ref, .object.sha] | @tsv')
+          tagged_sha=$(awk -v tag="$tag" '$1 == tag { print $2 }' <<< "$refs")
+          if [[ -n "$tagged_sha" && "$tagged_sha" != "$GITHUB_SHA" ]]; then
+            echo "v$RELEASE_VERSION already identifies another commit. ZIPs are available in this run's artifacts." >> "$GITHUB_STEP_SUMMARY"
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'publish=true' >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/download-artifact@v8
+        if: steps.tag.outputs.publish == 'true'
         with:
           pattern: ${{ env.PROJECT_NAME }}-*.zip
           merge-multiple: true
           skip-decompress: true
       - uses: softprops/action-gh-release@v2
+        if: steps.tag.outputs.publish == 'true'
         with:
           tag_name: v${{ env.RELEASE_VERSION }}
           name: raid-s3-jamstorm v${{ env.RELEASE_VERSION }}
+          target_commitish: ${{ github.sha }}
           generate_release_notes: true
           fail_on_unmatched_files: true
           files: |
