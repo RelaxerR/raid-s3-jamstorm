@@ -1,15 +1,11 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using NUnit.Framework;
 using SecondCatch.Application;
 using SecondCatch.Boat;
 using SecondCatch.UI;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.TestTools;
-using UnityEngine.UI;
 
 namespace SecondCatch.Tests
 {
@@ -108,30 +104,6 @@ namespace SecondCatch.Tests
             Assert.IsTrue(HasText(panel, "Куплено"));
             Assert.IsFalse(ButtonIn(panel, "BuyUpgrade").interactable);
             Assert.IsFalse(ButtonIn(panel, "SellAll").interactable);
-        }
-
-        private static Button ButtonIn(PortTradePanel panel, string name) =>
-            panel.GetComponentsInChildren<Button>(true).Single(button => button.name == name);
-
-        private static bool HasText(PortTradePanel panel, string fragment) =>
-            panel.GetComponentsInChildren<Text>().Any(text => text.text.Contains(fragment));
-
-        private static void Click(Button button)
-        {
-            Assert.IsTrue(button.gameObject.activeInHierarchy, button.name);
-            Assert.IsTrue(button.interactable, button.name);
-            Canvas.ForceUpdateCanvases();
-            var rect = (RectTransform)button.transform;
-            var pointer = new PointerEventData(EventSystem.current)
-            {
-                button = PointerEventData.InputButton.Left,
-                position = RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center))
-            };
-            var hits = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(pointer, hits);
-            Assert.IsNotEmpty(hits, $"{button.name} at {pointer.position} on {Screen.width}×{Screen.height}");
-            Assert.AreSame(button.gameObject, hits[0].gameObject, button.name);
-            ExecuteEvents.Execute(hits[0].gameObject, pointer, ExecuteEvents.pointerClickHandler);
         }
     }
 }
