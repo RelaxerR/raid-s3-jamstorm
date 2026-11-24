@@ -86,7 +86,7 @@ namespace SecondCatch.Spirit
 
             if (offset.magnitude <= Mathf.Max(0.1f, _attackDistance) && Time.time >= _nextAttackTime)
             {
-                _boat.Health?.TakeDamage(Mathf.Max(1, _attackDamage), _activeSpirit.transform.position);
+                _boat.TakeDamage(Mathf.Max(1, _attackDamage));
                 _nextAttackTime = Time.time + Mathf.Max(0.1f, _attackInterval);
             }
         }
