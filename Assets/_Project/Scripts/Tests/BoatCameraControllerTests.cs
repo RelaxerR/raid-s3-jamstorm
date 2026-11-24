@@ -1,5 +1,7 @@
 using NUnit.Framework;
+using SecondCatch.Boat;
 using SecondCatch.Camera;
+using SecondCatch.Stations;
 using UnityEngine;
 
 namespace SecondCatch.Tests
@@ -44,6 +46,43 @@ namespace SecondCatch.Tests
             Assert.Less(Mathf.Abs(Mathf.DeltaAngle(0f, Get<float>(camera, "_azimuth"))), 0.01f);
             Assert.AreEqual(42f, Get<float>(camera, "_elevation"), 0.01f);
             Assert.AreEqual(7.4f, Get<float>(camera, "_distance"), 0.01f);
+        }
+
+        [Test]
+        public void StationOrbitBlendsAndResetsToDeckOnExitOrRespawn()
+        {
+            var camera = Camera();
+            Set(camera, "_player", Player);
+            Set(camera, "_defaultAzimuth", 34f);
+            Set(camera, "_defaultElevation", 53f);
+            Call(camera, "OnEnable");
+
+            var net = Create("Net", Boat.transform).AddComponent<NetStation>();
+            Set(net, "_boat", Boat);
+            Set(net, "_cameraProfile", new StationCameraProfile { Azimuth = 48f, Elevation = 37f, Distance = 7f });
+            Assert.IsTrue(net.TryEnter(Player));
+            Call(camera, "Advance", Vector2.zero, 0f, false, 0.02f);
+            Assert.That(Get<float>(camera, "_elevation"), Is.InRange(37.1f, 52.9f));
+            for (int i = 0; i < 20; i++) Call(camera, "Advance", Vector2.zero, 0f, false, 0.02f);
+            Assert.AreEqual(37f, Get<float>(camera, "_elevation"), 0.25f);
+            Assert.AreEqual(48f, Get<float>(camera, "_azimuth"), 0.25f);
+
+            Player.ExitStation();
+            for (int i = 0; i < 21; i++) Call(camera, "Advance", Vector2.zero, 0f, false, 0.02f);
+            Assert.AreEqual(53f, Get<float>(camera, "_elevation"), 0.25f);
+            Assert.AreEqual(34f, Get<float>(camera, "_azimuth"), 0.25f);
+
+            Set(Helm, "_cameraProfile", new StationCameraProfile { Elevation = 24f, Distance = 7f });
+            Assert.IsTrue(Helm.TryEnter(Player));
+            for (int i = 0; i < 21; i++) Call(camera, "Advance", Vector2.zero, 0f, false, 0.02f);
+            Assert.AreEqual(24f, Get<float>(camera, "_elevation"), 0.25f);
+            var respawn = Boat.GetComponent<BoatRespawnController>();
+            Call(respawn, "Awake");
+            Call(respawn, "BeginRespawn");
+            Assert.IsTrue(Boat.IsRespawning);
+            Call(camera, "Advance", Vector2.zero, 0f, false, 0.02f);
+            Assert.IsNull(Get<StationInteraction>(camera, "_station"));
+            Assert.AreEqual(7.4f, Get<float>(camera, "_targetDistance"), 0.001f);
         }
 
         [Test]

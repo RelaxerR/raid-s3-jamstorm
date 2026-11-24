@@ -5,6 +5,7 @@ namespace SecondCatch.Player
     {
         Walking,
         Helm,
-        Sail
+        Sail,
+        Net
     }
 }

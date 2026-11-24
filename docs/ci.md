@@ -15,7 +15,7 @@ GitHub Actions проверяет версию проекта и согласо�
 - **Windows x64**. GameCI кладёт Player в `build/StandaloneWindows64`. `raid-s3-jamstorm-Windows.zip` содержит в корне `raid-s3-jamstorm.exe`, `raid-s3-jamstorm_Data` и остальные файлы Player. Перед загрузкой CI проверяет входные файлы, целостность и содержимое ZIP. Задание **Launch Windows player** распаковывает его и запускает Player в режиме без графики на Windows runner. Чтобы проверить главное меню с графикой, на Windows распакуйте весь ZIP и откройте `raid-s3-jamstorm.exe` из распакованного каталога.
 - **macOS Universal**. `CiBuild.BuildMacOSUniversal` собирает `build/StandaloneOSX/raid-s3-jamstorm.app`. В корне `raid-s3-jamstorm-macOS-Universal.zip` лежит `.app` с исполняемым файлом. CI проверяет путь из `Info.plist` и целостность ZIP.
 
-GitHub Release создаётся для `main` после успешной сборки обеих платформ и запуска Windows Player. Версия `0.0.<номер запуска>` записывается в Unity Player Settings и используется в теге `v0.0.<номер запуска>`. Сбой macOS оставляет Windows ZIP доступным в артефактах прогона.
+GitHub Release создаётся для `main` после успешной сборки обеих платформ и запуска Windows Player. Обе сборки и тег берут номер из поля `bundleVersion` в `ProjectSettings/ProjectSettings.asset`. Текущая версия — `0.1.0`, тег — `v0.1.0`. Если тег уже указывает на другой коммит, ZIP остаются в артефактах прогона. Для следующего релиза увеличьте `bundleVersion`. Сбой macOS оставляет Windows ZIP доступным в артефактах прогона.
 
 ## Защита main
 

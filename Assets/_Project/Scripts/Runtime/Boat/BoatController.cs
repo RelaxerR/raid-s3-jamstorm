@@ -60,7 +60,8 @@ namespace SecondCatch.Boat
         [SerializeField, Min(0.01f)] private float _turnDecelerationTime = 2.5f;
         [SerializeField, Min(0f)] private float _movementResistance = 0.06f;
         [SerializeField, Min(0f)] private float _lateralResistance = 2.5f;
-        [SerializeField, Min(0f)] private float _waveDriftResistance = 1f;
+        [FormerlySerializedAs("_waveDriftResistance")]
+        [SerializeField, Min(0.01f)] private float _waveDriftResponse = 1f;
         private float _longitudinalSpeed;
         private float _yawSpeed;
         public float Mass => Mathf.Max(1f, _mass);
@@ -143,9 +144,10 @@ namespace SecondCatch.Boat
         }
         public void SetSailAngle(float angle) { if (_sail != null) _sail.SetAngle(angle); }
 
-        private void Update()
+        private void Update() => AdvanceMotion(Time.deltaTime);
+
+        private void AdvanceMotion(float dt)
         {
-            float dt = Time.deltaTime;
             if (IsRespawning || dt <= 0f) return;
             // Состояния хода и волн независимы; визуальная поверхность не владеет скоростью лодки.
             AdvancePropulsion(dt);
@@ -195,12 +197,15 @@ namespace SecondCatch.Boat
 
         private void ApplyWaveField(float dt)
         {
-            _waveVelocity *= Mathf.Exp(-Mathf.Max(0f, _waveDriftResistance) / MassRatio * dt);
-            if (_waves == null || !_waves.isActiveAndEnabled) return;
-            Vector3 inward = _waves.DirectionToCenter(transform.position);
-            _waveVelocity += _waves.ReturnAcceleration(transform.position) / MassRatio * dt;
+            bool hasWaves = _waves != null && _waves.isActiveAndEnabled;
+            Vector3 position = transform.position;
+            Vector3 driftTarget = hasWaves ? _waves.DriftVelocityAt(position) : Vector3.zero;
+            float response = 1f - Mathf.Exp(-Mathf.Max(0.01f, _waveDriftResponse) / MassRatio * dt);
+            _waveVelocity = Vector3.Lerp(_waveVelocity, driftTarget, response);
+            if (!hasWaves) return;
+            Vector3 inward = _waves.DirectionToCenter(position);
             float outwardSpeed = Mathf.Max(0f, -Vector3.Dot(Velocity, inward));
-            float reduction = outwardSpeed * (1f - Mathf.Exp(-_waves.ResistanceAt(transform.position) / MassRatio * dt));
+            float reduction = outwardSpeed * (1f - Mathf.Exp(-_waves.ResistanceAt(position) / MassRatio * dt));
             // Уменьшаем только наружный ход каждого источника; не переносим дрейф обратно в тягу.
             float propulsionOutward = Mathf.Max(0f, -Vector3.Dot(_propulsionVelocity, inward));
             float waveOutward = Mathf.Max(0f, -Vector3.Dot(_waveVelocity, inward));
@@ -217,14 +222,14 @@ namespace SecondCatch.Boat
         private void LogMotionSnapshot()
         {
             Rigidbody body = GetComponent<Rigidbody>();
-            Vector3 waveAcceleration = _waves != null && _waves.isActiveAndEnabled
-                ? _waves.ReturnAcceleration(transform.position) / MassRatio : Vector3.zero;
+            Vector3 driftTarget = _waves != null && _waves.isActiveAndEnabled
+                ? _waves.DriftVelocityAt(transform.position) : Vector3.zero;
             string bodyState = body == null ? "нет" : $"kinematic={body.isKinematic}, constraints={body.constraints}, sleeping={body.IsSleeping()}";
             Debug.Log($"Лодка: active={isActiveAndEnabled}, respawn={IsRespawning}, dt={Time.deltaTime:0.0000}, " +
                 $"massRatio={MassRatio:0.000}, helm={HelmActive}, rowingInput={(_helm != null ? _helm.RowingInput : 0f):0.000}, " +
                 $"rowing={RowingSpeedContribution:0.000}, sail={SailSpeedContribution:0.000}, " +
                 $"deployment={SailDeployment:0.000}, projection={Vector3.Dot(SailForce, HullDirection):0.000}, " +
-                $"waves={waveAcceleration}, propulsion={_propulsionVelocity}, drift={_waveVelocity}, " +
+                $"waveTarget={driftTarget}, propulsion={_propulsionVelocity}, drift={_waveVelocity}, " +
                 $"velocity={Velocity}, body=[{bodyState}]", this);
         }
 #endif

@@ -5,6 +5,9 @@ using NUnit.Framework;
 using SecondCatch.Application;
 using SecondCatch.Boat;
 using SecondCatch.Fishing;
+using SecondCatch.Player;
+using SecondCatch.Solo;
+using SecondCatch.Stations;
 using SecondCatch.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -75,6 +78,36 @@ namespace SecondCatch.Tests
 
         protected static Text CargoLabel() => SceneComponent<GameplayHud>()
             .GetComponentsInChildren<Text>(true).Single(text => text.text.StartsWith("Улов "));
+
+        protected static void PlacePlayer(PlayerController player, StationInteraction station)
+        {
+            Vector3 local = player.Boat.transform.InverseTransformPoint(station.transform.position);
+            local.y = player.transform.localPosition.y;
+            player.transform.localPosition = local;
+        }
+
+        protected static IEnumerator SetNetState(NetStation net, NetState expected)
+        {
+            Assert.IsTrue(net.TryInteract());
+            yield return WaitFor(() => net.State == expected, $"Net did not reach {expected}");
+        }
+
+        protected static IEnumerator LandSchoolAndStoreFish(BoatController boat, FishSchool school, int count)
+        {
+            var player = SceneComponent<PlayerController>();
+            var net = SceneComponent<NetStation>();
+            PlacePlayer(player, net);
+            Assert.IsTrue(net.TryEnter(player));
+            yield return SetNetState(net, NetState.Deployed);
+            PlaceBoat(boat, school.transform.position + Vector3.up);
+            yield return WaitFor(() => net.Count == count, "The net did not catch the school");
+            yield return SetNetState(net, NetState.Stowed);
+            player.ExitStation();
+            var deck = SceneComponent<DeckCatch>();
+            yield return WaitFor(() => deck.GetComponentsInChildren<FishOnDeck>().Length == count, "The net did not land the fish");
+            foreach (FishOnDeck fish in deck.GetComponentsInChildren<FishOnDeck>())
+                Assert.AreEqual(DeckFishStoreResult.Stored, fish.TryStore(App.Session));
+        }
 
         protected static void PlaceBoat(BoatController boat, Vector3 position)
         {

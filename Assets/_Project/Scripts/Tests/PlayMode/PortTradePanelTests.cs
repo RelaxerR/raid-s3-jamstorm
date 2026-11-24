@@ -54,8 +54,8 @@ namespace SecondCatch.Tests
             var boat = SceneComponent<BoatController>();
             var departure = boat.transform.position;
             var school = Schools()[0];
-            PlaceBoat(boat, school.transform.position + Vector3.up);
-            yield return WaitFor(() => session.Cargo.Count == 10, "First school should cover the price of the upgrade");
+            yield return LandSchoolAndStoreFish(boat, school, 10);
+            Assert.AreEqual(10, session.Cargo.Count);
             yield return WaitFor(() => SceneComponent<PortZone>().ReadyToDock, "The boat has not cleared the port");
             PlaceBoat(boat, departure);
             yield return WaitForScene(GameScenes.PORT);
@@ -93,8 +93,8 @@ namespace SecondCatch.Tests
             boat = SceneComponent<BoatController>();
             departure = boat.transform.position;
             school = Schools()[0];
-            PlaceBoat(boat, school.transform.position + Vector3.up);
-            yield return WaitFor(() => session.Cargo.Count == 10, "The next voyage did not reset the school");
+            yield return LandSchoolAndStoreFish(boat, school, 10);
+            Assert.AreEqual(10, session.Cargo.Count);
             yield return WaitFor(() => SceneComponent<PortZone>().ReadyToDock, "The boat has not cleared the port");
             PlaceBoat(boat, departure);
             yield return WaitForScene(GameScenes.PORT);

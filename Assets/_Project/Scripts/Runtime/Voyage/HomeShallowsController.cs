@@ -1,4 +1,5 @@
 using SecondCatch.Boat;
+using SecondCatch.Player;
 using SecondCatch.Solo;
 using UnityEngine;
 
@@ -10,11 +11,12 @@ namespace SecondCatch.Application
         [SerializeField] private BoatController _boat;
         [SerializeField] private Collider _hull;
 
+        private PlayerController _player;
         private GameApplication _application;
         private SoloGameSession _session;
         public SoloGameSession Session => _session;
 
-        private bool Voyaging => _session != null && _session.AtSea && !_application.IsLoading;
+        public bool Voyaging => _session != null && _session.AtSea && !_application.IsLoading;
 
         private void Awake()
         {
@@ -22,6 +24,7 @@ namespace SecondCatch.Application
             _session = _application != null ? _application.Session : null;
             if (_session == null || _boat == null) return;
             // Сессия уже существует при загрузке моря. До завершения загрузки её команды закрыты.
+            _player = _boat.GetComponentInChildren<PlayerController>();
             _boat.Health.BindVoyage(_session.Boat, ApplyDamage);
             _boat.PropulsionMultiplier = _session.Boat.SpeedMultiplier;
         }
@@ -33,11 +36,9 @@ namespace SecondCatch.Application
 
         public bool WasSchoolCollected(int schoolId) => _session != null && _session.WasSchoolCollected(schoolId);
 
-        public int CollectSchool(int schoolId, int portion) => Voyaging ? _session.CatchSchool(schoolId, portion) : 0;
-
         public void ReturnToPort()
         {
-            if (Voyaging) _application.ReturnToPort();
+            if (Voyaging && _application.ReturnToPort()) _player?.ExitStation();
         }
 
         private int ApplyDamage(int amount)
@@ -47,6 +48,7 @@ namespace SecondCatch.Application
             if (!_session.Damage(amount)) return before - _session.Boat.Hp;
 
             _boat.IsRespawning = true;
+            _player?.ExitStation();
             _boat.ResetMotion();
             _application.ReturnToPort();
             return before;

@@ -29,11 +29,11 @@ flowchart LR
 
 ## Точка подключения улова
 
-В `HomeShallows` установлены экземпляры `FishSchool.prefab` с явной ссылкой `_voyage` на `HomeShallowsController`. При контакте с назначенным коллайдером корпуса `FishSchool.TryCollect(contact)` отправляет ID косяка и порцию через `CollectSchool`. Модель зачисляет рыбу в пределах свободного места, регистрирует успешный сбор и сохраняет его при продолжении рейса из меню. `CargoHold` и `GameplayHud` читают груз из той же сессии. [Настройка косяков и трюма](entities/cargo.md)
+В `HomeShallows` экземпляры `FishSchool.prefab` привязаны к `HomeShallowsController` и `NetStation`. При контакте с коллайдером движущегося корпуса косяк передаёт порцию в опущенную сеть в пределах её вместимости. Подъём переносит улов на палубу, где `DeckCatch` создаёт экземпляры `FishOnDeck`. Каждый успешный клик по рыбе увеличивает груз бочки на одну единицу. `CargoHold` и `GameplayHud` читают бочку из той же сессии. Состояние косяков, рыба в сети и на палубе сохраняются при продолжении рейса из меню. [Настройка косяков, сети и бочки](entities/cargo.md)
 
 ## Решения S0
 
-[Вики](https://wiki.yandex.ru/raid3/gdd-vtorojj-ulov-second-catch/vertikalnyjj-srez/2-mexanik-list/2.1-tz-dev/) описывает отдельный экран GameOver с кнопкой возврата и периодическую смену ветра. Для S0 по [#9](https://github.com/RelaxerR/raid-s3-jamstorm/issues/9) гибель сразу загружает порт с тем же штрафом, а стартовый ветер +Z постоянный. Автономный SecondCatchGraybox сохраняет случайный ветер и локальный респавн на 100 HP.
+[Вики](https://wiki.yandex.ru/raid3/gdd-vtorojj-ulov-second-catch/vertikalnyjj-srez/2-mexanik-list/2.1-tz-dev/) описывает отдельный экран GameOver с кнопкой возврата и периодическую смену ветра. Для S0 по [#9](https://github.com/RelaxerR/raid-s3-jamstorm/issues/9) гибель сразу загружает порт с тем же штрафом. В S0 ветер вдоль +Z оставался постоянным. В S1 это стартовое направление, действуют [таймеры ветра](../boat-wind-movement.md#типы-и-случайная-смена-ветра). Автономный SecondCatchGraybox сохраняет случайный ветер и локальный респавн на 100 HP.
 
 ## Автоматическое покрытие
 
