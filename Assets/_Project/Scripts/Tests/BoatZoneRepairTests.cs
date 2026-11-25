@@ -110,7 +110,7 @@ namespace SecondCatch.Tests
         {
             var session = new SoloGameSession();
             Assert.IsTrue(session.Depart());
-            Assert.IsTrue(session.CatchFish(session.Cargo.FishId));
+            Assert.IsTrue(session.CatchFish(FishCargo.AzureFish));
             Assert.IsTrue(session.Dock());
             Assert.IsTrue(session.Sell());
             Assert.IsTrue(session.BuyWood());

@@ -58,8 +58,8 @@ namespace SecondCatch.Tests
             try
             {
                 if (fillBarrel)
-                    for (int i = 0; i < session.Cargo.Capacity; i++)
-                        Assert.IsTrue(session.CatchFish(session.Cargo.FishId));
+                    for (int i = 0; i < session.Cargo.First.Capacity; i++)
+                        Assert.IsTrue(session.CatchFish(FishCargo.AzureFish));
                 else
                 {
                     using var serializedFish = new SerializedObject(fish);
@@ -71,7 +71,7 @@ namespace SecondCatch.Tests
                 Assert.IsTrue(fish.GetComponent<BoxCollider>().enabled);
                 Assert.IsTrue(fish.gameObject.activeSelf);
                 Assert.AreEqual(2, session.DeckFishCount);
-                Assert.AreEqual(fillBarrel ? session.Cargo.Capacity : 0, session.Cargo.Count);
+                Assert.AreEqual(fillBarrel ? session.Cargo.First.Capacity : 0, session.Cargo.Count);
                 Assert.AreEqual(revision, session.Revision);
             }
             finally { Object.DestroyImmediate(fish.gameObject); }
