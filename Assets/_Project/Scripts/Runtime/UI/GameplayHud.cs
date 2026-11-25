@@ -2,6 +2,7 @@ using SecondCatch.Application;
 using SecondCatch.Boat;
 using SecondCatch.Fishing;
 using SecondCatch.Player;
+using SecondCatch.Stations;
 using UnityEngine;
 
 namespace SecondCatch.UI
@@ -55,8 +56,12 @@ namespace SecondCatch.UI
             var session = _voyage != null ? _voyage.Session : null;
             if (_futureIndicators != null && session != null)
             {
-                _futureIndicators.SetCargo(session.Cargo);
+                _futureIndicators.SetCargo(session);
                 _futureIndicators.SetWood(session.Wood);
+                if (_player != null && _player.ActiveStation is HarpoonStation { Fighting: true } harpoon)
+                    _futureIndicators.SetHarpoonLine(harpoon.Tension, harpoon.Progress);
+                else
+                    _futureIndicators.HideHarpoonLine();
             }
             if (_repairView != null) _repairView.Render(_voyage != null ? _voyage.Repair : null, _repairCamera);
 

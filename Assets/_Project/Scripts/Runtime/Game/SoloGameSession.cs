@@ -25,12 +25,18 @@ namespace SecondCatch.Solo
 
         public BoatState Boat { get; } = new BoatState();
         public FishCargo Cargo { get; } = new FishCargo();
+        public int UniqueFishCount { get; private set; }
+        public int UniqueFishCapacity => Boat.UniqueFishCapacity;
+        public bool UniqueFishFull => UniqueFishCount >= UniqueFishCapacity;
+        public bool UniqueFishCaughtThisVoyage { get; private set; }
         public bool AtSea { get; private set; }
         public long Coins { get; private set; }
         public int Wood { get; private set; }
         public int WoodPrice { get; }
         public long Revision { get; private set; }
         public const int FISH_PRICE = 10;
+        public const string UNIQUE_FISH_ID = "fish.crimson";
+        public const int UNIQUE_FISH_PRICE = 50;
         public const int UPGRADE_PRICE = 100;
         public const int DEFAULT_WOOD_PRICE = 10;
 
@@ -44,6 +50,7 @@ namespace SecondCatch.Solo
             if (AtSea) return false;
             _collectedSchools.Clear();
             _schoolCatch.Clear();
+            UniqueFishCaughtThisVoyage = false;
             AtSea = true; Revision++; return true;
         }
         public bool Dock()
@@ -136,8 +143,18 @@ namespace SecondCatch.Solo
             Array.Clear(_deckFish, 0, _deckFish.Length);
         }
 
-        public bool CanSell => !AtSea && Cargo.Count > 0 && Coins <= long.MaxValue - SaleValue;
-        public long SaleValue => (long)Cargo.Count * FISH_PRICE;
+        public bool TryStowUniqueFish()
+        {
+            if (!AtSea || UniqueFishFull || UniqueFishCaughtThisVoyage) return false;
+            UniqueFishCount++;
+            UniqueFishCaughtThisVoyage = true;
+            Revision++;
+            return true;
+        }
+
+        public bool CanSell => !AtSea && SaleValue > 0 && Coins <= long.MaxValue - SaleValue;
+        public long SaleValue => (long)Cargo.Count * FISH_PRICE + UniqueSaleValue;
+        private long UniqueSaleValue => (long)UniqueFishCount * UNIQUE_FISH_PRICE;
         public bool CanBuySpeedUpgrade => !AtSea && !Boat.SpeedUpgrade && Coins >= UPGRADE_PRICE;
         public bool CanBuyWood => !AtSea && Coins >= WoodPrice && Wood < int.MaxValue;
 
@@ -146,14 +163,28 @@ namespace SecondCatch.Solo
             if (!CanSell) return false;
             Coins += SaleValue;
             Cargo.Clear();
+            UniqueFishCount = 0;
             Revision++;
             return true;
         }
 
-        public bool CanSellFish(string fishId) => CanSellBarrel(Cargo.FindBarrel(fishId));
+        public bool CanSellFish(string fishId) => fishId == UNIQUE_FISH_ID
+            ? CanSellUnique
+            : CanSellBarrel(Cargo.FindBarrel(fishId));
+
+        private bool CanSellUnique => !AtSea && UniqueFishCount > 0 && Coins <= long.MaxValue - UniqueSaleValue;
 
         public bool SellFish(string fishId)
         {
+            if (fishId == UNIQUE_FISH_ID)
+            {
+                if (!CanSellUnique) return false;
+                Coins += UniqueSaleValue;
+                UniqueFishCount = 0;
+                Revision++;
+                return true;
+            }
+
             FishBarrel barrel = Cargo.FindBarrel(fishId);
             if (!CanSellBarrel(barrel)) return false;
             Coins += (long)barrel.Count * FISH_PRICE;
@@ -194,7 +225,14 @@ namespace SecondCatch.Solo
             if (!AtSea || amount <= 0 || (zone.HasValue && !BoatState.IsZone(zone.Value))) return false;
             if (Boat.Damage(amount, zone) == 0) return false;
             bool sunk = Boat.Hp == 0;
-            if (sunk) { Boat.Respawn(); Cargo.LoseHalf(); ClearLooseFish(); AtSea = false; }
+            if (sunk)
+            {
+                Boat.Respawn();
+                Cargo.LoseHalf();
+                UniqueFishCount /= 2;
+                ClearLooseFish();
+                AtSea = false;
+            }
             Revision++; return sunk;
         }
 

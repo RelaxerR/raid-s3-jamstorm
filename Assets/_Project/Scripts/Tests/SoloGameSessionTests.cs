@@ -131,6 +131,26 @@ namespace SecondCatch.Tests
         }
 
         [Test]
+        public void SellingAllIncludesTheSeparateCarcassOnlyOnce()
+        {
+            var session = new SoloGameSession();
+            Assert.IsFalse(session.TryStowUniqueFish());
+            Assert.IsTrue(session.Depart());
+            Assert.IsTrue(session.CatchFish(FishCargo.AmberFish));
+            Assert.IsTrue(session.TryStowUniqueFish());
+            Assert.IsFalse(session.TryStowUniqueFish());
+            Assert.AreEqual(1, session.Cargo.Count);
+            Assert.AreEqual(1, session.UniqueFishCount);
+            Assert.IsFalse(session.CanSell);
+            Assert.IsTrue(session.Dock());
+            Assert.IsTrue(session.Sell());
+            Assert.AreEqual(SoloGameSession.FISH_PRICE + SoloGameSession.UNIQUE_FISH_PRICE, session.Coins);
+            Assert.AreEqual(0, session.Cargo.Count);
+            Assert.AreEqual(0, session.UniqueFishCount);
+            Assert.IsFalse(session.Sell());
+        }
+
+        [Test]
         public void SinkingLosesHalfOnceAndReturnsAtThirtyPercentHp()
         {
             var session = new SoloGameSession(); session.Depart();

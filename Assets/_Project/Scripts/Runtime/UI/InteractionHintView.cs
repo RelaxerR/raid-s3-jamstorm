@@ -17,6 +17,13 @@ namespace SecondCatch.UI
         {
             if (_label == null) return;
             if (player == null) { _label.text = "Управление недоступно"; return; }
+            if (player.ActiveStation is HarpoonStation harpoon)
+            {
+                _label.text = harpoon.Status + (harpoon.Fighting
+                    ? "\nУдерживайте ЛКМ — подтянуть · ПКМ — ослабить · Esc / E — выйти"
+                    : "\nЛКМ — выстрел · Esc / E — выйти" + CameraHint);
+                return;
+            }
             if (player.ActiveStation is NetStation net)
             {
                 _label.text = net.Status + "\n" + net.ActionHint + " · Esc — выйти" + CameraHint;
@@ -34,6 +41,7 @@ namespace SecondCatch.UI
             StationInteraction station = player.GetAvailableStation();
             string action = station == null ? "" : station is HelmStation ? "\nE — управлять рулём"
                 : station is SailStation ? "\nE — управлять парусом"
+                : station is HarpoonStation ? "\nE — занять гарпун"
                 : station is NetStation ? "\nE — занять станцию сетей" : "\nE — взаимодействовать";
             CargoHold barrel = player.GetAvailableBarrel();
             if (barrel != null) action = "\n" + barrel.ReleaseHint;

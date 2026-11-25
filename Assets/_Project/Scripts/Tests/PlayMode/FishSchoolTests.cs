@@ -88,7 +88,7 @@ namespace SecondCatch.Tests
                 Assert.AreEqual(NetState.Stowed, net.State);
                 Assert.AreEqual(0, net.Count);
                 Assert.AreEqual(0, session.Cargo.Count);
-                Assert.AreEqual("Улов · Бочка 1 0/100 · пусто\nБочка 2 0/100 · пусто", CargoLabel().text);
+                Assert.AreEqual("Улов · Бочка 1 0/100 · пусто\nБочка 2 0/100 · пусто\nТуша 0/1", CargoLabel().text);
                 StringAssert.Contains("ЛКМ", Hint());
 
                 foreach (float x in new[] { -1f, 1f })

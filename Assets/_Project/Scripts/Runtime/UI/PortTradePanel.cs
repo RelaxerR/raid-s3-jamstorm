@@ -19,6 +19,7 @@ namespace SecondCatch.UI
         [SerializeField] private Button _close;
         [SerializeField] private Button _sellFish;
         [SerializeField] private Button _sellAmber;
+        [SerializeField] private Button _sellUnique;
         [SerializeField] private Button _sellAll;
         [SerializeField] private Button _buyUpgrade;
         [SerializeField] private Button _buyWood;
@@ -34,6 +35,7 @@ namespace SecondCatch.UI
             _close.onClick.AddListener(Close);
             _sellFish.onClick.AddListener(() => SellFish(FishCargo.AzureFish));
             _sellAmber.onClick.AddListener(() => SellFish(FishCargo.AmberFish));
+            _sellUnique.onClick.AddListener(() => SellFish(SoloGameSession.UNIQUE_FISH_ID));
             _sellAll.onClick.AddListener(SellAll);
             _buyUpgrade.onClick.AddListener(BuyUpgrade);
             _buyWood.onClick.AddListener(BuyWood);
@@ -110,12 +112,14 @@ namespace SecondCatch.UI
             _sellAll.interactable = session?.CanSell == true;
             _sellFish.interactable = session?.CanSellFish(FishCargo.AzureFish) == true;
             _sellAmber.interactable = session?.CanSellFish(FishCargo.AmberFish) == true;
+            _sellUnique.interactable = session?.CanSellFish(SoloGameSession.UNIQUE_FISH_ID) == true;
             _buyUpgrade.interactable = session?.CanBuySpeedUpgrade == true;
             _buyWood.interactable = session?.CanBuyWood == true;
             if (!ready) return;
 
             _cargo.text = $"Улов {session.Cargo.Count}/{session.Cargo.Capacity} · {SoloGameSession.FISH_PRICE} монет за рыбу\n"
-                + $"1: {FutureGameplayIndicators.DescribeBarrel(session.Cargo.First)}     2: {FutureGameplayIndicators.DescribeBarrel(session.Cargo.Second)}";
+                + $"1: {FutureGameplayIndicators.DescribeBarrel(session.Cargo.First)}     2: {FutureGameplayIndicators.DescribeBarrel(session.Cargo.Second)}\n"
+                + $"Багряная рыба {session.UniqueFishCount}/{session.UniqueFishCapacity} · {SoloGameSession.UNIQUE_FISH_PRICE} монет";
             _coins.text = $"Монеты: {session.Coins}";
             _wood.text = $"Древесина: {session.Wood}";
             _buyWoodLabel.text = $"Купить древесину · {session.WoodPrice} монет";

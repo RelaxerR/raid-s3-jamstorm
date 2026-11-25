@@ -84,7 +84,7 @@ namespace SecondCatch.Tests
             Assert.That(session.Boat.SpeedMultiplier, Is.EqualTo(1.4f));
             Assert.IsTrue(Schools()[0].gameObject.activeSelf);
             Assert.IsTrue(CargoLabel().gameObject.activeInHierarchy);
-            Assert.AreEqual("Улов · Бочка 1 0/100 · пусто\nБочка 2 0/100 · пусто", CargoLabel().text);
+            Assert.AreEqual("Улов · Бочка 1 0/100 · пусто\nБочка 2 0/100 · пусто\nТуша 0/1", CargoLabel().text);
 
             boat = SceneComponent<BoatController>();
             departure = boat.transform.position;

@@ -97,7 +97,8 @@ namespace SecondCatch.Camera
 
         private void LateUpdate()
         {
-            Advance(GameplayInput.OrbitHeld ? GameplayInput.LookDelta : Vector2.zero,
+            bool orbit = GameplayInput.OrbitHeld && ActiveStation?.AllowsCameraOrbit != false;
+            Advance(orbit ? GameplayInput.LookDelta : Vector2.zero,
                 GameplayInput.ZoomDelta, GameplayInput.CameraResetPressed, Time.deltaTime);
         }
 

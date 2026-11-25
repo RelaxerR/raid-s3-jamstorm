@@ -36,6 +36,18 @@ namespace SecondCatch.Input
 #endif
         }
 
+        public static bool PrimaryHeld
+        {
+            get
+            {
+#if ENABLE_INPUT_SYSTEM
+                return Mouse.current != null && Mouse.current.leftButton.isPressed;
+#else
+                return UnityEngine.Input.GetMouseButton(0);
+#endif
+            }
+        }
+
         public static bool OrbitHeld
         {
             get

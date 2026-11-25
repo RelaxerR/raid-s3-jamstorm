@@ -23,7 +23,7 @@ namespace SecondCatch.Tests
             yield return WaitForScene(GameScenes.SEA);
             var cargo = CargoLabel();
             Assert.IsTrue(cargo.gameObject.activeInHierarchy);
-            Assert.AreEqual("Улов · Бочка 1 0/100 · пусто\nБочка 2 0/100 · пусто", cargo.text);
+            Assert.AreEqual("Улов · Бочка 1 0/100 · пусто\nБочка 2 0/100 · пусто\nТуша 0/1", cargo.text);
             var school = Schools()[0];
             yield return LandSchoolAndStoreFish(SceneComponent<BoatController>(), school, 10);
             yield return WaitFor(() => cargo.text.Contains("Бочка 1 10/100 · Лазурная"), "The cargo indicator did not refresh");

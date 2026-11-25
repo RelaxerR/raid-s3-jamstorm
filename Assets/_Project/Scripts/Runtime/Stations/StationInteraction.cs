@@ -25,6 +25,7 @@ namespace SecondCatch.Stations
         protected BoatController Boat => _boat;
         public PlayerController Operator { get; private set; }
         public abstract PlayerControlMode ControlMode { get; }
+        public virtual bool AllowsCameraOrbit => true;
         private Vector3 InteractionPosition => _interactionPoint != null ? _interactionPoint.position : transform.position;
 
         public float DistanceSquared(PlayerController player) => (player.transform.position - InteractionPosition).sqrMagnitude;
