@@ -84,7 +84,7 @@ namespace SecondCatch.UI
                 {
                     bool replace = _harpoon.WillReplace;
                     _catchDetails.text = "Багряная рыба\nВес 18 кг · Редкая"
-                        + (replace ? "\nМесто занято. Заменить тушу на палубе?" : "");
+                        + (replace ? "\nМесто занято.\nЗаменить тушу на палубе?" : "");
                     _keepLabel.text = replace ? "Заменить" : "Забрать";
                 }
                 _catchCard.SetActive(showCard);
@@ -101,14 +101,14 @@ namespace SecondCatch.UI
             _catchCard.layer = gameObject.layer;
             var panel = (RectTransform)_catchCard.transform;
             panel.SetParent(transform, false);
-            panel.sizeDelta = new Vector2(500f, 184f);
+            panel.sizeDelta = new Vector2(540f, 218f);
             _catchCard.GetComponent<Image>().color = new Color(0.045f, 0.10f, 0.13f, 0.96f);
 
             _catchDetails = new GameObject("CatchDetails", typeof(RectTransform), typeof(Text)).GetComponent<Text>();
             _catchDetails.gameObject.layer = gameObject.layer;
             _catchDetails.rectTransform.SetParent(panel, false);
             _catchDetails.rectTransform.anchoredPosition = new Vector2(0f, 29f);
-            _catchDetails.rectTransform.sizeDelta = new Vector2(460f, 100f);
+            _catchDetails.rectTransform.sizeDelta = new Vector2(500f, 134f);
             _catchDetails.font = font;
             _catchDetails.fontSize = 26;
             _catchDetails.alignment = TextAnchor.MiddleCenter;
@@ -127,7 +127,7 @@ namespace SecondCatch.UI
             control.layer = gameObject.layer;
             var bounds = (RectTransform)control.transform;
             bounds.SetParent(panel, false);
-            bounds.anchoredPosition = new Vector2(x, -56f);
+            bounds.anchoredPosition = new Vector2(x, -70f);
             bounds.sizeDelta = new Vector2(196f, 44f);
             var button = control.GetComponent<Button>();
             button.targetGraphic = control.GetComponent<Image>();

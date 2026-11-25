@@ -10,6 +10,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace SecondCatch.Tests
 {
@@ -28,6 +29,42 @@ namespace SecondCatch.Tests
             yield return LandSchoolAndStoreFish(SceneComponent<BoatController>(), school, 10);
             yield return WaitFor(() => cargo.text.Contains("Бочка 1 10/100 · Лазурная"), "The cargo indicator did not refresh");
             Assert.AreEqual(10, App.Session.Cargo.Count);
+        }
+
+        [UnityTest]
+        public IEnumerator FullBarrelsCarcassAndWoodFitWithoutOverlap()
+        {
+            yield return StartNewGame();
+
+            var session = App.Session;
+            Assert.IsTrue(session.Depart());
+            Assert.IsTrue(session.CatchFish(FishCargo.AzureFish));
+            Assert.IsTrue(session.Dock());
+            Assert.IsTrue(session.Sell());
+            Assert.IsTrue(session.BuyWood());
+
+            Assert.IsTrue(App.Depart());
+            yield return WaitForScene(GameScenes.SEA);
+            for (int i = 0; i < session.Cargo.First.Capacity; i++)
+            {
+                Assert.IsTrue(session.CatchFish(FishCargo.AzureFish));
+                Assert.IsTrue(session.CatchFish(FishCargo.AmberFish));
+            }
+            Assert.IsTrue(session.TryStowUniqueFish());
+            yield return null;
+
+            Text cargo = CargoLabel();
+            Text wood = GameObject.Find("WoodIndicator").GetComponentInChildren<Text>();
+            Assert.AreEqual("Улов · Бочка 1 100/100 · Лазурная\nБочка 2 100/100 · Янтарная\nТуша 1/1", cargo.text);
+            Assert.AreEqual("Древесина: 1", wood.text);
+
+            Canvas.ForceUpdateCanvases();
+            Assert.That(cargo.preferredHeight, Is.LessThanOrEqualTo(cargo.rectTransform.rect.height));
+            Assert.That(wood.preferredHeight, Is.LessThanOrEqualTo(wood.rectTransform.rect.height));
+            var parent = cargo.transform.parent.parent;
+            Bounds cargoBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(parent, cargo.transform.parent);
+            Bounds woodBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(parent, wood.transform.parent);
+            Assert.Less(woodBounds.max.y, cargoBounds.min.y);
         }
 
         [UnityTest]

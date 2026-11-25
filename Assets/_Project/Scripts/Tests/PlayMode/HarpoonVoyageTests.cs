@@ -163,7 +163,12 @@ namespace SecondCatch.Tests
                     Assert.IsFalse(harpoon.CardOpen);
                     Assert.IsFalse(TensionIsVisible());
                     yield return OpenCard(mouse, camera, target, harpoon);
-                    StringAssert.Contains("Редкая", GameObject.Find("CatchDetails").GetComponent<Text>().text);
+                    var details = GameObject.Find("CatchDetails").GetComponent<Text>();
+                    StringAssert.Contains("Редкая", details.text);
+                    if (voyage == 1)
+                        StringAssert.Contains("Место занято.\nЗаменить тушу на палубе?", details.text);
+                    Canvas.ForceUpdateCanvases();
+                    Assert.That(details.preferredHeight, Is.LessThanOrEqualTo(details.rectTransform.rect.height));
 
                     if (voyage == 0)
                     {
