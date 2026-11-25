@@ -143,6 +143,8 @@ namespace SecondCatch.Tests
             Set(Wind, "_normal", new WindProfile { MinSpeed = 1f, MaxSpeed = 2f });
             Set(Wind, "_speed", 2f);
             Call(Wind, "Awake");
+            Wind.WindDirectionChanged += _ => Assert.Fail("A speed-only change must not notify direction listeners");
+            Wind.WindTypeChanged += _ => Assert.Fail("A speed-only change must not notify type listeners");
             // Фиксируем следующий выбор скорости, оставляя направление и тип прежними.
             Get<WindProfile>(Wind, "_normal").MaxSpeed = 1f;
 
@@ -156,6 +158,31 @@ namespace SecondCatch.Tests
             VectorEqual(Vector3.forward, Wind.Direction);
             Assert.AreEqual(WindType.Normal, Wind.Type);
             Assert.AreEqual(13.9f, Wind.TimeUntilChange, 0.001f);
+        }
+
+        [Test]
+        public void WindTypeListenersKeepTheirTimingWhenEnteringAndLeavingCalm()
+        {
+            Set(Wind, "_transitionDuration", 2f);
+            var types = new System.Collections.Generic.List<WindType>();
+            Wind.WindTypeChanged += type =>
+            {
+                Assert.AreEqual(type, Wind.Type);
+                types.Add(type);
+            };
+
+            Call(Wind, "BeginTransition", WindType.Calm, Vector3.right, 0f, 0f, 0f, Color.gray);
+            Call(Wind, "Advance", 1f);
+            Assert.IsEmpty(types);
+            Call(Wind, "Advance", 1f);
+            CollectionAssert.AreEqual(new[] { WindType.Calm }, types);
+            Assert.Zero(Wind.Speed);
+
+            Wind.SetWind(Vector3.forward, Wind.MaxSpeed, 1f);
+            CollectionAssert.AreEqual(new[] { WindType.Calm, WindType.Normal }, types);
+            Assert.Zero(Wind.Speed);
+            Call(Wind, "Advance", 2f);
+            CollectionAssert.AreEqual(new[] { WindType.Calm, WindType.Normal }, types);
         }
 
         [TestCase(WindType.Normal)]

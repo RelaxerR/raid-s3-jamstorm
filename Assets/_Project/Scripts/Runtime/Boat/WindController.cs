@@ -121,6 +121,8 @@ namespace SecondCatch.Boat
         public float StormIntensity { get; private set; }
         /// <summary>Будущая погода может подписаться на смену типа и читать StormIntensity.</summary>
         public event Action<WindType> WindTypeChanged;
+        /// <summary>Передаёт текущее направление по мере его изменения во время перехода.</summary>
+        public event Action<Vector3> WindDirectionChanged;
         public float NormalizedDistance
         {
             get
@@ -209,6 +211,7 @@ namespace SecondCatch.Boat
             _elapsed += dt;
             float progress = Mathf.Clamp01(_elapsed / Mathf.Max(0.01f, _transitionDuration));
             float t = Mathf.SmoothStep(0f, 1f, progress);
+            Vector3 previousDirection = Direction;
             _direction = Quaternion.AngleAxis(Mathf.LerpAngle(_startHeading, _targetHeading, t), Vector3.up) * Vector3.forward;
             _speed = Mathf.Lerp(_startSpeed, _targetSpeed, t);
             _strength = Mathf.Lerp(_startStrength, _targetStrength, t);
@@ -221,6 +224,8 @@ namespace SecondCatch.Boat
                 _timeUntilSpeedChange = SampleInterval(_speedChangeInterval);
                 SetType(_targetType);
             }
+            Vector3 direction = Direction;
+            if (!direction.Equals(previousDirection)) WindDirectionChanged?.Invoke(direction);
         }
 
         private void AdvanceSpeed(float dt)

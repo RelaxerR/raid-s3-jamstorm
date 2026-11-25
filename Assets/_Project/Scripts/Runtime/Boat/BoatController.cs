@@ -223,12 +223,14 @@ namespace SecondCatch.Boat
         private void LogMotionSnapshot()
         {
             Rigidbody body = GetComponent<Rigidbody>();
+            WindController wind = Wind;
             Vector3 driftTarget = _waves != null && _waves.isActiveAndEnabled
                 ? _waves.DriftVelocityAt(transform.position) : Vector3.zero;
             string bodyState = body == null ? "нет" : $"kinematic={body.isKinematic}, constraints={body.constraints}, sleeping={body.IsSleeping()}";
             Debug.Log($"Лодка: active={isActiveAndEnabled}, respawn={IsRespawning}, dt={Time.deltaTime:0.0000}, " +
                 $"massRatio={MassRatio:0.000}, helm={HelmActive}, rowingInput={(_helm != null ? _helm.RowingInput : 0f):0.000}, " +
                 $"rowing={RowingSpeedContribution:0.000}, sail={SailSpeedContribution:0.000}, " +
+                $"outerCalm={(wind != null && wind.IsInOuterCalm)}, sailExposure={(wind != null ? wind.SailExposure : 0f):0.000}, " +
                 $"deployment={SailDeployment:0.000}, projection={Vector3.Dot(SailForce, HullDirection):0.000}, " +
                 $"waveTarget={driftTarget}, propulsion={_propulsionVelocity}, drift={_waveVelocity}, " +
                 $"velocity={Velocity}, body=[{bodyState}]", this);
