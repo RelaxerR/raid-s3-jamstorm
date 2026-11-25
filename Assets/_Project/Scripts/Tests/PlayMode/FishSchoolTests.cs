@@ -35,6 +35,8 @@ namespace SecondCatch.Tests
             var net = SceneComponent<NetStation>();
             var school = Schools()[0];
             var deck = SceneComponent<DeckCatch>();
+            // This voyage checks wind and cargo; overboard loss has its own tests.
+            SetDeckField(deck, "_lossChance", 0f);
             var hold = SceneComponent<CargoHold>();
             var feedbackAudio = deck.GetComponent<AudioSource>();
             Assert.NotNull(feedbackAudio);
@@ -136,6 +138,29 @@ namespace SecondCatch.Tests
                 Assert.AreEqual(1, session.Cargo.Count);
                 fishId.SetValue(incompatible, session.Cargo.FishId);
 
+                Assert.IsTrue(portZone.ReadyToDock);
+                boat.SetSailRaised(false);
+                boat.ResetMotion();
+                var wind = boat.Wind;
+                float originalTimeScale = Time.timeScale;
+                var randomState = Random.state;
+                bool changedDirection = false;
+                wind.WindDirectionChanged += _ => changedDirection = true;
+                try
+                {
+                    Random.InitState(124);
+                    Time.timeScale = 4f;
+                    yield return WaitFor(() => changedDirection, "The voyage did not encounter a timed wind change");
+                    yield return WaitFor(() => wind.TimeUntilChange < 27.8f, "The wind transition did not finish on the voyage");
+                    Assert.IsTrue(session.AtSea);
+                    Assert.AreSame(session, App.Session);
+                }
+                finally
+                {
+                    Time.timeScale = originalTimeScale;
+                    Random.state = randomState;
+                }
+
                 while (!session.Cargo.IsFull)
                     Assert.IsTrue(session.CatchFish(session.Cargo.FishId));
                 FishOnDeck rejected = PickableFish(deck, camera);
@@ -146,12 +171,16 @@ namespace SecondCatch.Tests
                 Assert.IsTrue(rejected.GetComponent<Collider>().enabled);
                 Assert.AreEqual(9, session.DeckFishCount);
 
-                Assert.IsTrue(portZone.ReadyToDock);
                 Vector3 homeward = Vector3.ProjectOnPlane(departure - boat.transform.position, Vector3.up).normalized;
-                boat.ResetMotion();
                 boat.transform.rotation = Quaternion.LookRotation(homeward, Vector3.up);
-                boat.Wind.SetWind(homeward, boat.Wind.MaxSpeed, 1f);
-                yield return WaitForScene(GameScenes.PORT);
+                boat.SetHelmActive(true);
+                boat.SetRowing(true);
+                try
+                {
+                    Time.timeScale = 4f;
+                    yield return WaitForScene(GameScenes.PORT);
+                }
+                finally { Time.timeScale = originalTimeScale; }
                 Assert.IsFalse(session.AtSea);
                 Assert.AreEqual(0, session.DeckFishCount);
                 Assert.AreEqual(session.Cargo.Capacity, session.Cargo.Count, "Docking must preserve the barrel");

@@ -143,6 +143,8 @@ namespace SecondCatch.Tests
             Set(Wind, "_normal", new WindProfile { MinSpeed = 1f, MaxSpeed = 2f });
             Set(Wind, "_speed", 2f);
             Call(Wind, "Awake");
+            Wind.WindDirectionChanged += _ => Assert.Fail("A speed-only change must not notify direction listeners");
+            Wind.WindTypeChanged += _ => Assert.Fail("A speed-only change must not notify type listeners");
             // Фиксируем следующий выбор скорости, оставляя направление и тип прежними.
             Get<WindProfile>(Wind, "_normal").MaxSpeed = 1f;
 
@@ -156,6 +158,76 @@ namespace SecondCatch.Tests
             VectorEqual(Vector3.forward, Wind.Direction);
             Assert.AreEqual(WindType.Normal, Wind.Type);
             Assert.AreEqual(13.9f, Wind.TimeUntilChange, 0.001f);
+        }
+
+        [Test]
+        public void WindTypeListenersKeepTheirTimingWhenEnteringAndLeavingCalm()
+        {
+            Set(Wind, "_transitionDuration", 2f);
+            var types = new System.Collections.Generic.List<WindType>();
+            Wind.WindTypeChanged += type =>
+            {
+                Assert.AreEqual(type, Wind.Type);
+                types.Add(type);
+            };
+
+            Call(Wind, "BeginTransition", WindType.Calm, Vector3.right, 0f, 0f, 0f, Color.gray);
+            Call(Wind, "Advance", 1f);
+            Assert.IsEmpty(types);
+            Call(Wind, "Advance", 1f);
+            CollectionAssert.AreEqual(new[] { WindType.Calm }, types);
+            Assert.Zero(Wind.Speed);
+
+            Wind.SetWind(Vector3.forward, Wind.MaxSpeed, 1f);
+            CollectionAssert.AreEqual(new[] { WindType.Calm, WindType.Normal }, types);
+            Assert.Zero(Wind.Speed);
+            Call(Wind, "Advance", 2f);
+            CollectionAssert.AreEqual(new[] { WindType.Calm, WindType.Normal }, types);
+        }
+
+        [TestCase(WindType.Normal)]
+        [TestCase(WindType.Storm)]
+        [TestCase(WindType.Calm)]
+        public void OuterCalmCutsSailForceWithoutChangingWeatherOrWaveDrift(WindType type)
+        {
+            var center = Create("IslandCenter").transform;
+            center.position = new Vector3(25f, 0f, -50f);
+            var waves = Create("Waves").AddComponent<WaveController>();
+            Set(waves, "_islandCenter", center);
+            Set(Boat, "_waves", waves);
+            Set(Wind, "_islandCenter", center);
+            Set(Wind, "_boat", Boat.transform);
+            Set(Wind, "_outerCalmRecoveryDuration", 2f);
+            Set(Wind, "_type", type);
+            Call(Wind, "Awake");
+            Deploy(SailPosition.Full);
+
+            Vector3 radial = new Vector3(0.6f, 0f, 0.8f);
+            Boat.transform.position = center.position + radial * 199f + Vector3.up * 20f;
+            Vector3 insideForce = Boat.SailForce;
+            if (type == WindType.Calm) VectorEqual(Vector3.zero, insideForce);
+            else Assert.Greater(insideForce.magnitude, 0f);
+            float timeUntilChange = Wind.TimeUntilChange;
+            float driftSpeed = waves.DriftVelocityAt(Boat.transform.position).magnitude;
+            Boat.transform.position += radial;
+            Assert.IsTrue(Wind.IsInOuterCalm, "The horizontal radius applies before the weather ticks");
+            VectorEqual(Vector3.zero, Boat.SailForce);
+            Assert.IsTrue(Boat.RowingAvailable);
+            Call(Wind, "Advance", 0.5f);
+            Call(Boat, "ApplyWaveField", 0.5f);
+            Assert.Greater(Vector3.Dot(Boat.WaveDrift, -radial), 0f);
+            Assert.That(waves.DriftVelocityAt(Boat.transform.position).magnitude, Is.EqualTo(driftSpeed).Within(0.01f));
+            Assert.AreEqual(type, Wind.Type);
+            Assert.AreEqual(timeUntilChange, Wind.TimeUntilChange);
+            VectorEqual(Vector3.forward, Wind.Direction);
+
+            Boat.transform.position -= radial * 2f;
+            Assert.IsFalse(Wind.IsInOuterCalm);
+            Assert.AreEqual(0f, Wind.SailExposure);
+            Call(Wind, "Advance", 1f);
+            VectorEqual(insideForce * 0.5f, Boat.SailForce);
+            Call(Wind, "Advance", 1f);
+            VectorEqual(insideForce, Boat.SailForce);
         }
 
         [Test]
