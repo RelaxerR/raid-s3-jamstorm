@@ -169,6 +169,7 @@ namespace SecondCatch.Tests
             Assert.IsTrue(App.Depart());
             yield return WaitForScene(GameScenes.SEA);
             var deck = SceneComponent<DeckCatch>();
+            SetDeckField(deck, "_lossChance", 0f);
             var net = SceneComponent<NetStation>();
             var player = SceneComponent<PlayerController>();
             PlacePlayer(player, net);
@@ -299,6 +300,94 @@ namespace SecondCatch.Tests
         }
 
         [UnityTest]
+        public IEnumerator LossTickRemovesOnlyEdgeFishInBoatLocalCoordinates()
+        {
+            yield return StartNewGame();
+            Assert.IsTrue(App.Depart());
+            yield return WaitForScene(GameScenes.SEA);
+            var deck = SceneComponent<DeckCatch>();
+            var boat = SceneComponent<BoatController>();
+            PlaceBoat(boat, new Vector3(-15f, boat.transform.position.y, 26f));
+            boat.transform.rotation = Quaternion.Euler(0f, 57f, 0f);
+            SetDeckField(deck, "_lossChance", 1f);
+
+            LandFullDeck();
+            yield return WaitFor(() => deck.GetComponentsInChildren<FishOnDeck>().Length == 20, "The deck did not fill");
+            var fish = deck.GetComponentsInChildren<FishOnDeck>();
+            var edge = fish.Where(IsEdgeFish).ToArray();
+            var safe = fish.Where(candidate => !IsEdgeFish(candidate)).ToArray();
+            Assert.AreEqual(10, edge.Length);
+            long revision = App.Session.Revision;
+
+            yield return new WaitForSeconds(0.5f);
+            Assert.AreEqual(20, App.Session.DeckFishCount, "Loss tick fired before its interval");
+            yield return WaitFor(() => Hint().Contains("Рыба упала за борт"), "HUD did not report the loss");
+            Assert.IsTrue(edge.All(candidate => candidate == null));
+            Assert.IsTrue(safe.All(candidate => candidate != null && candidate.GetComponent<Collider>().enabled));
+            Assert.AreEqual(10, App.Session.DeckFishCount);
+            Assert.AreEqual(0, App.Session.Cargo.Count);
+            Assert.AreEqual(revision + 10, App.Session.Revision);
+        }
+
+        [UnityTest]
+        public IEnumerator ClickWinsOverLossTickForTheSameEdgeFish()
+        {
+            yield return StartNewGame();
+            Assert.IsTrue(App.Depart());
+            yield return WaitForScene(GameScenes.SEA);
+            var deck = SceneComponent<DeckCatch>();
+            var camera = SceneComponent<UnityEngine.Camera>();
+            SetDeckField(deck, "_lossChance", 0f);
+            LandFullDeck();
+            yield return WaitFor(() => deck.GetComponentsInChildren<FishOnDeck>().Length == 20, "The deck did not fill");
+            FishOnDeck clicked = PickableFish(deck, camera, IsEdgeFish);
+            long revision = App.Session.Revision;
+
+            using var input = new GameViewInputScope();
+            var mouse = InputSystem.AddDevice<Mouse>();
+            bool armed = false;
+            void ArmLossOnClick()
+            {
+                if (armed || !mouse.leftButton.wasPressedThisFrame) return;
+                SetDeckField(deck, "_lossChance", 1f);
+                SetDeckField(deck, "_nextLossCheck", Time.time);
+                armed = true;
+            }
+
+            InputSystem.onAfterUpdate += ArmLossOnClick;
+            try
+            {
+                yield return Click(mouse, camera.WorldToScreenPoint(clicked.transform.position));
+                Assert.IsTrue(armed);
+                Assert.IsTrue(deck.HasRecentLoss, "No other edge fish was lost on the click frame");
+                Assert.AreSame(SceneComponent<CargoHold>().transform, clicked.transform.parent);
+                Assert.AreEqual(1, App.Session.Cargo.Count);
+                Assert.AreEqual(10, App.Session.DeckFishCount);
+                Assert.AreEqual(revision + 10, App.Session.Revision);
+            }
+            finally
+            {
+                InputSystem.onAfterUpdate -= ArmLossOnClick;
+                InputSystem.RemoveDevice(mouse);
+            }
+        }
+
+        private static void LandFullDeck()
+        {
+            Assert.AreEqual(20, App.Session.TakeSchoolIntoNet(99, 20, 100));
+            App.Session.LandNetCatch();
+        }
+
+        private static bool IsEdgeFish(FishOnDeck fish) => Mathf.Abs(fish.transform.localPosition.x) >= 0.5f;
+
+        private static void SetDeckField(DeckCatch deck, string name, float value)
+        {
+            FieldInfo field = typeof(DeckCatch).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(field);
+            field.SetValue(deck, value);
+        }
+
+        [UnityTest]
         public IEnumerator FullNetLeavesSchoolAvailableAndLosesPartOfCatchUnderSail()
         {
             yield return StartNewGame();
@@ -361,11 +450,13 @@ namespace SecondCatch.Tests
             Assert.AreEqual(second, net.Count);
         }
 
-        private static FishOnDeck PickableFish(DeckCatch deck, UnityEngine.Camera camera)
+        private static FishOnDeck PickableFish(DeckCatch deck, UnityEngine.Camera camera,
+            System.Predicate<FishOnDeck> filter = null)
         {
             Physics.SyncTransforms();
             return deck.GetComponentsInChildren<FishOnDeck>().First(candidate =>
             {
+                if (filter != null && !filter(candidate)) return false;
                 Vector3 point = camera.WorldToScreenPoint(candidate.transform.position);
                 return camera.pixelRect.Contains(point)
                     && Physics.Raycast(camera.ScreenPointToRay(point), out var hit, 100f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)

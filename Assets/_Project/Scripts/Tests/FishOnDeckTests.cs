@@ -23,7 +23,27 @@ namespace SecondCatch.Tests
             Assert.AreEqual(DeckFishStoreResult.Stored, fish.TryStore(session));
             Assert.IsFalse(fish.gameObject.activeSelf);
             Assert.AreEqual(DeckFishStoreResult.Unavailable, fish.TryStore(session));
+            Assert.IsFalse(fish.TryLose(session));
             Assert.AreEqual(1, session.Cargo.Count);
+            Assert.AreEqual(1, session.DeckFishCount);
+            Assert.AreEqual(revision + 1, session.Revision);
+            yield return new ExitPlayMode();
+        }
+
+        [UnityTest]
+        public IEnumerator LossRemovesOneLooseFishAndRejectsLatePickupWhileOtherFishRemain()
+        {
+            yield return new EnterPlayMode();
+            var session = SessionWithDeckFish();
+            var fish = CreateFish();
+            long revision = session.Revision;
+
+            Assert.IsTrue(fish.TryLose(session));
+            Assert.IsFalse(fish.GetComponent<BoxCollider>().enabled);
+            Assert.IsFalse(fish.gameObject.activeSelf);
+            Assert.IsFalse(fish.TryLose(session));
+            Assert.AreEqual(DeckFishStoreResult.Unavailable, fish.TryStore(session));
+            Assert.AreEqual(0, session.Cargo.Count);
             Assert.AreEqual(1, session.DeckFishCount);
             Assert.AreEqual(revision + 1, session.Revision);
             yield return new ExitPlayMode();
