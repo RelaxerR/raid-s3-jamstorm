@@ -3,6 +3,8 @@
 <plist version="1.0">
 <dict>
     <!-- The standalone player uses Mono, which generates executable code at runtime. -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
     <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
     <true/>
 </dict>
