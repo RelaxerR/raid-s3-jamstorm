@@ -37,6 +37,7 @@ namespace SecondCatch.Fishing
         public int Count => _voyage != null ? _voyage.Session?.DeckFishCount ?? 0 : 0;
         public string Feedback => Time.time < _feedbackUntil ? _feedback : null;
         public bool HasRecentLoss => Time.time < _lossFeedbackUntil;
+        public event System.Action<FishOnDeck> FishLost;
 
         private void LateUpdate()
         {
@@ -45,13 +46,14 @@ namespace SecondCatch.Fishing
             // При совпадении с проверкой риска сначала даём игроку подобрать рыбу.
             if (GameplayInput.TryGetPrimaryClick(out Vector2 position))
                 TryPickFish(position);
-            CheckForLoss();
+            CheckForLoss(static () => Random.value);
             _lastCount = Count;
         }
 
-        private void CheckForLoss()
+        private void CheckForLoss(System.Func<float> roll)
         {
-            if (Count == 0 || _lossChance <= 0f || _player == null || _player.Boat == null)
+            if (Count == 0 || _lossChance <= 0f || _lossEdgeDistance <= 0f
+                || _player == null || _player.Boat == null)
             {
                 _nextLossCheck = 0f;
                 return;
@@ -64,12 +66,21 @@ namespace SecondCatch.Fishing
 
             foreach (FishOnDeck fish in _slots)
             {
-                if (fish == null || fish.IsResolved
-                    || _player.DistanceToDeckEdge(fish.transform.position) > _lossEdgeDistance
-                    || 1f - Random.value > _lossChance) continue;
+                if (fish == null || fish.IsResolved) continue;
+                Vector3 position = fish.transform.position;
+                float distance = _player.GetNearestDeckEdge(position, out Vector3 outward);
+                if (distance < 0f || distance >= _lossEdgeDistance) continue;
+                float chance = _lossChance * (1f - distance / _lossEdgeDistance);
+                if (roll() > chance) continue;
 
-                if (fish.TryLose(_voyage.Session))
-                    _lossFeedbackUntil = Time.time + 2.5f;
+                const float beyondEdge = 0.55f;
+                Vector3 overboard = position + outward * (distance + beyondEdge);
+                if (!fish.TryLose(_voyage.Session, overboard)) continue;
+                _lossFeedbackUntil = Time.time + 2.5f;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log($"Палуба: рыба ушла за борт. До борта: {distance:0.00}; шанс: {chance:P0}; осталось: {Count}.", fish);
+#endif
+                FishLost?.Invoke(fish);
             }
         }
 

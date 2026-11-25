@@ -23,7 +23,7 @@ namespace SecondCatch.Tests
             Assert.AreEqual(DeckFishStoreResult.Stored, fish.TryStore(session));
             Assert.IsFalse(fish.gameObject.activeSelf);
             Assert.AreEqual(DeckFishStoreResult.Unavailable, fish.TryStore(session));
-            Assert.IsFalse(fish.TryLose(session));
+            Assert.IsFalse(fish.TryLose(session, Vector3.right));
             Assert.AreEqual(1, session.Cargo.Count);
             Assert.AreEqual(1, session.DeckFishCount);
             Assert.AreEqual(revision + 1, session.Revision);
@@ -38,10 +38,10 @@ namespace SecondCatch.Tests
             var fish = CreateFish();
             long revision = session.Revision;
 
-            Assert.IsTrue(fish.TryLose(session));
+            Assert.IsTrue(fish.TryLose(session, Vector3.right));
             Assert.IsFalse(fish.GetComponent<BoxCollider>().enabled);
-            Assert.IsFalse(fish.gameObject.activeSelf);
-            Assert.IsFalse(fish.TryLose(session));
+            Assert.IsTrue(fish.gameObject.activeSelf, "The model must stay visible for the jump");
+            Assert.IsFalse(fish.TryLose(session, Vector3.right));
             Assert.AreEqual(DeckFishStoreResult.Unavailable, fish.TryStore(session));
             Assert.AreEqual(0, session.Cargo.Count);
             Assert.AreEqual(1, session.DeckFishCount);

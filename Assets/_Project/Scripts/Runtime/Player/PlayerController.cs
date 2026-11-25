@@ -90,11 +90,18 @@ namespace SecondCatch.Player
             transform.localPosition = position;
         }
 
-        internal float DistanceToDeckEdge(Vector3 worldPosition)
+        internal float GetNearestDeckEdge(Vector3 worldPosition, out Vector3 outward)
         {
             Vector3 local = _boat.transform.InverseTransformPoint(worldPosition);
-            return Mathf.Min(_deckHalfExtents.x - Mathf.Abs(local.x - _deckCenter.x),
-                _deckHalfExtents.y - Mathf.Abs(local.z - _deckCenter.y));
+            float x = local.x - _deckCenter.x;
+            float z = local.z - _deckCenter.y;
+            float sideDistance = _deckHalfExtents.x - Mathf.Abs(x);
+            float endDistance = _deckHalfExtents.y - Mathf.Abs(z);
+            Vector3 direction = sideDistance <= endDistance
+                ? Vector3.right * Mathf.Sign(x)
+                : Vector3.forward * Mathf.Sign(z);
+            outward = _boat.transform.TransformVector(direction);
+            return Mathf.Min(sideDistance, endDistance);
         }
 
         private bool TryEnterNearestStation()

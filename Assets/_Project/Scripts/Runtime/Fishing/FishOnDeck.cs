@@ -1,3 +1,4 @@
+using System.Collections;
 using SecondCatch.Solo;
 using UnityEngine;
 
@@ -46,13 +47,31 @@ namespace SecondCatch.Fishing
             return result;
         }
 
-        public bool TryLose(SoloGameSession session)
+        public bool TryLose(SoloGameSession session, Vector3 overboard)
         {
             if (!IsAvailable || session == null || !session.TryLoseDeckFish()) return false;
 
             Resolve();
-            Remove();
+            Vector3 destination = transform.parent != null ? transform.parent.InverseTransformPoint(overboard) : overboard;
+            StartCoroutine(JumpOverboard(destination));
             return true;
+        }
+
+        private IEnumerator JumpOverboard(Vector3 destination)
+        {
+            const float duration = 0.55f;
+            Vector3 start = transform.localPosition;
+            Quaternion rotation = transform.localRotation;
+            for (float elapsed = 0f; elapsed < duration; elapsed += Time.deltaTime)
+            {
+                float progress = elapsed / duration;
+                float height = progress * (1.8f - 2.7f * progress);
+                transform.SetLocalPositionAndRotation(
+                    Vector3.Lerp(start, destination, progress) + Vector3.up * height,
+                    rotation * Quaternion.Euler(0f, 0f, -150f * progress));
+                yield return null;
+            }
+            Remove();
         }
 
         private void Resolve()
