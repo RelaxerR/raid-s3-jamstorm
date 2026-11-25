@@ -137,16 +137,25 @@ namespace SecondCatch.Solo
             return true;
         }
 
+        public bool TryLoseDeckFish(string fishId)
+        {
+            int species = FishCargo.SpeciesIndex(fishId);
+            if (!AtSea || species < 0 || _deckFish[species] == 0) return false;
+            _deckFish[species]--;
+            Revision++;
+            return true;
+        }
+
         private void ClearLooseFish()
         {
             Array.Clear(_netFish, 0, _netFish.Length);
             Array.Clear(_deckFish, 0, _deckFish.Length);
         }
 
-        public bool TryStowUniqueFish()
+        public bool TryStowUniqueFish(bool replace = false)
         {
-            if (!AtSea || UniqueFishFull || UniqueFishCaughtThisVoyage) return false;
-            UniqueFishCount++;
+            if (!AtSea || UniqueFishCaughtThisVoyage || (UniqueFishFull && !replace)) return false;
+            if (!UniqueFishFull) UniqueFishCount++;
             UniqueFishCaughtThisVoyage = true;
             Revision++;
             return true;

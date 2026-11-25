@@ -1,3 +1,4 @@
+using SecondCatch.Fishing;
 using SecondCatch.Solo;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,12 +34,12 @@ namespace SecondCatch.UI
         internal static string DescribeBarrel(FishBarrel barrel) =>
             $"{barrel.Count}/{barrel.Capacity} · {FishCargo.SpeciesName(barrel.FishId)}";
         public void SetWood(int count) => Show(_wood, $"Древесина: {count}");
-        public void SetHarpoonLine(float tension, float progress)
+        public void SetHarpoonLine(float tension, float length, float progress)
         {
             if (_tension != null)
-                _tension.color = tension >= 0.8f ? new Color(1f, 0.42f, 0.38f) : new Color(0.9f, 0.97f, 1f);
+                _tension.color = tension >= HarpoonLine.WarningTension ? new Color(1f, 0.42f, 0.38f) : new Color(0.9f, 0.97f, 1f);
             Show(_tension, $"Натяжение троса: {Mathf.Clamp01(tension):0%}");
-            Show(_reeling, $"Вываживание: {Mathf.Clamp01(progress):0%}");
+            Show(_reeling, $"Леска: {length:0.0}/{HarpoonLine.MaximumLength:0} · Вываживание: {Mathf.Clamp01(progress):0%}");
         }
 
         public void HideHarpoonLine()

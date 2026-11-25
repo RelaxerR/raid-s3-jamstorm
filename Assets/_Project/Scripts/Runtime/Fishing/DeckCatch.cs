@@ -22,6 +22,9 @@ namespace SecondCatch.Fishing
         [SerializeField] private AudioClip _pickupSound;
         [SerializeField] private AudioClip _fullSound;
         [SerializeField] private AudioClip _incompatibleSound;
+        [SerializeField, Min(0.01f)] private float _lossCheckInterval = 1f;
+        [SerializeField, Min(0f)] private float _lossEdgeDistance = 0.5f;
+        [SerializeField, Range(0f, 0.3f)] private float _lossChance = 0.3f;
 
         private const int Columns = 4;
         private const int Rows = 5;
@@ -31,9 +34,13 @@ namespace SecondCatch.Fishing
         private readonly int[] _previousBySpecies = new int[FishCargo.SpeciesCount];
         private float _feedbackUntil;
         private string _feedback;
+        private float _nextLossCheck;
+        private float _lossFeedbackUntil;
 
         public int Count => _voyage != null ? _voyage.Session?.DeckFishCount ?? 0 : 0;
         public string Feedback => Time.time < _feedbackUntil ? _feedback : null;
+        public bool HasRecentLoss => Time.time < _lossFeedbackUntil;
+        public event System.Action<FishOnDeck> FishLost;
 
         private void LateUpdate()
         {
@@ -41,8 +48,43 @@ namespace SecondCatch.Fishing
             RefreshDeck(_voyage.Session);
             if (GameplayInput.TryGetPrimaryClick(out Vector2 position))
                 TryPickFish(position);
+            CheckForLoss(static () => Random.value);
             _previousBySpecies[0] = _voyage.Session.DeckCount(FishCargo.AzureFish);
             _previousBySpecies[1] = _voyage.Session.DeckCount(FishCargo.AmberFish);
+        }
+
+        private void CheckForLoss(System.Func<float> roll)
+        {
+            if (Count == 0 || _lossChance <= 0f || _lossEdgeDistance <= 0f
+                || _player == null || _player.Boat == null)
+            {
+                _nextLossCheck = 0f;
+                return;
+            }
+
+            if (_nextLossCheck == 0f)
+                _nextLossCheck = Time.time + _lossCheckInterval;
+            if (Time.time < _nextLossCheck) return;
+            _nextLossCheck = Time.time + _lossCheckInterval;
+
+            foreach (FishOnDeck fish in _slots)
+            {
+                if (fish == null || fish.IsResolved) continue;
+                Vector3 position = fish.transform.position;
+                float distance = _player.GetNearestDeckEdge(position, out Vector3 outward);
+                if (distance < 0f || distance >= _lossEdgeDistance) continue;
+                float chance = _lossChance * (1f - distance / _lossEdgeDistance);
+                if (roll() > chance) continue;
+
+                const float beyondEdge = 0.55f;
+                Vector3 overboard = position + outward * (distance + beyondEdge);
+                if (!fish.TryLose(_voyage.Session, overboard)) continue;
+                _lossFeedbackUntil = Time.time + 2.5f;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log($"Палуба: рыба {FishCargo.SpeciesName(fish.Species == 0 ? FishCargo.AzureFish : FishCargo.AmberFish)} ушла за борт. До борта: {distance:0.00}; шанс: {chance:P0}; осталось: {Count}.", fish);
+#endif
+                FishLost?.Invoke(fish);
+            }
         }
 
         private void RefreshDeck(SoloGameSession session)
@@ -59,7 +101,7 @@ namespace SecondCatch.Fishing
             for (int slot = 0; slot < _slots.Length; slot++)
             {
                 FishOnDeck fish = _slots[slot];
-                if (fish != null && !fish.IsStored)
+                if (fish != null && !fish.IsResolved)
                 {
                     int limit = fish.Species == 0 ? azureLimit : amberLimit;
                     if (_visibleBySpecies[fish.Species] < limit)

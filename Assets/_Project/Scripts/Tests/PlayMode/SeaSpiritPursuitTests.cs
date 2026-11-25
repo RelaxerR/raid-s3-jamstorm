@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using SecondCatch.Application;
 using SecondCatch.Boat;
@@ -43,6 +45,8 @@ namespace SecondCatch.Tests
             Assert.IsTrue(net.TryEnter(player));
             var director = SceneComponent<SeaSpiritDirector>();
             var deck = SceneComponent<DeckCatch>();
+            // The loss band, species accounting and simultaneous click have dedicated tests.
+            typeof(DeckCatch).GetField("_lossChance", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(deck, 0f);
             var cargo = App.Session.Cargo;
             var schools = Schools();
             foreach (int firstSchool in new[] { 0, 4 })
@@ -65,8 +69,8 @@ namespace SecondCatch.Tests
                 Assert.IsFalse(director.PursuitRequested);
                 while (App.Session.DeckFishCount > 0)
                 {
-                    yield return WaitFor(() => deck.GetComponentInChildren<FishOnDeck>() != null, "Missing deck fish");
-                    foreach (FishOnDeck fish in deck.GetComponentsInChildren<FishOnDeck>())
+                    yield return WaitFor(() => PickableFish(deck).Any(), "Missing deck fish");
+                    foreach (FishOnDeck fish in PickableFish(deck))
                         Assert.AreEqual(DeckFishStoreResult.Stored, fish.TryStore(App.Session));
                 }
             }
@@ -97,7 +101,11 @@ namespace SecondCatch.Tests
             Assert.IsTrue(player == null, "The voyage camera and its operator left with the sea scene");
             Assert.IsTrue(SceneComponent<HomePortController>().Sell());
             Assert.AreEqual(2000, App.Session.Coins);
+            Assert.IsFalse(SceneComponent<HomePortController>().Sell());
         }
+
+        private static System.Collections.Generic.IEnumerable<FishOnDeck> PickableFish(DeckCatch deck) =>
+            deck.GetComponentsInChildren<FishOnDeck>().Where(fish => fish.GetComponent<Collider>().enabled);
 
         [UnityTest]
         public IEnumerator SpiritAtHullCenterKeepsAttackingUntilTheBoatSinks()

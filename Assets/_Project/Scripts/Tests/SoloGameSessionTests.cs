@@ -131,6 +131,26 @@ namespace SecondCatch.Tests
         }
 
         [Test]
+        public void LosingAmberFromTheDeckPreservesAzureForTransfer()
+        {
+            var session = new SoloGameSession();
+            Assert.IsTrue(session.Depart());
+            Assert.AreEqual(1, session.TakeSchoolIntoNet(1, 1, 100, FishCargo.AmberFish));
+            Assert.AreEqual(1, session.TakeSchoolIntoNet(2, 1, 100, FishCargo.AzureFish));
+            session.LandNetCatch();
+
+            long revision = session.Revision;
+            Assert.IsTrue(session.TryLoseDeckFish(FishCargo.AmberFish));
+            Assert.IsFalse(session.TryLoseDeckFish(FishCargo.AmberFish));
+            Assert.AreEqual(revision + 1, session.Revision);
+            Assert.AreEqual(0, session.DeckCount(FishCargo.AmberFish));
+            Assert.AreEqual(1, session.DeckCount(FishCargo.AzureFish));
+            Assert.AreEqual(DeckFishStoreResult.Stored, session.StoreDeckFish(FishCargo.AzureFish));
+            Assert.AreEqual(DeckFishStoreResult.Unavailable, session.StoreDeckFish(FishCargo.AzureFish));
+            Assert.AreEqual(FishCargo.AzureFish, session.Cargo.First.FishId);
+        }
+
+        [Test]
         public void SellingAllIncludesTheSeparateCarcassOnlyOnce()
         {
             var session = new SoloGameSession();

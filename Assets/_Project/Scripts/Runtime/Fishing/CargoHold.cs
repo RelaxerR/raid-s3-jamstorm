@@ -48,6 +48,9 @@ namespace SecondCatch.Fishing
             {
                 _feedback = $"Рыба из бочки {_barrelIndex + 1} выпущена";
                 _feedbackUntil = Time.time + 2f;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log($"Бочка {_barrelIndex + 1}: улов выпущен.", this);
+#endif
             }
             return true;
         }

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 006fe9e5de3243d5ac53c04d2071fd31
+ModelImporter:
+  serializedVersion: 24200
+  internalIDToNameTable:
+  - first:
+      43: -2432090755550338912
+    second: default
+  externalObjects: {}
+  materials:
+    materialImportMode: 0
+  meshes:
+    globalScale: 1
+    useFileUnits: 1
+  tangentSpace:
+    normalImportMode: 1
+    tangentImportMode: 3
+  importAnimation: 0
