@@ -102,6 +102,14 @@ namespace SecondCatch.Solo
             return DeckFishStoreResult.Stored;
         }
 
+        public bool TryLoseDeckFish()
+        {
+            if (!AtSea || DeckFishCount == 0) return false;
+            DeckFishCount--;
+            Revision++;
+            return true;
+        }
+
         private void ClearLooseFish()
         {
             NetFishCount = 0;

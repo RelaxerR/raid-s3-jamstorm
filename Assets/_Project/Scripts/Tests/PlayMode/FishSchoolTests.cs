@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
@@ -169,6 +170,7 @@ namespace SecondCatch.Tests
             Assert.IsTrue(App.Depart());
             yield return WaitForScene(GameScenes.SEA);
             var deck = SceneComponent<DeckCatch>();
+            SetDeckField(deck, "_lossChance", 0f);
             var net = SceneComponent<NetStation>();
             var player = SceneComponent<PlayerController>();
             PlacePlayer(player, net);
@@ -299,6 +301,140 @@ namespace SecondCatch.Tests
         }
 
         [UnityTest]
+        public IEnumerator LossChanceFallsAcrossBoatLocalRiskBandAndReportsOneJump()
+        {
+            yield return StartNewGame();
+            Assert.IsTrue(App.Depart());
+            yield return WaitForScene(GameScenes.SEA);
+            var deck = SceneComponent<DeckCatch>();
+            var boat = SceneComponent<BoatController>();
+            PlaceBoat(boat, new Vector3(-15f, boat.transform.position.y, 26f));
+            boat.transform.rotation = Quaternion.Euler(0f, 57f, 0f);
+            LandFullDeck();
+            yield return WaitFor(() => deck.GetComponentsInChildren<FishOnDeck>().Length == 20, "The deck did not fill");
+            var fish = deck.GetComponentsInChildren<FishOnDeck>();
+            FishOnDeck lost = fish[0];
+            var losses = new List<FishOnDeck>();
+            deck.FishLost += losses.Add;
+            long revision = App.Session.Revision;
+
+            int rolls = 0;
+            float Roll()
+            {
+                rolls++;
+                return 0.20f;
+            }
+
+            CheckForLoss(deck, Roll);
+            Assert.AreEqual(0, rolls, "Loss tick fired before its interval");
+
+            // At 0.01, 0.25 and 0.49 m the chances are 29.4%, 15% and 0.6%.
+            // Farther than 0.5 m from the edge, the tick must not even roll.
+            float[] xPositions = { 0.99f, 0.75f, 0.51f, 0.40f };
+            for (int i = 0; i < fish.Length; i++)
+                fish[i].transform.localPosition = new Vector3(i < xPositions.Length ? xPositions[i] : 0f, 0f, 0f);
+            SetDeckField(deck, "_nextLossCheck", Time.time);
+            CheckForLoss(deck, Roll);
+
+            Assert.AreEqual(3, rolls);
+            CollectionAssert.AreEqual(new[] { lost }, losses);
+            Assert.IsTrue(lost.gameObject.activeInHierarchy);
+            Assert.IsTrue(lost.GetComponentInChildren<Renderer>().enabled);
+            Assert.IsFalse(lost.GetComponent<Collider>().enabled);
+            Assert.IsTrue(fish.Skip(1).All(candidate => candidate.GetComponent<Collider>().enabled));
+            Assert.AreEqual(19, App.Session.DeckFishCount);
+            Assert.AreEqual(0, App.Session.Cargo.Count);
+            Assert.AreEqual(revision + 1, App.Session.Revision);
+            Assert.AreEqual(DeckFishStoreResult.Unavailable, lost.TryStore(App.Session));
+            Assert.IsFalse(lost.TryLose(App.Session, Vector3.right));
+
+            // Force another tick while the same fish is still visible in flight.
+            foreach (FishOnDeck candidate in fish.Skip(1))
+                candidate.transform.localPosition = Vector3.zero;
+            SetDeckField(deck, "_nextLossCheck", Time.time);
+            CheckForLoss(deck, () => { Assert.Fail("Resolved and safe fish must not roll"); return 0f; });
+            CollectionAssert.AreEqual(new[] { lost }, losses);
+            Assert.AreEqual(revision + 1, App.Session.Revision);
+
+            yield return WaitFor(() => lost != null && lost.transform.localPosition.x > 1f,
+                "The fish did not visibly cross the side of the rotated boat");
+            yield return WaitFor(() => lost == null, "The fish did not disappear after the jump");
+            yield return WaitFor(() => Hint().Contains("Рыба упала за борт"), "HUD did not report the loss");
+            Assert.AreEqual(1, losses.Count);
+        }
+
+        [UnityTest]
+        public IEnumerator ClickWinsOverLossTickForTheSameEdgeFish()
+        {
+            yield return StartNewGame();
+            Assert.IsTrue(App.Depart());
+            yield return WaitForScene(GameScenes.SEA);
+            var deck = SceneComponent<DeckCatch>();
+            var camera = SceneComponent<UnityEngine.Camera>();
+            SetDeckField(deck, "_lossChance", 0f);
+            LandFullDeck();
+            yield return WaitFor(() => deck.GetComponentsInChildren<FishOnDeck>().Length == 20, "The deck did not fill");
+            FishOnDeck clicked = PickableFish(deck, camera, IsEdgeFish);
+            var losses = new List<FishOnDeck>();
+            deck.FishLost += losses.Add;
+            long revision = App.Session.Revision;
+
+            using var input = new GameViewInputScope();
+            var mouse = InputSystem.AddDevice<Mouse>();
+            bool armed = false;
+            void ArmLossOnClick()
+            {
+                if (armed || !mouse.leftButton.wasPressedThisFrame) return;
+                SetDeckField(deck, "_lossChance", 1f);
+                SetDeckField(deck, "_lossEdgeDistance", float.MaxValue);
+                SetDeckField(deck, "_nextLossCheck", Time.time);
+                armed = true;
+            }
+
+            InputSystem.onAfterUpdate += ArmLossOnClick;
+            try
+            {
+                yield return Click(mouse, camera.WorldToScreenPoint(clicked.transform.position));
+                Assert.IsTrue(armed);
+                Assert.IsTrue(deck.HasRecentLoss, "No other fish was lost on the click frame");
+                Assert.AreSame(SceneComponent<CargoHold>().transform, clicked.transform.parent);
+                Assert.AreEqual(1, App.Session.Cargo.Count);
+                Assert.AreEqual(0, App.Session.DeckFishCount);
+                Assert.AreEqual(revision + 20, App.Session.Revision);
+                Assert.AreEqual(19, losses.Count);
+                Assert.AreEqual(19, losses.Distinct().Count());
+                CollectionAssert.DoesNotContain(losses, clicked);
+            }
+            finally
+            {
+                InputSystem.onAfterUpdate -= ArmLossOnClick;
+                InputSystem.RemoveDevice(mouse);
+            }
+        }
+
+        private static void LandFullDeck()
+        {
+            Assert.AreEqual(20, App.Session.TakeSchoolIntoNet(99, 20, 100));
+            App.Session.LandNetCatch();
+        }
+
+        private static bool IsEdgeFish(FishOnDeck fish) => Mathf.Abs(fish.transform.localPosition.x) >= 0.5f;
+
+        private static void CheckForLoss(DeckCatch deck, System.Func<float> roll)
+        {
+            MethodInfo check = typeof(DeckCatch).GetMethod("CheckForLoss", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(check);
+            check.Invoke(deck, new object[] { roll });
+        }
+
+        private static void SetDeckField(DeckCatch deck, string name, float value)
+        {
+            FieldInfo field = typeof(DeckCatch).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(field);
+            field.SetValue(deck, value);
+        }
+
+        [UnityTest]
         public IEnumerator FullNetLeavesSchoolAvailableAndLosesPartOfCatchUnderSail()
         {
             yield return StartNewGame();
@@ -361,11 +497,13 @@ namespace SecondCatch.Tests
             Assert.AreEqual(second, net.Count);
         }
 
-        private static FishOnDeck PickableFish(DeckCatch deck, UnityEngine.Camera camera)
+        private static FishOnDeck PickableFish(DeckCatch deck, UnityEngine.Camera camera,
+            System.Predicate<FishOnDeck> filter = null)
         {
             Physics.SyncTransforms();
             return deck.GetComponentsInChildren<FishOnDeck>().First(candidate =>
             {
+                if (filter != null && !filter(candidate)) return false;
                 Vector3 point = camera.WorldToScreenPoint(candidate.transform.position);
                 return camera.pixelRect.Contains(point)
                     && Physics.Raycast(camera.ScreenPointToRay(point), out var hit, 100f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
