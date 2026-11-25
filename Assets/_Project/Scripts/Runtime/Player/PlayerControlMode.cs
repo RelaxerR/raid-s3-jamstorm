@@ -6,6 +6,7 @@ namespace SecondCatch.Player
         Walking,
         Helm,
         Sail,
-        Net
+        Net,
+        Harpoon
     }
 }

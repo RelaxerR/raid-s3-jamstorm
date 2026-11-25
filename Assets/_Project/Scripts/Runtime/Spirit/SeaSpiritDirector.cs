@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace SecondCatch.Spirit
 {
-    /// <summary>Создаёт одного духа на рейс с полной бочкой и ведёт его к лодке.</summary>
+    /// <summary>Создаёт одного духа на рейс с полностью заполненными бочками и ведёт его к лодке.</summary>
     public sealed class SeaSpiritDirector : MonoBehaviour
     {
         [SerializeField] private HomeShallowsController _voyage;

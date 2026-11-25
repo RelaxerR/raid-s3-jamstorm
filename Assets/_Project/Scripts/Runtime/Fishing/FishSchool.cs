@@ -1,5 +1,6 @@
 using SecondCatch.Application;
 using SecondCatch.Stations;
+using SecondCatch.Solo;
 using UnityEngine;
 
 namespace SecondCatch.Fishing
@@ -10,11 +11,20 @@ namespace SecondCatch.Fishing
     {
         [SerializeField] private HomeShallowsController _voyage;
         [SerializeField] private NetStation _net;
+        [SerializeField] private string _fishId = FishCargo.AzureFish;
+        [SerializeField] private Material _markerMaterial;
         private bool _takenOnPass;
 
         [Tooltip("Unique positive ID among the schools in HomeShallows.")]
         [SerializeField, Min(1)] private int _schoolId = 1;
         [SerializeField, Min(1)] private int _portion = 10;
+
+        private void Awake()
+        {
+            if (_markerMaterial == null) return;
+            foreach (Renderer marker in GetComponentsInChildren<Renderer>())
+                marker.sharedMaterial = _markerMaterial;
+        }
 
         private void Start()
         {
@@ -34,7 +44,7 @@ namespace SecondCatch.Fishing
         public bool TryCollect(Collider contact)
         {
             if (_takenOnPass || !isActiveAndEnabled || _voyage == null || !_voyage.IsHull(contact)
-                || _net == null || !_net.TryCapture(_schoolId, _portion))
+                || _net == null || !_net.TryCapture(_schoolId, _portion, _fishId))
                 return false;
 
             _takenOnPass = true;

@@ -35,7 +35,7 @@ namespace SecondCatch.Tests
             Assert.IsFalse(ButtonIn(panel, "SellFish").interactable);
             Assert.IsFalse(ButtonIn(panel, "SellAll").interactable);
             Assert.IsFalse(ButtonIn(panel, "BuyUpgrade").interactable);
-            Assert.IsTrue(HasText(panel, "Улов 0/100"));
+            Assert.IsTrue(HasText(panel, "Улов 0/200"));
             Assert.IsTrue(HasText(panel, "Монеты: 0"));
             Assert.IsTrue(HasText(panel, "100 монет"));
             Click(close);
@@ -59,7 +59,7 @@ namespace SecondCatch.Tests
             panel = SceneComponent<PortTradePanel>();
             Click(ButtonIn(panel, "OpenTrade"));
             yield return null;
-            Assert.IsTrue(HasText(panel, "Улов 10/100"));
+            Assert.IsTrue(HasText(panel, "Улов 10/200"));
             Assert.IsTrue(ButtonIn(panel, "SellFish").interactable);
             Assert.IsFalse(ButtonIn(panel, "BuyUpgrade").interactable);
             long revision = session.Revision;
@@ -84,7 +84,7 @@ namespace SecondCatch.Tests
             Assert.That(session.Boat.SpeedMultiplier, Is.EqualTo(1.4f));
             Assert.IsTrue(Schools()[0].gameObject.activeSelf);
             Assert.IsTrue(CargoLabel().gameObject.activeInHierarchy);
-            Assert.AreEqual("Улов 0/100", CargoLabel().text);
+            Assert.AreEqual("Улов · Бочка 1 0/100 · пусто\nБочка 2 0/100 · пусто\nТуша 0/1", CargoLabel().text);
 
             boat = SceneComponent<BoatController>();
             departure = boat.transform.position;

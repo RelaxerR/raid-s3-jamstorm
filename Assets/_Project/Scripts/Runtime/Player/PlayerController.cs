@@ -1,5 +1,6 @@
 using SecondCatch.Boat;
 using SecondCatch.Input;
+using SecondCatch.Fishing;
 using SecondCatch.Stations;
 using UnityEngine;
 
@@ -16,6 +17,8 @@ namespace SecondCatch.Player
         [SerializeField] private Vector2 _deckHalfExtents = new Vector2(1f, 2f);
         [SerializeField, Min(0f)] private float _edgePadding = 0.18f;
         [SerializeField] private StationInteraction[] _stations;
+        [SerializeField] private CargoHold[] _barrels;
+        private CargoHold _releasingBarrel;
         private StationInteraction _activeStation;
         private float _deckHeight;
         private Vector3 _startPosition;
@@ -49,6 +52,7 @@ namespace SecondCatch.Player
             LocalWalkDirection = Vector3.zero;
             if (_boat == null || !_boat.isActiveAndEnabled || _boat.IsRespawning)
             {
+                CancelBarrelRelease();
                 ExitStation();
                 return;
             }
@@ -62,8 +66,15 @@ namespace SecondCatch.Player
                     _activeStation.HandleInput(GameplayInput.Movement);
                 return;
             }
-            if (GameplayInput.InteractPressed && TryEnterNearestStation()) return;
+            if (GameplayInput.InteractPressed)
+            {
+                _releasingBarrel = GetAvailableBarrel();
+                if (_releasingBarrel == null && TryEnterNearestStation()) return;
+            }
             Move(GameplayInput.Movement);
+            if (_releasingBarrel != null && (!GameplayInput.InteractHeld
+                || _releasingBarrel != GetAvailableBarrel() || _releasingBarrel.AdvanceRelease(Time.deltaTime)))
+                CancelBarrelRelease();
         }
 
         private void Move(Vector2 input)
@@ -88,6 +99,42 @@ namespace SecondCatch.Player
             position.z = Mathf.Clamp(position.z, _deckCenter.y - limit.y, _deckCenter.y + limit.y);
             position.y = _deckHeight;
             transform.localPosition = position;
+        }
+
+        public CargoHold GetAvailableBarrel()
+        {
+            if (ControlMode != PlayerControlMode.Walking || _barrels == null) return null;
+            StationInteraction station = GetAvailableStation();
+            float bestDistance = station != null ? station.DistanceSquared(this) : float.PositiveInfinity;
+            CargoHold nearest = null;
+            foreach (CargoHold barrel in _barrels)
+            {
+                if (barrel == null || !barrel.CanReleaseNear(this, out float distance) || distance >= bestDistance)
+                    continue;
+                bestDistance = distance;
+                nearest = barrel;
+            }
+            return nearest;
+        }
+
+        private void CancelBarrelRelease()
+        {
+            if (_releasingBarrel != null) _releasingBarrel.CancelRelease();
+            _releasingBarrel = null;
+        }
+
+        internal float GetNearestDeckEdge(Vector3 worldPosition, out Vector3 outward)
+        {
+            Vector3 local = _boat.transform.InverseTransformPoint(worldPosition);
+            float x = local.x - _deckCenter.x;
+            float z = local.z - _deckCenter.y;
+            float sideDistance = _deckHalfExtents.x - Mathf.Abs(x);
+            float endDistance = _deckHalfExtents.y - Mathf.Abs(z);
+            Vector3 direction = sideDistance <= endDistance
+                ? Vector3.right * Mathf.Sign(x)
+                : Vector3.forward * Mathf.Sign(z);
+            outward = _boat.transform.TransformVector(direction);
+            return Mathf.Min(sideDistance, endDistance);
         }
 
         private bool TryEnterNearestStation()
@@ -116,6 +163,7 @@ namespace SecondCatch.Player
         /// <summary>Фиксирует режим после проверки доступности станции.</summary>
         internal void BeginStation(StationInteraction station)
         {
+            CancelBarrelRelease();
             _activeStation = station;
             ControlMode = station.ControlMode;
         }
@@ -139,6 +187,10 @@ namespace SecondCatch.Player
             ConstrainToDeck();
         }
 
-        private void OnDisable() => ExitStation();
+        private void OnDisable()
+        {
+            CancelBarrelRelease();
+            ExitStation();
+        }
     }
 }

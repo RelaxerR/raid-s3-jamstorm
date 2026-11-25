@@ -55,6 +55,7 @@ namespace SecondCatch.Boat
         [SerializeField] private BoxCollider _seaSurface;
         [SerializeField, Min(0f)] private float _shoreRadius;
         [SerializeField, Min(0.1f)] private float _maxZoneRadius = 200f;
+        [SerializeField, Min(0f)] private float _outerCalmRecoveryDuration;
         [SerializeField, Range(0f, 1f)] private float _centerReturnProbability = 0.05f;
         [SerializeField, Min(0.01f)] private float _distanceExponent = 2f;
         [SerializeField] private AnimationCurve _returnProbabilityCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
@@ -77,6 +78,7 @@ namespace SecondCatch.Boat
         private float _speedBlendRemaining;
         private float _startStormIntensity;
         private float _targetStormIntensity;
+        private float _outerCalmRecoveryRemaining;
 
         /// <summary>Возвращает нормализованный горизонтальный ветер либо сообщает об отсутствии направления.</summary>
         public bool TryGetHorizontalDirection(out Vector3 direction)
@@ -102,12 +104,25 @@ namespace SecondCatch.Boat
         public float MaxSpeed => Mathf.Max(MinSpeed, Profile(_type).MaxSpeed);
         public float Speed => Mathf.Max(0f, _speed);
         public float SailInfluence => _type == WindType.Calm ? 0f : Mathf.Max(0f, _sailInfluence);
+        // Радиус влияет на парус независимо от текущего профиля и таймера ветра.
+        public bool IsInOuterCalm => _outerCalmRecoveryDuration > 0f && NormalizedDistance >= 1f;
+        public float SailExposure
+        {
+            get
+            {
+                if (IsInOuterCalm) return 0f;
+                if (_outerCalmRecoveryRemaining <= 0f || _outerCalmRecoveryDuration <= 0f) return 1f;
+                return Mathf.SmoothStep(0f, 1f, 1f - _outerCalmRecoveryRemaining / _outerCalmRecoveryDuration);
+            }
+        }
         public Color VisualColor => _gizmoColor;
         public float TimeUntilChange { get; private set; }
         /// <summary>Плавная интенсивность шторма для будущих волн и урона.</summary>
         public float StormIntensity { get; private set; }
         /// <summary>Будущая погода может подписаться на смену типа и читать StormIntensity.</summary>
         public event Action<WindType> WindTypeChanged;
+        /// <summary>Передаёт текущее направление по мере его изменения во время перехода.</summary>
+        public event Action<Vector3> WindDirectionChanged;
         public float NormalizedDistance
         {
             get
@@ -166,6 +181,7 @@ namespace SecondCatch.Boat
             StormIntensity = _type == WindType.Storm ? 1f : 0f;
             ScheduleChange();
             _timeUntilSpeedChange = SampleInterval(_speedChangeInterval);
+            if (IsInOuterCalm) _outerCalmRecoveryRemaining = _outerCalmRecoveryDuration;
         }
 
         private void ScheduleChange() => TimeUntilChange = SampleInterval(_changeInterval);
@@ -180,6 +196,8 @@ namespace SecondCatch.Boat
 
         private void Advance(float dt)
         {
+            _outerCalmRecoveryRemaining = IsInOuterCalm ? _outerCalmRecoveryDuration
+                : Mathf.Max(0f, _outerCalmRecoveryRemaining - dt);
             if (_randomChanges)
             {
                 TimeUntilChange = Mathf.Max(0f, TimeUntilChange - dt);
@@ -193,6 +211,7 @@ namespace SecondCatch.Boat
             _elapsed += dt;
             float progress = Mathf.Clamp01(_elapsed / Mathf.Max(0.01f, _transitionDuration));
             float t = Mathf.SmoothStep(0f, 1f, progress);
+            Vector3 previousDirection = Direction;
             _direction = Quaternion.AngleAxis(Mathf.LerpAngle(_startHeading, _targetHeading, t), Vector3.up) * Vector3.forward;
             _speed = Mathf.Lerp(_startSpeed, _targetSpeed, t);
             _strength = Mathf.Lerp(_startStrength, _targetStrength, t);
@@ -205,6 +224,8 @@ namespace SecondCatch.Boat
                 _timeUntilSpeedChange = SampleInterval(_speedChangeInterval);
                 SetType(_targetType);
             }
+            Vector3 direction = Direction;
+            if (!direction.Equals(previousDirection)) WindDirectionChanged?.Invoke(direction);
         }
 
         private void AdvanceSpeed(float dt)

@@ -18,6 +18,7 @@ namespace SecondCatch.Solo
         private readonly int[] _zoneHp = Array.ConvertAll(ZoneSpecs, spec => spec.MaxHp);
 
         public int MaxHp { get; } = 60;
+        public int UniqueFishCapacity => 1;
         public int Hp { get; private set; } = 60;
         public bool SpeedUpgrade { get; internal set; }
         public float SpeedMultiplier => SpeedUpgrade ? 1.4f : 1f;

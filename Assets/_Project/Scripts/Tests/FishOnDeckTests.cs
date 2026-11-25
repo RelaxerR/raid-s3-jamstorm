@@ -23,7 +23,27 @@ namespace SecondCatch.Tests
             Assert.AreEqual(DeckFishStoreResult.Stored, fish.TryStore(session));
             Assert.IsFalse(fish.gameObject.activeSelf);
             Assert.AreEqual(DeckFishStoreResult.Unavailable, fish.TryStore(session));
+            Assert.IsFalse(fish.TryLose(session, Vector3.right));
             Assert.AreEqual(1, session.Cargo.Count);
+            Assert.AreEqual(1, session.DeckFishCount);
+            Assert.AreEqual(revision + 1, session.Revision);
+            yield return new ExitPlayMode();
+        }
+
+        [UnityTest]
+        public IEnumerator LossRemovesOneLooseFishAndRejectsLatePickupWhileOtherFishRemain()
+        {
+            yield return new EnterPlayMode();
+            var session = SessionWithDeckFish();
+            var fish = CreateFish();
+            long revision = session.Revision;
+
+            Assert.IsTrue(fish.TryLose(session, Vector3.right));
+            Assert.IsFalse(fish.GetComponent<BoxCollider>().enabled);
+            Assert.IsTrue(fish.gameObject.activeSelf, "The model must stay visible for the jump");
+            Assert.IsFalse(fish.TryLose(session, Vector3.right));
+            Assert.AreEqual(DeckFishStoreResult.Unavailable, fish.TryStore(session));
+            Assert.AreEqual(0, session.Cargo.Count);
             Assert.AreEqual(1, session.DeckFishCount);
             Assert.AreEqual(revision + 1, session.Revision);
             yield return new ExitPlayMode();
@@ -38,8 +58,8 @@ namespace SecondCatch.Tests
             try
             {
                 if (fillBarrel)
-                    for (int i = 0; i < session.Cargo.Capacity; i++)
-                        Assert.IsTrue(session.CatchFish(session.Cargo.FishId));
+                    for (int i = 0; i < session.Cargo.First.Capacity; i++)
+                        Assert.IsTrue(session.CatchFish(FishCargo.AzureFish));
                 else
                 {
                     using var serializedFish = new SerializedObject(fish);
@@ -51,7 +71,7 @@ namespace SecondCatch.Tests
                 Assert.IsTrue(fish.GetComponent<BoxCollider>().enabled);
                 Assert.IsTrue(fish.gameObject.activeSelf);
                 Assert.AreEqual(2, session.DeckFishCount);
-                Assert.AreEqual(fillBarrel ? session.Cargo.Capacity : 0, session.Cargo.Count);
+                Assert.AreEqual(fillBarrel ? session.Cargo.First.Capacity : 0, session.Cargo.Count);
                 Assert.AreEqual(revision, session.Revision);
             }
             finally { Object.DestroyImmediate(fish.gameObject); }
