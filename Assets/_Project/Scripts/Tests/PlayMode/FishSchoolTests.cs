@@ -35,6 +35,8 @@ namespace SecondCatch.Tests
             var net = SceneComponent<NetStation>();
             var school = Schools()[0];
             var deck = SceneComponent<DeckCatch>();
+            // This voyage checks wind and cargo; overboard loss has its own tests.
+            SetDeckField(deck, "_lossChance", 0f);
             var hold = SceneComponent<CargoHold>();
             var feedbackAudio = deck.GetComponent<AudioSource>();
             Assert.NotNull(feedbackAudio);
