@@ -133,16 +133,40 @@ jobs:
           buildMethod: RaidS3Jamstorm.Editor.CiBuild.BuildMacOSUniversal
           customParameters: -outputPath build/StandaloneOSX/${{ env.PROJECT_NAME }}.app
 
-      - name: Archive and verify macOS player
-        run: |
-          archive="$PWD/${PROJECT_NAME}-macOS-Universal.zip"
-          bundle="${PROJECT_NAME}.app"
-          cd build/StandaloneOSX
-          executable=$(python3 -c 'import plistlib, sys; print(plistlib.load(open(sys.argv[1], "rb"))["CFBundleExecutable"])' "$bundle/Contents/Info.plist")
-          test -x "$bundle/Contents/MacOS/$executable"
-          zip -qry "$archive" "$bundle"
-          unzip -tq "$archive"
-          unzip -Z -1 "$archive" "$bundle/Contents/MacOS/$executable"
+      - name: Archive unsigned app for the signing job
+        run: tar -C build/StandaloneOSX -cf macos-signing-input.tar "${PROJECT_NAME}.app"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: macos-signing-input
+          path: macos-signing-input.tar
+          if-no-files-found: error
+          retention-days: 1
+
+  macos-sign:
+    name: Sign and notarize macOS Universal player
+    needs: macos
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          name: macos-signing-input
+
+      - name: Extract unsigned app
+        run: tar -xf macos-signing-input.tar
+
+      - name: Sign, notarize and verify the final ZIP
+        env:
+          MACOS_CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: bash tools/package_macos_player.sh "${PROJECT_NAME}.app" "${PROJECT_NAME}-macOS-Universal.zip"
 
       - name: Upload macOS archive
         uses: actions/upload-artifact@v7
@@ -156,7 +180,7 @@ jobs:
   release:
     name: Publish GitHub Release
     if: github.ref == 'refs/heads/main'
-    needs: [version, windows-smoke, macos]
+    needs: [version, windows-smoke, macos-sign]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     concurrency:
