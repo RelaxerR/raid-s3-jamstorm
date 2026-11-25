@@ -3304,9 +3304,10 @@ MonoBehaviour:
   _seaSurface: {fileID: 799446956}
   _shoreRadius: 12
   _maxZoneRadius: 200
+  _outerCalmRecoveryDuration: 2
   _randomChanges: 1
-  _changeInterval: {x: 20, y: 40}
-  _transitionDuration: 6
+  _changeInterval: {x: 30, y: 30}
+  _transitionDuration: 2
   _speedChangeInterval: {x: 4, y: 7}
   _speedTransitionDuration: 1.5
   _maxDirectionChange: 100

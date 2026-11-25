@@ -48,7 +48,8 @@ namespace SecondCatch.UI
                 string type = currentWind.Type == WindType.Calm ? "штиль" : currentWind.Type == WindType.Storm ? "шторм" : "обычный";
                 string color = ColorUtility.ToHtmlStringRGB(currentWind.VisualColor);
                 wind = $"Ветер <color=#{color}>{type}</color> → {heading:000}°\n" +
-                    $"Ветер {currentWind.Speed:0.0} ед/с · сила ×{currentWind.Strength:0.0}";
+                    (currentWind.IsInOuterCalm ? "Внешний штиль · тяга 0"
+                        : $"Ветер {currentWind.Speed:0.0} ед/с · сила ×{currentWind.Strength:0.0}");
             }
             string damage = health != null && health.DamageFeedbackActive ? $" · −{health.LastDamage:0} HP" : "";
             string movement = boat.IsRespawning ? "Лодка возвращается в порт" : $"Движение {source}";
