@@ -9,6 +9,12 @@ fail() {
     exit 1
 }
 
+verify_universal_executable() {
+    [[ -x $1 ]] || fail "Missing or non-executable Unity player: $1"
+    lipo "$1" -verify_arch x86_64 || fail "Unity player has no x86_64 slice: $1"
+    lipo "$1" -verify_arch arm64 || fail "Unity player has no arm64 slice: $1"
+}
+
 for secret in MACOS_CERTIFICATE_P12_BASE64 MACOS_CERTIFICATE_PASSWORD APPLE_ID \
     APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
     [[ -n ${!secret:-} ]] || fail "Configure the GitHub Actions secret $secret. See docs/ci.md."
@@ -21,8 +27,7 @@ done
 entitlements="$(dirname "$0")/macos_player.entitlements"
 executable=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")
 main_executable="$app/Contents/MacOS/$executable"
-[[ -x $main_executable ]] || fail 'Unity app is missing its executable.'
-lipo -verify_arch x86_64 arm64 "$main_executable"
+verify_universal_executable "$main_executable"
 
 # Keep the certificate and its temporary keychain on the signing runner only.
 umask 077
@@ -78,9 +83,7 @@ ditto -c -k --sequesterRsrc --keepParent "$app" "$final_zip"
 unzip -tq "$final_zip"
 ditto -x -k "$final_zip" "$work_dir/extracted"
 extracted_app="$work_dir/extracted/${app##*/}"
-extracted_executable="$extracted_app/Contents/MacOS/$executable"
-[[ -x $extracted_executable ]] || fail 'The final ZIP does not contain an executable Unity app.'
-lipo -verify_arch x86_64 arm64 "$extracted_executable"
+verify_universal_executable "$extracted_app/Contents/MacOS/$executable"
 codesign --verify --deep --strict -R "$requirement" "$extracted_app"
 xcrun stapler validate "$extracted_app"
 mv "$final_zip" "$archive"
