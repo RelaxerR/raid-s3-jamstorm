@@ -1,3 +1,4 @@
+using SecondCatch.Solo;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,7 +26,11 @@ namespace SecondCatch.UI
             SetVisible(_spiritAppeared, false);
         }
 
-        public void SetCargo(int count, int capacity) => Show(_cargo, $"Улов {Mathf.Clamp(count, 0, Mathf.Max(0, capacity))}/{Mathf.Max(0, capacity)}");
+        public void SetCargo(FishCargo cargo) => Show(_cargo,
+            $"Улов · Бочка 1 {DescribeBarrel(cargo.First)}\nБочка 2 {DescribeBarrel(cargo.Second)}");
+
+        internal static string DescribeBarrel(FishBarrel barrel) =>
+            $"{barrel.Count}/{barrel.Capacity} · {FishCargo.SpeciesName(barrel.FishId)}";
         public void SetWood(int count) => Show(_wood, $"Древесина: {count}");
         public void SetTension(float normalized) => Show(_tension, $"Натяжение троса: {Mathf.Clamp01(normalized):0%}");
         public void SetReeling(float normalized) => Show(_reeling, $"Вываживание: {Mathf.Clamp01(normalized):0%}");

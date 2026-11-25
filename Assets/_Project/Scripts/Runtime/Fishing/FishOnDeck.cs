@@ -8,15 +8,26 @@ namespace SecondCatch.Fishing
     [RequireComponent(typeof(BoxCollider))]
     public sealed class FishOnDeck : MonoBehaviour
     {
-        [SerializeField] private string _fishId = "fish.greybox";
+        [SerializeField] private string _fishId = FishCargo.AzureFish;
         private Vector3 _restPosition;
         private Quaternion _restRotation;
         private float _phase;
-        private CargoHold _cargoHold;
+        private CargoHold _firstBarrel;
+        private CargoHold _secondBarrel;
 
         internal bool IsStored { get; private set; }
 
-        internal void SetCargoHold(CargoHold hold) => _cargoHold = hold;
+        internal int Species { get; private set; }
+
+        internal void Configure(int species, Material amberMaterial, CargoHold firstBarrel, CargoHold secondBarrel)
+        {
+            Species = species;
+            _fishId = species == 0 ? FishCargo.AzureFish : FishCargo.AmberFish;
+            if (species == 1 && amberMaterial != null)
+                GetComponent<Renderer>().sharedMaterial = amberMaterial;
+            _firstBarrel = firstBarrel;
+            _secondBarrel = secondBarrel;
+        }
 
         private void Start()
         {
@@ -41,7 +52,9 @@ namespace SecondCatch.Fishing
 
             IsStored = true;
             GetComponent<BoxCollider>().enabled = false;
-            if (_cargoHold == null || !_cargoHold.TryAnimateTransfer(this, session.Cargo.Count - 1))
+            FishBarrel barrel = session.Cargo.FindBarrel(_fishId);
+            CargoHold hold = barrel == session.Cargo.First ? _firstBarrel : _secondBarrel;
+            if (hold == null || !hold.TryAnimateTransfer(this, barrel.Count - 1))
             {
                 gameObject.SetActive(false);
                 Destroy(gameObject);

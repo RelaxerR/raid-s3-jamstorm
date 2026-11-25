@@ -88,7 +88,7 @@ namespace SecondCatch.Tests
                 Assert.AreEqual(NetState.Stowed, net.State);
                 Assert.AreEqual(0, net.Count);
                 Assert.AreEqual(0, session.Cargo.Count);
-                Assert.AreEqual("Улов 0/100", CargoLabel().text);
+                Assert.AreEqual("Улов · Бочка 1 0/100 · пусто\nБочка 2 0/100 · пусто", CargoLabel().text);
                 StringAssert.Contains("ЛКМ", Hint());
 
                 foreach (float x in new[] { -1f, 1f })
@@ -116,7 +116,7 @@ namespace SecondCatch.Tests
                 yield return WaitFor(() => fish == null, "The transfer did not finish");
                 Assert.That(Time.time - clickedAt, Is.InRange(0.19f, 0.4f));
                 Assert.AreEqual(1, hold.GetComponentsInChildren<CargoFish>().Length);
-                yield return WaitFor(() => CargoLabel().text == "Улов 1/100", "HUD did not show the stored fish");
+                yield return WaitFor(() => CargoLabel().text.Contains("Бочка 1 1/100"), "HUD did not show the stored fish");
 
                 Vector2 plainDeck = camera.WorldToScreenPoint(boat.transform.TransformPoint(new Vector3(0.65f, 0.06f, 1.65f)));
                 Assert.IsTrue(camera.pixelRect.Contains(plainDeck));
@@ -133,10 +133,10 @@ namespace SecondCatch.Tests
                 Assert.IsTrue(incompatible.GetComponent<Collider>().enabled);
                 Assert.AreSame(deck.transform, incompatible.transform.parent);
                 Assert.AreEqual(1, session.Cargo.Count);
-                fishId.SetValue(incompatible, session.Cargo.FishId);
+                fishId.SetValue(incompatible, FishCargo.AzureFish);
 
-                while (!session.Cargo.IsFull)
-                    Assert.IsTrue(session.CatchFish(session.Cargo.FishId));
+                while (session.Cargo.First.Count < session.Cargo.First.Capacity)
+                    Assert.IsTrue(session.CatchFish(FishCargo.AzureFish));
                 FishOnDeck rejected = PickableFish(deck, camera);
                 yield return Click(mouse, camera.WorldToScreenPoint(rejected.transform.position));
                 yield return WaitFor(() => Hint().Contains("Бочка заполнена"), "HUD did not explain the rejection");
@@ -153,7 +153,7 @@ namespace SecondCatch.Tests
                 yield return WaitForScene(GameScenes.PORT);
                 Assert.IsFalse(session.AtSea);
                 Assert.AreEqual(0, session.DeckFishCount);
-                Assert.AreEqual(session.Cargo.Capacity, session.Cargo.Count, "Docking must preserve the barrel");
+                Assert.AreEqual(session.Cargo.First.Capacity, session.Cargo.Count, "Docking must preserve the barrel");
             }
             finally
             {

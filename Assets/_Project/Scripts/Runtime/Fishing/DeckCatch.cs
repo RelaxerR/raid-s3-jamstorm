@@ -16,6 +16,8 @@ namespace SecondCatch.Fishing
         [SerializeField] private UnityEngine.Camera _camera;
         [SerializeField] private FishOnDeck _fishPrefab;
         [SerializeField] private CargoHold _cargoHold;
+        [SerializeField] private CargoHold _secondBarrel;
+        [SerializeField] private Material _amberMaterial;
         [SerializeField] private AudioSource _feedbackAudio;
         [SerializeField] private AudioClip _pickupSound;
         [SerializeField] private AudioClip _fullSound;
@@ -25,7 +27,8 @@ namespace SecondCatch.Fishing
         private const int Rows = 5;
         private readonly FishOnDeck[] _slots = new FishOnDeck[Columns * Rows];
         private readonly List<int> _availableSlots = new(Columns * Rows);
-        private int _lastCount;
+        private readonly int[] _visibleBySpecies = new int[FishCargo.SpeciesCount];
+        private readonly int[] _previousBySpecies = new int[FishCargo.SpeciesCount];
         private float _feedbackUntil;
         private string _feedback;
 
@@ -35,36 +38,64 @@ namespace SecondCatch.Fishing
         private void LateUpdate()
         {
             if (_voyage == null || !_voyage.Voyaging || _fishPrefab == null) return;
-            if (Count > 0) RefreshDeck(Count);
+            RefreshDeck(_voyage.Session);
             if (GameplayInput.TryGetPrimaryClick(out Vector2 position))
                 TryPickFish(position);
-            _lastCount = Count;
+            _previousBySpecies[0] = _voyage.Session.DeckCount(FishCargo.AzureFish);
+            _previousBySpecies[1] = _voyage.Session.DeckCount(FishCargo.AmberFish);
         }
 
-        private void RefreshDeck(int count)
+        private void RefreshDeck(SoloGameSession session)
         {
+            int azure = session.DeckCount(FishCargo.AzureFish);
+            int amber = session.DeckCount(FishCargo.AmberFish);
+            // Share the deck points when both species are present, including when a second
+            // haul lands while every point is still occupied by the first.
+            int azureLimit = Mathf.Min(azure, Mathf.Max(_slots.Length / 2, _slots.Length - amber));
+            int amberLimit = Mathf.Min(amber, _slots.Length - azureLimit);
+
+            _visibleBySpecies[0] = _visibleBySpecies[1] = 0;
             _availableSlots.Clear();
             for (int slot = 0; slot < _slots.Length; slot++)
-                if (_slots[slot] == null || _slots[slot].IsStored)
-                    _availableSlots.Add(slot);
-
-            int visible = _slots.Length - _availableSlots.Count;
-            // Дополняем порцию новым уловом или выкладываем остаток после сбора текущей.
-            if (visible > 0 && count <= _lastCount) return;
-            int toSpawn = Mathf.Min(count, _slots.Length) - visible;
-            int remaining = _availableSlots.Count;
-            for (int i = 0; i < toSpawn; i++)
             {
-                int choice = Random.Range(0, remaining);
+                FishOnDeck fish = _slots[slot];
+                if (fish != null && !fish.IsStored)
+                {
+                    int limit = fish.Species == 0 ? azureLimit : amberLimit;
+                    if (_visibleBySpecies[fish.Species] < limit)
+                    {
+                        _visibleBySpecies[fish.Species]++;
+                        continue;
+                    }
+                    // This fish still belongs to the deck catch and can be shown in a later batch.
+                    fish.gameObject.SetActive(false);
+                    Destroy(fish.gameObject);
+                    _slots[slot] = null;
+                }
+                _availableSlots.Add(slot);
+            }
+
+            int free = _availableSlots.Count;
+            FillSlots(0, azure, azureLimit, ref free);
+            FillSlots(1, amber, amberLimit, ref free);
+        }
+
+        private void FillSlots(int species, int count, int limit, ref int free)
+        {
+            int visible = _visibleBySpecies[species];
+            if (visible > 0 && count <= _previousBySpecies[species]) return;
+            for (int i = visible; i < limit; i++)
+            {
+                int choice = Random.Range(0, free);
                 int slot = _availableSlots[choice];
-                _availableSlots[choice] = _availableSlots[--remaining];
+                _availableSlots[choice] = _availableSlots[--free];
 
                 Vector3 position = new(
                     (slot % Columns - 1.5f) * 0.38f + Random.Range(-0.035f, 0.035f), 0f,
                     (slot / Columns - 2) * 0.33f + Random.Range(-0.022f, 0.022f));
                 FishOnDeck fish = Instantiate(_fishPrefab, transform);
                 fish.transform.SetLocalPositionAndRotation(position, Quaternion.Euler(0f, Random.Range(-25f, 25f), 0f));
-                fish.SetCargoHold(_cargoHold);
+                fish.Configure(species, _amberMaterial, _cargoHold, _secondBarrel);
                 _slots[slot] = fish;
             }
         }

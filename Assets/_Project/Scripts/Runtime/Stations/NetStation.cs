@@ -1,5 +1,6 @@
 using SecondCatch.Application;
 using SecondCatch.Player;
+using SecondCatch.Solo;
 using UnityEngine;
 
 namespace SecondCatch.Stations
@@ -73,10 +74,10 @@ namespace SecondCatch.Stations
 
         public override void HandleInput(Vector2 input) { }
 
-        public bool TryCapture(int schoolId, int portion) => isActiveAndEnabled && State == NetState.Deployed
+        public bool TryCapture(int schoolId, int portion, string fishId) => isActiveAndEnabled && State == NetState.Deployed
             && Boat != null && Boat.CurrentSpeed >= _minimumCaptureSpeed
             && _voyage != null && _voyage.Voyaging
-            && _voyage.Session.TakeSchoolIntoNet(schoolId, portion, _capacity) > 0;
+            && _voyage.Session.TakeSchoolIntoNet(schoolId, portion, _capacity, fishId) > 0;
 
         private void Update()
         {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace SecondCatch.Solo
@@ -10,8 +11,17 @@ namespace SecondCatch.Solo
         private readonly HashSet<int> _collectedSchools = new();
         private readonly Dictionary<int, int> _schoolCatch = new();
 
-        public int NetFishCount { get; private set; }
-        public int DeckFishCount { get; private set; }
+        private readonly int[] _netFish = new int[FishCargo.SpeciesCount];
+        private readonly int[] _deckFish = new int[FishCargo.SpeciesCount];
+
+        public int NetFishCount => _netFish[0] + _netFish[1];
+        public int DeckFishCount => _deckFish[0] + _deckFish[1];
+
+        public int DeckCount(string fishId)
+        {
+            int species = FishCargo.SpeciesIndex(fishId);
+            return species < 0 ? 0 : _deckFish[species];
+        }
 
         public BoatState Boat { get; } = new BoatState();
         public FishCargo Cargo { get; } = new FishCargo();
@@ -26,7 +36,7 @@ namespace SecondCatch.Solo
 
         public SoloGameSession(int woodPrice = DEFAULT_WOOD_PRICE)
         {
-            WoodPrice = System.Math.Max(1, woodPrice);
+            WoodPrice = Math.Max(1, woodPrice);
         }
 
         public bool Depart()
@@ -57,55 +67,73 @@ namespace SecondCatch.Solo
         public int CatchSchool(int schoolId, int requested)
         {
             if (schoolId <= 0 || WasSchoolCollected(schoolId)) return 0;
-            int accepted = CatchFish(Cargo.FishId, requested);
+            int accepted = CatchFish(FishCargo.AzureFish, requested);
             if (accepted > 0) _collectedSchools.Add(schoolId);
             return accepted;
         }
 
-        public int TakeSchoolIntoNet(int schoolId, int portion, int netCapacity)
+        public int TakeSchoolIntoNet(int schoolId, int portion, int netCapacity, string fishId = FishCargo.AzureFish)
         {
-            if (!AtSea || schoolId <= 0 || WasSchoolCollected(schoolId)) return 0;
+            int species = FishCargo.SpeciesIndex(fishId);
+            if (!AtSea || species < 0 || schoolId <= 0 || WasSchoolCollected(schoolId)) return 0;
             _schoolCatch.TryGetValue(schoolId, out int taken);
-            int accepted = System.Math.Min(portion - taken, netCapacity - NetFishCount);
+            int accepted = Math.Min(portion - taken, netCapacity - NetFishCount);
             if (accepted <= 0) return 0;
 
             taken += accepted;
             _schoolCatch[schoolId] = taken;
             if (taken == portion) _collectedSchools.Add(schoolId);
-            NetFishCount += accepted;
+            _netFish[species] += accepted;
             Revision++;
             return accepted;
         }
 
         public void SpillNetFish(int count)
         {
-            int lost = System.Math.Min(count, NetFishCount);
+            int lost = Math.Min(count, NetFishCount);
             if (!AtSea || lost <= 0) return;
-            NetFishCount -= lost;
+            // Keep the same total spill and distribute it according to the catch in the net.
+            int azureLost = (int)(((long)lost * _netFish[0] + NetFishCount / 2) / NetFishCount);
+            _netFish[0] -= azureLost;
+            _netFish[1] -= lost - azureLost;
             Revision++;
         }
 
         public void LandNetCatch()
         {
             if (!AtSea || NetFishCount == 0) return;
-            DeckFishCount += NetFishCount;
-            NetFishCount = 0;
+            for (int species = 0; species < _netFish.Length; species++)
+            {
+                _deckFish[species] += _netFish[species];
+                _netFish[species] = 0;
+            }
             Revision++;
         }
 
         public DeckFishStoreResult StoreDeckFish(string fishId)
         {
             if (!AtSea || DeckFishCount == 0) return DeckFishStoreResult.Unavailable;
-            if (fishId != Cargo.FishId) return DeckFishStoreResult.Incompatible;
+            int species = FishCargo.SpeciesIndex(fishId);
+            if (species < 0) return DeckFishStoreResult.Incompatible;
+            if (_deckFish[species] == 0) return DeckFishStoreResult.Unavailable;
             if (!CatchFish(fishId)) return DeckFishStoreResult.Full;
-            DeckFishCount--;
+            _deckFish[species]--;
             return DeckFishStoreResult.Stored;
+        }
+
+        public bool ReleaseBarrel(int index)
+        {
+            FishBarrel barrel = Cargo.GetBarrel(index);
+            if (!AtSea || barrel == null || barrel.Count == 0) return false;
+            barrel.Remove(barrel.Count);
+            Revision++;
+            return true;
         }
 
         private void ClearLooseFish()
         {
-            NetFishCount = 0;
-            DeckFishCount = 0;
+            Array.Clear(_netFish, 0, _netFish.Length);
+            Array.Clear(_deckFish, 0, _deckFish.Length);
         }
 
         public bool CanSell => !AtSea && Cargo.Count > 0 && Coins <= long.MaxValue - SaleValue;
@@ -122,7 +150,20 @@ namespace SecondCatch.Solo
             return true;
         }
 
-        public bool SellFish(string fishId) => fishId == Cargo.FishId && Sell();
+        public bool CanSellFish(string fishId) => CanSellBarrel(Cargo.FindBarrel(fishId));
+
+        public bool SellFish(string fishId)
+        {
+            FishBarrel barrel = Cargo.FindBarrel(fishId);
+            if (!CanSellBarrel(barrel)) return false;
+            Coins += (long)barrel.Count * FISH_PRICE;
+            barrel.Remove(barrel.Count);
+            Revision++;
+            return true;
+        }
+
+        private bool CanSellBarrel(FishBarrel barrel) =>
+            !AtSea && barrel != null && Coins <= long.MaxValue - (long)barrel.Count * FISH_PRICE;
 
         public bool BuySpeedUpgrade()
         {

@@ -141,7 +141,7 @@ namespace SecondCatch.Tests
             yield return WaitUntil(() => boat.SailDeployment > 0.99f && boat.LongitudinalSpeed > 3f);
             Assert.That(boat.SailForwardThrust / boat.SailDeployment, Is.EqualTo(initialThrust * 1.4f).Within(0.05f));
             var voyage = FindInActiveScene<HomeShallowsController>();
-            for (int i = 0; i < session.Cargo.Capacity; i++) Assert.IsTrue(voyage.CollectFish());
+            for (int i = 0; i < session.Cargo.First.Capacity; i++) Assert.IsTrue(voyage.CollectFish());
             Assert.IsFalse(voyage.CollectFish());
 
             int portLoads = 0;

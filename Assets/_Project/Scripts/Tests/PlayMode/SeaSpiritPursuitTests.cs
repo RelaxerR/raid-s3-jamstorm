@@ -20,7 +20,7 @@ namespace SecondCatch.Tests
             yield return StartNewGame();
             Assert.IsTrue(App.Depart());
             yield return WaitForScene(GameScenes.SEA);
-            Assert.IsTrue(App.Session.CatchFish(App.Session.Cargo.FishId));
+            Assert.IsTrue(App.Session.CatchFish(FishCargo.AzureFish));
             yield return new WaitForSeconds(0.25f);
 
             var director = SceneComponent<SeaSpiritDirector>();
@@ -41,38 +41,39 @@ namespace SecondCatch.Tests
             var net = SceneComponent<NetStation>();
             PlacePlayer(player, net);
             Assert.IsTrue(net.TryEnter(player));
-            yield return SetNetState(net, NetState.Deployed);
-
-            int expectedCatch = 0;
-            var schools = Schools();
-            foreach (FishSchool school in schools)
-            {
-                expectedCatch += school == schools[0] ? 10 : 45;
-                PlaceBoat(boat, school.transform.position + Vector3.up);
-                yield return WaitFor(() => net.Count == expectedCatch, "Net did not catch the school");
-            }
-            Assert.AreEqual(100, net.Count);
-            yield return SetNetState(net, NetState.Stowed);
-            player.ExitStation();
-            Assert.AreEqual(100, App.Session.DeckFishCount);
-
             var director = SceneComponent<SeaSpiritDirector>();
-            Assert.IsFalse(director.PursuitRequested);
             var deck = SceneComponent<DeckCatch>();
             var cargo = App.Session.Cargo;
-            while (cargo.Count < cargo.Capacity - 1)
+            var schools = Schools();
+            foreach (int firstSchool in new[] { 0, 4 })
             {
-                yield return WaitFor(() => deck.GetComponentInChildren<FishOnDeck>() != null, "Missing deck fish");
-                foreach (FishOnDeck fish in deck.GetComponentsInChildren<FishOnDeck>())
+                PlacePlayer(player, net);
+                if (net.Operator == null) Assert.IsTrue(net.TryEnter(player));
+                yield return SetNetState(net, NetState.Deployed);
+                int expectedCatch = 0;
+                for (int i = firstSchool; i < firstSchool + 3; i++)
                 {
-                    if (cargo.Count == cargo.Capacity - 1) break;
-                    Assert.AreEqual(DeckFishStoreResult.Stored, fish.TryStore(App.Session));
+                    expectedCatch = Mathf.Min(100, expectedCatch + (i == 0 ? 10 : 45));
+                    PlaceBoat(boat, schools[i].transform.position + Vector3.up);
+                    yield return WaitFor(() => net.Count == expectedCatch, "Net did not catch the school");
+                }
+                Assert.AreEqual(100, net.Count);
+                yield return SetNetState(net, NetState.Stowed);
+                player.ExitStation();
+
+                Assert.AreEqual(100, App.Session.DeckFishCount);
+                Assert.IsFalse(director.PursuitRequested);
+                while (App.Session.DeckFishCount > 0)
+                {
+                    yield return WaitFor(() => deck.GetComponentInChildren<FishOnDeck>() != null, "Missing deck fish");
+                    foreach (FishOnDeck fish in deck.GetComponentsInChildren<FishOnDeck>())
+                        Assert.AreEqual(DeckFishStoreResult.Stored, fish.TryStore(App.Session));
                 }
             }
-            Assert.IsFalse(director.PursuitRequested);
-            Assert.AreEqual(DeckFishStoreResult.Stored, deck.GetComponentInChildren<FishOnDeck>().TryStore(App.Session));
-            Assert.AreEqual(0, App.Session.DeckFishCount);
-            yield return WaitFor(() => director.IsPursuing, "The full barrel did not start a spirit pursuit");
+            Assert.AreEqual(FishCargo.AzureFish, cargo.First.FishId);
+            Assert.AreEqual(FishCargo.AmberFish, cargo.Second.FishId);
+            Assert.IsTrue(cargo.IsFull);
+            yield return WaitFor(() => director.IsPursuing, "The full barrels did not start a spirit pursuit");
             Assert.IsTrue(director.PursuitRequested);
             Assert.AreEqual(1, director.SpawnCount);
             yield return new WaitForSeconds(0.25f);
@@ -95,7 +96,7 @@ namespace SecondCatch.Tests
             Assert.IsFalse(App.Session.AtSea);
             Assert.IsTrue(player == null, "The voyage camera and its operator left with the sea scene");
             Assert.IsTrue(SceneComponent<HomePortController>().Sell());
-            Assert.AreEqual(1000, App.Session.Coins);
+            Assert.AreEqual(2000, App.Session.Coins);
         }
 
         [UnityTest]
@@ -110,8 +111,11 @@ namespace SecondCatch.Tests
             var director = SceneComponent<SeaSpiritDirector>();
             var openWater = new Vector3(-20f, boat.transform.position.y, 20f);
             PlaceBoat(boat, openWater);
-            while (!session.Cargo.IsFull)
-                Assert.IsTrue(session.CatchFish(session.Cargo.FishId));
+            for (int i = 0; i < session.Cargo.First.Capacity; i++)
+            {
+                Assert.IsTrue(session.CatchFish(FishCargo.AzureFish));
+                Assert.IsTrue(session.CatchFish(FishCargo.AmberFish));
+            }
 
             yield return WaitFor(() => director.IsPursuing, "A full hold did not attract the spirit");
             var spirit = director.ActiveSpirit;
@@ -132,7 +136,7 @@ namespace SecondCatch.Tests
             Assert.AreSame(session, App.Session);
             Assert.IsFalse(session.AtSea);
             Assert.That(session.Boat.Hp, Is.EqualTo(18));
-            Assert.That(session.Cargo.Count, Is.EqualTo(50));
+            Assert.That(session.Cargo.Count, Is.EqualTo(100));
             Assert.IsTrue(spirit == null, "The spirit must unload when the damaged boat returns to port");
         }
     }

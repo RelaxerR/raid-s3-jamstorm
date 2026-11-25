@@ -32,7 +32,7 @@ namespace SecondCatch.Application
         }
 
         /// <summary>Принимает одну рыбу от источника улова и сообщает, поместилась ли она в бочку.</summary>
-        public bool CollectFish() => Voyaging && _session.CatchFish(_session.Cargo.FishId);
+        public bool CollectFish() => Voyaging && _session.CatchFish(FishCargo.AzureFish);
 
         public bool IsHull(Collider contact) => contact != null && contact == _hull;
 

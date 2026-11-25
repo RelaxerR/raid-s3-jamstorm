@@ -35,6 +35,8 @@ namespace SecondCatch.UI
             string action = station == null ? "" : station is HelmStation ? "\nE — управлять рулём"
                 : station is SailStation ? "\nE — управлять парусом"
                 : station is NetStation ? "\nE — занять станцию сетей" : "\nE — взаимодействовать";
+            CargoHold barrel = player.GetAvailableBarrel();
+            if (barrel != null) action = "\n" + barrel.ReleaseHint;
             if (deckCatch != null && deckCatch.Count > 0)
             {
                 string catchHint = deckCatch.Feedback ?? $"ЛКМ по рыбе — в бочку · На палубе {deckCatch.Count}";

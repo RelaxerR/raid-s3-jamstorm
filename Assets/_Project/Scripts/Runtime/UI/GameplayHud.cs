@@ -55,7 +55,7 @@ namespace SecondCatch.UI
             var session = _voyage != null ? _voyage.Session : null;
             if (_futureIndicators != null && session != null)
             {
-                _futureIndicators.SetCargo(session.Cargo.Count, session.Cargo.Capacity);
+                _futureIndicators.SetCargo(session.Cargo);
                 _futureIndicators.SetWood(session.Wood);
             }
             if (_repairView != null) _repairView.Render(_voyage != null ? _voyage.Repair : null, _repairCamera);
