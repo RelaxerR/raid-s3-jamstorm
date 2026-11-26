@@ -21,7 +21,8 @@ namespace SecondCatch.Solo
         public int UniqueFishCapacity => 1;
         public int Hp { get; private set; } = 60;
         public bool SpeedUpgrade { get; internal set; }
-        public float SpeedMultiplier => SpeedUpgrade ? 1.4f : 1f;
+        public const float UPGRADED_SPEED_MULTIPLIER = 1.4f;
+        public float SpeedMultiplier => SpeedUpgrade ? UPGRADED_SPEED_MULTIPLIER : 1f;
 
         public int GetZoneMaxHp(BoatZone zone) => IsZone(zone) ? ZoneSpecs[(int)zone].MaxHp : 0;
         public int GetZoneHp(BoatZone zone) => IsZone(zone) ? _zoneHp[(int)zone] : 0;

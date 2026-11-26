@@ -11,13 +11,18 @@ namespace SecondCatch.Fishing
         private const float AlongsideDistance = 2.3f;
         private const float RunSeconds = 2.1f;
         private const float CycleSeconds = 5f;
+        private const float ReelSpeed = 2.05f;
+        private const float InitialSlack = 2f;
+        internal const float EscapeSpeed = 4.5f;
+        // Оставляем работу на второй отдых даже при попадании прямо у борта.
+        internal const float MinimumFightDistance = AlongsideDistance + ReelSpeed * (CycleSeconds - RunSeconds) + InitialSlack;
         private readonly float _startDistance;
         private float _elapsed;
 
         public HarpoonLine(float horizontal, float height)
         {
             _startDistance = horizontal;
-            Length = Mathf.Min(MaximumLength, ActualDistance(horizontal, height) + 2f);
+            Length = Mathf.Min(MaximumLength, ActualDistance(horizontal, height) + InitialSlack);
         }
 
         public float Tension { get; private set; } = 0.5f;
@@ -39,13 +44,13 @@ namespace SecondCatch.Fishing
             {
                 bool resisting = mouseAgainstRun > 0f;
                 sideSpeed = resisting ? 0.35f : 2.2f;
-                float escapeSpeed = resisting ? 0f : mouseAgainstRun < 0f ? 4.5f : 1.25f;
+                float escapeSpeed = resisting ? 0f : mouseAgainstRun < 0f ? EscapeSpeed : 1.25f;
                 range += Mathf.Min(escapeSpeed * seconds, Mathf.Max(0f, Length - ActualDistance(distance, height)));
                 tensionRate = resisting ? 0.34f : mouseAgainstRun < 0f ? 0.04f : 0.19f;
             }
             else if (reelInput > 0f)
             {
-                range = Mathf.Min(distance, Mathf.Max(AlongsideDistance, distance - 2.05f * seconds));
+                range = Mathf.Min(distance, Mathf.Max(AlongsideDistance, distance - ReelSpeed * seconds));
                 Length = Mathf.Min(Length, ActualDistance(range, height) + 0.35f);
                 tensionRate = 0.04f;
             }

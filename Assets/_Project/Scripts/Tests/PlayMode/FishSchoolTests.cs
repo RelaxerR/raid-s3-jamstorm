@@ -108,7 +108,7 @@ namespace SecondCatch.Tests
                 Assert.AreEqual(9, session.DeckFishCount);
                 Assert.AreSame(hold.transform, fish.transform.parent);
                 Assert.IsTrue(fish.gameObject.activeInHierarchy);
-                Assert.IsTrue(fish.GetComponent<MeshRenderer>().enabled);
+                Assert.IsTrue(fish.GetComponentInChildren<MeshRenderer>().enabled);
                 Assert.IsFalse(fish.GetComponent<Collider>().enabled);
                 Assert.AreEqual(DeckFishStoreResult.Unavailable, fish.TryStore(session));
                 Assert.AreEqual(1, session.Cargo.Count);

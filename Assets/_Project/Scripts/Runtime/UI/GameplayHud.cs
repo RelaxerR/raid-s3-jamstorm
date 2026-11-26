@@ -28,6 +28,13 @@ namespace SecondCatch.UI
         [SerializeField] private BoatRepairView _repairView;
         [SerializeField] private UnityEngine.Camera _repairCamera;
 
+        [SerializeField] private Sprite _cardBackground;
+        [SerializeField] private Sprite _slot;
+        [SerializeField] private Sprite _catchIcon;
+        [SerializeField] private Sprite _normalButton;
+        [SerializeField] private Sprite _hoverButton;
+        [SerializeField] private Sprite _pressedButton;
+
         private GameObject _catchCard;
         private Text _catchDetails;
         private Text _keepLabel;
@@ -101,23 +108,42 @@ namespace SecondCatch.UI
             _catchCard.layer = gameObject.layer;
             var panel = (RectTransform)_catchCard.transform;
             panel.SetParent(transform, false);
-            panel.sizeDelta = new Vector2(540f, 218f);
-            _catchCard.GetComponent<Image>().color = new Color(0.045f, 0.10f, 0.13f, 0.96f);
+            panel.sizeDelta = new Vector2(600f, 268f);
+            var background = _catchCard.GetComponent<Image>();
+            background.sprite = _cardBackground;
+            background.type = Image.Type.Sliced;
+            background.pixelsPerUnitMultiplier = 5f;
+
+            var slot = AddCatchImage(panel, "FishSlot", _slot, new Vector2(-211f, 28f), 116f);
+            AddCatchImage(slot.rectTransform, "UniqueFishIcon", _catchIcon, Vector2.zero, 100f);
 
             _catchDetails = new GameObject("CatchDetails", typeof(RectTransform), typeof(Text)).GetComponent<Text>();
             _catchDetails.gameObject.layer = gameObject.layer;
             _catchDetails.rectTransform.SetParent(panel, false);
-            _catchDetails.rectTransform.anchoredPosition = new Vector2(0f, 29f);
-            _catchDetails.rectTransform.sizeDelta = new Vector2(500f, 134f);
+            _catchDetails.rectTransform.anchoredPosition = new Vector2(65f, 30f);
+            _catchDetails.rectTransform.sizeDelta = new Vector2(416f, 180f);
             _catchDetails.font = font;
             _catchDetails.fontSize = 26;
             _catchDetails.alignment = TextAnchor.MiddleCenter;
             _catchDetails.raycastTarget = false;
-            _catchDetails.color = Color.white;
+            _catchDetails.color = new Color(0.11f, 0.07f, 0.04f);
 
             AddCatchButton(panel, font, "ReleaseFish", "Отпустить", -112f, false);
             _keepLabel = AddCatchButton(panel, font, "KeepFish", "Забрать", 112f, true);
             _catchCard.SetActive(false);
+        }
+
+        private Image AddCatchImage(RectTransform parent, string name, Sprite sprite, Vector2 position, float size)
+        {
+            var image = new GameObject(name, typeof(RectTransform), typeof(Image)).GetComponent<Image>();
+            image.gameObject.layer = gameObject.layer;
+            image.rectTransform.SetParent(parent, false);
+            image.rectTransform.anchoredPosition = position;
+            image.rectTransform.sizeDelta = new Vector2(size, size);
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            return image;
         }
 
         private Text AddCatchButton(RectTransform panel, Font font, string name, string caption, float x, bool keep)
@@ -127,14 +153,22 @@ namespace SecondCatch.UI
             control.layer = gameObject.layer;
             var bounds = (RectTransform)control.transform;
             bounds.SetParent(panel, false);
-            bounds.anchoredPosition = new Vector2(x, -70f);
+            bounds.anchoredPosition = new Vector2(x, -94f);
             bounds.sizeDelta = new Vector2(196f, 44f);
             var button = control.GetComponent<Button>();
-            button.targetGraphic = control.GetComponent<Image>();
+            button.image.sprite = _normalButton;
+            button.transition = Selectable.Transition.SpriteSwap;
+            button.spriteState = new SpriteState
+            {
+                highlightedSprite = _hoverButton,
+                selectedSprite = _hoverButton,
+                pressedSprite = _pressedButton
+            };
             button.onClick.AddListener(() => _harpoon.ResolveCatch(keep));
             var label = control.GetComponentInChildren<Text>();
             label.gameObject.layer = gameObject.layer;
             label.font = font;
+            label.color = Color.white;
             label.fontSize = 24;
             label.raycastTarget = false;
             label.text = caption;

@@ -19,12 +19,18 @@ namespace SecondCatch.Stations
         [SerializeField] private Material _lineMaterial;
         [SerializeField] private AudioSource _feedbackAudio;
         [SerializeField] private AudioClip _lossSound;
+        [SerializeField] private AudioClip _aimSound;
+        [SerializeField] private AudioClip _shotSound;
+        [SerializeField] private AudioClip _hitSound;
+        [SerializeField] private AudioClip _tensionSound;
 
         private const float ShotCooldown = 0.45f;
         private const float TraceSeconds = 0.23f;
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
         private MaterialPropertyBlock _lineProperties;
         private HarpoonLine _fight;
+        private float _openingDistanceLeft;
+        private Vector3 _openingDirection;
         private LineRenderer _line;
         private LineRenderer _shotHead;
         private Color _normalLineColor;
@@ -39,9 +45,11 @@ namespace SecondCatch.Stations
         private bool _missed;
         private bool _cast;
         private bool _wasVoyaging;
+        private bool _tensionWarning;
 
         public override PlayerControlMode ControlMode => PlayerControlMode.Harpoon;
-        public override bool AllowsCameraOrbit => !Fighting && !CardOpen;
+        public bool TakingLine => _openingDistanceLeft > 0f;
+        public override bool AllowsCameraOrbit => !TakingLine && !Fighting && !CardOpen;
         public bool Fighting => _fight != null;
         public bool Secured { get; private set; }
         public bool CardOpen { get; private set; }
@@ -53,7 +61,7 @@ namespace SecondCatch.Stations
         public float Progress => _fight?.Progress(Vector3.ProjectOnPlane(_target.transform.position - Muzzle, Vector3.up).magnitude) ?? 0f;
         public string RecentLoss { get; private set; }
         public bool OnTarget { get; private set; }
-        public string Status => Fighting ? (Running ? $"Рывок {(RunDirection < 0 ? "←" : "→")}" : "Рыба отдыхает")
+        public string Status => TakingLine ? "Рыба отходит от борта" : Fighting ? (Running ? $"Рывок {(RunDirection < 0 ? "←" : "→")}" : "Рыба отдыхает")
             : Secured ? "Рыба зафиксирована у борта"
             : Time.time < _feedbackUntil ? _feedback
             : _voyage?.Session?.UniqueFishCaughtThisVoyage == true ? "Рыба этого рейса уже поймана"
@@ -91,6 +99,8 @@ namespace SecondCatch.Stations
 
         public override void HandleInput(Vector2 input) { }
 
+        protected override void OnEntered() => _voyage.Audio?.Play(_aimSound, 0.35f);
+
         protected override void OnExited()
         {
             CardOpen = false;
@@ -109,6 +119,7 @@ namespace SecondCatch.Stations
                 if (_wasVoyaging)
                 {
                     _fight = null;
+                    _openingDistanceLeft = 0f;
                     Secured = CardOpen = _cast = false;
                     _traceUntil = 0f;
                     RecentLoss = null;
@@ -121,7 +132,8 @@ namespace SecondCatch.Stations
 
             _wasVoyaging = true;
             if (Time.time >= _feedbackUntil) RecentLoss = null;
-            if (Fighting) AdvanceFight();
+            if (TakingLine) AdvanceOpeningRun();
+            else if (Fighting) AdvanceFight();
             else if (Secured)
             {
                 MoveFish(Muzzle + Boat.transform.TransformDirection(_fixedOffset), Vector3.zero);
@@ -134,9 +146,9 @@ namespace SecondCatch.Stations
                 if (_cast && Time.time >= _traceUntil)
                 {
                     _cast = false;
-                    BeginFight();
+                    AttachLine();
                 }
-                if (!Fighting)
+                if (!Fighting && !TakingLine)
                 {
                     Patrol();
                     if (Operator != null && RecentLoss == null) Aim();
@@ -191,6 +203,7 @@ namespace SecondCatch.Stations
             if (!shot || Time.time < _nextShot || _voyage.Session.UniqueFishCaughtThisVoyage) return;
             _nextShot = Time.time + ShotCooldown;
             _traceUntil = Time.time + TraceSeconds;
+            _voyage.Audio?.Play(_shotSound, 0.5f);
             _shotOrigin = muzzle;
             _shotEnd = Vector3.MoveTowards(muzzle, aimPoint, HarpoonLine.MaximumLength);
             _missed = !OnTarget;
@@ -198,7 +211,7 @@ namespace SecondCatch.Stations
             if (_missed) SetFeedback("Промах · подойдите ближе или наведите курсор");
         }
 
-        private void BeginFight()
+        private void AttachLine()
         {
             // The hit was checked at firing time. Account for the distance to the fish's centre as it takes the line.
             Vector3 muzzle = Muzzle;
@@ -206,7 +219,30 @@ namespace SecondCatch.Stations
             MoveFish(position, Vector3.zero);
             Vector3 offset = _target.transform.position - muzzle;
             Vector3 horizontal = Vector3.ProjectOnPlane(offset, Vector3.up);
-            _fight = new HarpoonLine(horizontal.magnitude, offset.y);
+            _voyage.Audio?.Play(_hitSound, 0.45f);
+            float distance = horizontal.magnitude;
+            _openingDistanceLeft = Mathf.Max(0f, HarpoonLine.MinimumFightDistance - distance);
+            if (TakingLine)
+                _openingDirection = distance > 0.001f ? horizontal / distance
+                    : Vector3.ProjectOnPlane(Boat.transform.forward, Vector3.up).normalized;
+            else
+                BeginFight(horizontal, offset.y);
+        }
+
+        private void AdvanceOpeningRun()
+        {
+            // Ход рывка относительно лодки сохраняется, даже если она продолжает идти под парусом.
+            _openingDistanceLeft = Mathf.MoveTowards(_openingDistanceLeft, 0f, HarpoonLine.EscapeSpeed * Time.deltaTime);
+            Vector3 horizontal = _openingDirection * (HarpoonLine.MinimumFightDistance - _openingDistanceLeft);
+            Vector3 muzzle = Muzzle;
+            MoveFish(muzzle + horizontal, _openingDirection);
+            if (!TakingLine) BeginFight(horizontal, _target.transform.position.y - muzzle.y);
+        }
+
+        private void BeginFight(Vector3 horizontal, float height)
+        {
+            _fight = new HarpoonLine(horizontal.magnitude, height);
+            _tensionWarning = false;
             UpdateRunDirection(horizontal);
         }
 
@@ -235,7 +271,19 @@ namespace SecondCatch.Stations
             if (outcome == HarpoonOutcome.Fighting
                 && Vector3.Distance(muzzle, _target.transform.position) >= HarpoonLine.MaximumLength)
                 outcome = HarpoonOutcome.Escaped;
-            if (outcome == HarpoonOutcome.Fighting) return;
+            if (outcome == HarpoonOutcome.Fighting)
+            {
+                if (!_tensionWarning && Tension >= HarpoonLine.WarningTension)
+                {
+                    _voyage.Audio?.Play(_tensionSound, 0.38f);
+                    _tensionWarning = true;
+                }
+                else if (Tension < HarpoonLine.WarningTension - 0.1f)
+                {
+                    _tensionWarning = false;
+                }
+                return;
+            }
 
             _fight = null;
             _nextShot = Time.time + ShotCooldown;
@@ -286,7 +334,7 @@ namespace SecondCatch.Stations
 
         private void RenderLine()
         {
-            bool attached = Fighting || Secured;
+            bool attached = TakingLine || Fighting || Secured;
             _shotHead.enabled = !attached && Time.time < _traceUntil;
             _line.enabled = attached || _shotHead.enabled;
             if (!_line.enabled) return;

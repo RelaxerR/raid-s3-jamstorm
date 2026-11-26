@@ -11,6 +11,7 @@
 | `Application/MainMenuController.cs` | Новая игра и продолжение в памяти; подключён в MainMenu | [Приложение](entities/application.md) |
 | `Port/HomePortController.cs` | Портовые команды; подключён в HomePort | [Порт](entities/port.md) |
 | `Voyage/HomeShallowsController.cs` | Улов, урон, возврат и обработка гибели; подключён в HomeShallows | [Сессия](entities/session.md) |
+| `Voyage/VoyageAudio.cs` | Морской фон, скрипы корпуса, всплески, звуки руля, паруса и столкновений | [Звук рейса](#звук-рейса) |
 | `Voyage/PortZone.cs` | Физический триггер возврата по входу корпуса после выхода со стоянки | [Порт](entities/port.md) |
 | `UI/SceneFlowPanel.cs` | Главное меню, запуск Boot из автономной сцены и подсказка причала | [Приложение](entities/application.md) |
 | `Game/SoloGameSession.cs` | Состояние одиночной игры и проверяемые команды | [Сессия](entities/session.md) |
@@ -40,3 +41,9 @@
 `HomeShallows` и автономный `SecondCatchGraybox` используют `WaveController` и общий `OceanSystem` из `Plugins/OceanPro`, с четырьмя настраиваемыми Gerstner-волнами на CPU и в шейдере. `SeaEnvironment` остаётся прежним контрактом каркаса, в graybox не назначен. `OceanBuoyancy` сохраняется для остальных потребителей плагина. Управляемой лодкой graybox по вертикали владеет `BoatBuoyancy`. Существующий `GameplayHud/BoatStatusPanel` показывает HP, урон и состояние возврата.
 
 В одиночном рейсе состоянием HP владеет `SoloGameSession.Boat`. В автономном graybox действует локальный BoatHealth с 100 HP и полным восстановлением. Точки подключения улова и правила возврата описаны в [pipeline](loading-pipeline.md).
+
+## Звук рейса
+
+В сцене [HomeShallows](../../Assets/_Project/Scenes/HomeShallows.unity) выберите объект `Boat` и откройте компонент `VoyageAudio`. Поле `Effects` указывает на `AudioSource` той же лодки. Его выход `Output` назначен группе `SFX` микшера [SecondCatch](../../Assets/_Project/Audio/SecondCatch.mixer). Через этот источник звучат всплески, руль, парус и удары о препятствия.
+
+Поле `Ambience` компонента указывает на одноимённую группу того же микшера. В `Awake` компонент создаёт на лодке источники петель океана, прибоя, ветра и волн у корпуса, а для пространственных скрипов — дочерние объекты `Port Creak` и `Starboard Creak`. Все эти источники используют группу `Ambience`. Клипы для обеих групп назначены в инспекторе `VoyageAudio`.

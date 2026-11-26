@@ -19,8 +19,10 @@ namespace SecondCatch.UI
             if (player == null) { _label.text = "Управление недоступно"; return; }
             if (player.ActiveStation is HarpoonStation harpoon)
             {
-                string controls = harpoon.Fighting
-                    ? (harpoon.Running ? "Мышь против рывка · S — отпустить леску" : "W — подтянуть · S — отпустить леску")
+                string controls = harpoon.TakingLine ? "Следите за направлением рывка" : harpoon.Fighting
+                    ? (harpoon.Running
+                        ? (harpoon.RunDirection < 0 ? "Ведите мышь вправо →" : "Ведите мышь влево ←") + " · S — ослабить трос"
+                        : "Удерживайте W — подтянуть · S — ослабить трос")
                     : harpoon.CardOpen ? "Выберите действие"
                     : harpoon.Secured ? "ЛКМ по рыбе — открыть карточку"
                     : "ЛКМ — выстрел" + CameraHint;

@@ -26,7 +26,7 @@ namespace SecondCatch.Fishing
             Species = species;
             _fishId = species == 0 ? FishCargo.AzureFish : FishCargo.AmberFish;
             if (species == 1 && amberMaterial != null)
-                GetComponent<Renderer>().sharedMaterial = amberMaterial;
+                GetComponentInChildren<Renderer>().sharedMaterial = amberMaterial;
             _firstBarrel = firstBarrel;
             _secondBarrel = secondBarrel;
         }

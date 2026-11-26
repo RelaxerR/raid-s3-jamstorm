@@ -9,8 +9,25 @@ namespace SecondCatch.UI
     {
         [SerializeField] private Text _label;
 
+        [SerializeField] private Image _icon;
+        [SerializeField] private Sprite _helm;
+        [SerializeField] private Sprite _harpoon;
+        [SerializeField] private Sprite _net;
+
         public void Render(PlayerControlMode mode, bool available)
         {
+            if (_icon != null)
+            {
+                Sprite sprite = mode switch
+                {
+                    PlayerControlMode.Helm => _helm,
+                    PlayerControlMode.Harpoon => _harpoon,
+                    PlayerControlMode.Net => _net,
+                    _ => null
+                };
+                _icon.sprite = sprite;
+                _icon.enabled = available && sprite != null;
+            }
             if (_label == null) return;
             if (!available) { _label.text = "Управление недоступно"; return; }
             switch (mode)

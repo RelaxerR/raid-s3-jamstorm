@@ -25,6 +25,7 @@ namespace SecondCatch.Boat
         public bool DamageFeedbackActive => Time.time - _lastDamageTime < _damageFeedbackDuration;
         public event Action<float, float> Changed;
         public event Action<float> Damaged;
+        internal event Action<BoatObstacleType> ObstacleHit;
         public event Action Destroyed;
 
         private void Awake() => EnsureInitialized();
@@ -61,7 +62,9 @@ namespace SecondCatch.Boat
         }
         public void TakeDamage(float amount) => TakeDamage(amount, null);
 
-        public void TakeDamage(float amount, Vector3? worldImpact)
+        public void TakeDamage(float amount, Vector3? worldImpact) => TakeDamage(amount, worldImpact, null);
+
+        internal void TakeDamage(float amount, Vector3? worldImpact, BoatObstacleType? obstacle)
         {
             EnsureInitialized();
             if (!isActiveAndEnabled || IsDestroyed || IsRespawning || float.IsNaN(amount) || amount <= 0f) return;
@@ -76,6 +79,7 @@ namespace SecondCatch.Boat
             if (UsesVoyageState) Changed?.Invoke(Current, Maximum);
             else SetCurrent(Current - appliedDamage);
             Damaged?.Invoke(appliedDamage);
+            if (obstacle.HasValue) ObstacleHit?.Invoke(obstacle.Value);
         }
 
         internal void NotifyVoyageRepair() => Changed?.Invoke(Current, Maximum);

@@ -6,6 +6,8 @@ using SecondCatch.UI;
 using UnityEngine;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
+using SecondCatch.Solo;
 
 namespace SecondCatch.Tests
 {
@@ -37,7 +39,9 @@ namespace SecondCatch.Tests
             Assert.IsFalse(ButtonIn(panel, "BuyUpgrade").interactable);
             Assert.IsTrue(HasText(panel, "Улов 0/200"));
             Assert.IsTrue(HasText(panel, "Монеты: 0"));
-            Assert.IsTrue(HasText(panel, "100 монет"));
+            Assert.IsTrue(HasText(panel, $"тяга ×{BoatState.UPGRADED_SPEED_MULTIPLIER:0.0}"));
+            string upgradeOffer = $"Купить · {SoloGameSession.UPGRADE_PRICE} монет";
+            Assert.AreEqual(upgradeOffer, ButtonIn(panel, "BuyUpgrade").GetComponentInChildren<Text>().text);
             Click(close);
             yield return null;
             Assert.IsFalse(close.gameObject.activeInHierarchy);
@@ -70,9 +74,13 @@ namespace SecondCatch.Tests
             Assert.IsTrue(HasText(panel, "Монеты: 100"));
             Assert.IsFalse(ButtonIn(panel, "SellAll").interactable);
             Assert.IsFalse(ButtonIn(panel, "SellFish").interactable);
-            Click(ButtonIn(panel, "BuyUpgrade"));
+            var upgradeButton = ButtonIn(panel, "BuyUpgrade");
+            Assert.IsTrue(upgradeButton.interactable);
+            Assert.AreEqual(upgradeOffer, upgradeButton.GetComponentInChildren<Text>().text);
+            Click(upgradeButton);
             Assert.AreEqual(0, session.Coins);
             Assert.IsTrue(session.Boat.SpeedUpgrade);
+            Assert.AreEqual("Куплено", upgradeButton.GetComponentInChildren<Text>().text);
             Assert.IsTrue(HasText(panel, "Куплено"));
             Assert.IsFalse(ButtonIn(panel, "BuyUpgrade").interactable);
             Assert.IsFalse(SceneComponent<HomePortController>().BuyUpgrade());
