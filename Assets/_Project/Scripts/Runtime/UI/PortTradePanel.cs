@@ -14,6 +14,7 @@ namespace SecondCatch.UI
         [SerializeField] private Text _coins;
         [SerializeField] private Text _wood;
         [SerializeField] private Text _buyWoodLabel;
+        [SerializeField] private Text _buyUpgradeLabel;
         [SerializeField] private Text _speedUpgrade;
         [SerializeField] private Button _open;
         [SerializeField] private Button _close;
@@ -129,9 +130,10 @@ namespace SecondCatch.UI
             _coins.text = $"Монеты: {session.Coins}";
             _wood.text = $"Древесина: {session.Wood}";
             _buyWoodLabel.text = $"Купить древесину · {session.WoodPrice} монет";
-            _speedUpgrade.text = session.Boat.SpeedUpgrade
-                ? $"Куплено · скорость ×{session.Boat.SpeedMultiplier:0.0}"
-                : $"Улучшение скорости · {SoloGameSession.UPGRADE_PRICE} монет";
+            _speedUpgrade.text = $"Улучшение скорости · тяга ×{BoatState.UPGRADED_SPEED_MULTIPLIER:0.0}";
+            _buyUpgradeLabel.text = session.Boat.SpeedUpgrade
+                ? "Куплено"
+                : $"Купить · {SoloGameSession.UPGRADE_PRICE} монет";
         }
     }
 }

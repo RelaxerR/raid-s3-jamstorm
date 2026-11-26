@@ -108,20 +108,20 @@ namespace SecondCatch.UI
             _catchCard.layer = gameObject.layer;
             var panel = (RectTransform)_catchCard.transform;
             panel.SetParent(transform, false);
-            panel.sizeDelta = new Vector2(540f, 218f);
+            panel.sizeDelta = new Vector2(600f, 268f);
             var background = _catchCard.GetComponent<Image>();
             background.sprite = _cardBackground;
             background.type = Image.Type.Sliced;
             background.pixelsPerUnitMultiplier = 5f;
 
-            var slot = AddCatchImage(panel, "FishSlot", _slot, new Vector2(-178f, 28f), 116f);
+            var slot = AddCatchImage(panel, "FishSlot", _slot, new Vector2(-211f, 28f), 116f);
             AddCatchImage(slot.rectTransform, "UniqueFishIcon", _catchIcon, Vector2.zero, 100f);
 
             _catchDetails = new GameObject("CatchDetails", typeof(RectTransform), typeof(Text)).GetComponent<Text>();
             _catchDetails.gameObject.layer = gameObject.layer;
             _catchDetails.rectTransform.SetParent(panel, false);
-            _catchDetails.rectTransform.anchoredPosition = new Vector2(58f, 29f);
-            _catchDetails.rectTransform.sizeDelta = new Vector2(364f, 134f);
+            _catchDetails.rectTransform.anchoredPosition = new Vector2(65f, 30f);
+            _catchDetails.rectTransform.sizeDelta = new Vector2(416f, 180f);
             _catchDetails.font = font;
             _catchDetails.fontSize = 26;
             _catchDetails.alignment = TextAnchor.MiddleCenter;
@@ -153,7 +153,7 @@ namespace SecondCatch.UI
             control.layer = gameObject.layer;
             var bounds = (RectTransform)control.transform;
             bounds.SetParent(panel, false);
-            bounds.anchoredPosition = new Vector2(x, -70f);
+            bounds.anchoredPosition = new Vector2(x, -94f);
             bounds.sizeDelta = new Vector2(196f, 44f);
             var button = control.GetComponent<Button>();
             button.image.sprite = _normalButton;

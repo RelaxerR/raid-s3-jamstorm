@@ -974,6 +974,7 @@ MonoBehaviour:
   _coins: {fileID: 5315931560430533570}
   _wood: {fileID: 2013}
   _buyWoodLabel: {fileID: 2033}
+  _buyUpgradeLabel: {fileID: 8344744268995909638}
   _speedUpgrade: {fileID: 1154194112947729013}
   _open: {fileID: 8603290553980528424}
   _close: {fileID: 3437772117346494674}
