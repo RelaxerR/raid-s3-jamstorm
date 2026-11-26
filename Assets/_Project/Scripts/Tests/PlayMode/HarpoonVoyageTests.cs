@@ -88,6 +88,62 @@ namespace SecondCatch.Tests
         }
 
         [UnityTest]
+        public IEnumerator CloseHitSwimsOutAndRequiresMoreThanOneReelingPhase()
+        {
+            yield return StartNewGame();
+            Assert.IsTrue(App.Depart());
+            yield return WaitForScene(GameScenes.SEA);
+            var boat = SceneComponent<BoatController>();
+            var harpoon = SceneComponent<HarpoonStation>();
+            var target = GameObject.Find("CrimsonFish");
+            var camera = SceneComponent<UnityEngine.Camera>();
+            PlaceOutsidePort(boat);
+            using var input = new GameViewInputScope();
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            var mouse = InputSystem.AddDevice<Mouse>();
+            try
+            {
+                PlaceAtFishDistance(boat, target, 2f);
+                yield return EnterHarpoon(SceneComponent<PlayerController>(), harpoon, keyboard);
+                InputSystem.QueueStateEvent(mouse, MouseAt(camera, target).WithButton(MouseButton.Left));
+                yield return WaitFor(() => harpoon.TakingLine, "Close hit should start the opening swim");
+                float hitDistance = HorizontalDistance(harpoon, target);
+                Assert.IsTrue(harpoon.GetComponent<LineRenderer>().enabled);
+                InputSystem.QueueStateEvent(mouse, new MouseState());
+                yield return new WaitForSeconds(0.25f);
+                Assert.IsTrue(harpoon.TakingLine);
+                Assert.Greater(HorizontalDistance(harpoon, target), hitDistance + 0.5f);
+                // Model the upgraded boat covering water toward the target while the harpoon operator holds station.
+                float swimStart = Time.time;
+                while (harpoon.TakingLine)
+                {
+                    Assert.Less(Time.time - swimStart, 2.5f, "Approaching the fish must not stall the opening swim");
+                    Vector3 towardFish = Vector3.ProjectOnPlane(target.transform.position - boat.transform.position, Vector3.up).normalized;
+                    boat.transform.position += towardFish * (5.6f * Time.deltaTime);
+                    yield return null;
+                }
+                Assert.IsTrue(harpoon.Fighting);
+
+                var hint = SceneComponent<InteractionHintView>().GetComponentInChildren<Text>();
+                yield return null;
+                StringAssert.Contains(harpoon.RunDirection < 0 ? "вправо" : "влево", hint.text);
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.S));
+                yield return WaitFor(() => !harpoon.Running, "No rest after the opening run");
+                yield return null;
+                StringAssert.Contains("Удерживайте W", hint.text);
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.W));
+                yield return WaitFor(() => harpoon.Running || !harpoon.Fighting, "First rest never ended");
+                Assert.IsTrue(harpoon.Fighting, "Close shot must leave a second fight cycle");
+                Assert.IsFalse(harpoon.Secured);
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(mouse);
+                InputSystem.RemoveDevice(keyboard);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator ALongShotMissesAndPayingOutAtTheLimitLosesTheFish()
         {
             yield return StartNewGame();
@@ -95,7 +151,6 @@ namespace SecondCatch.Tests
             yield return WaitForScene(GameScenes.SEA);
             var boat = SceneComponent<BoatController>();
             PlaceOutsidePort(boat);
-            Vector3 fishingPosition = boat.transform.position;
             var target = GameObject.Find("CrimsonFish");
             var harpoon = SceneComponent<HarpoonStation>();
             var player = SceneComponent<PlayerController>();
@@ -114,10 +169,14 @@ namespace SecondCatch.Tests
                 Assert.IsFalse(harpoon.Fighting);
                 StringAssert.Contains("Промах", harpoon.Status);
                 InputSystem.QueueStateEvent(mouse, new MouseState());
-                PlaceBoat(boat, fishingPosition);
+                boat.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+                PlaceAtFishDistance(boat, target, 14f);
                 yield return new WaitForSeconds(0.6f);
 
-                yield return HookFish(mouse, camera, target, harpoon);
+                InputSystem.QueueStateEvent(mouse, MouseAt(camera, target).WithButton(MouseButton.Left));
+                yield return WaitFor(() => harpoon.TakingLine || harpoon.Fighting, "The in-range shot missed");
+                Assert.IsFalse(harpoon.TakingLine, "An ordinary shot at range should start the fight immediately");
+                InputSystem.QueueStateEvent(mouse, new MouseState());
                 InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.S));
                 float deadline = Time.realtimeSinceStartup + 15f;
                 while (harpoon.Fighting)
