@@ -40,11 +40,11 @@ namespace SecondCatch.Boat
             if (health.UsesVoyageState)
             {
                 Vector3 source = contact ?? (_obstacle != null ? _obstacle.ClosestPoint(other.bounds.center) : transform.position);
-                health.TakeDamage(Damage, source);
+                health.TakeDamage(Damage, source, _type);
             }
             else
             {
-                health.TakeDamage(Damage);
+                health.TakeDamage(Damage, null, _type);
             }
         }
         private void OnDisable() => _nextDamageTimes.Clear();

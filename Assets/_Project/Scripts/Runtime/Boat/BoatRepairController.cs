@@ -24,6 +24,8 @@ namespace SecondCatch.Boat
         [SerializeField] private HomeShallowsController _voyage;
         [SerializeField] private PlayerController _player;
         [SerializeField] private Transform _repairVisual;
+        [SerializeField] private AudioSource _hammerAudio;
+        [SerializeField] private AudioClip _repairComplete;
         [SerializeField] private Zone[] _zones;
         [SerializeField] private Mesh _markMesh;
         [SerializeField] private Material _markMaterial;
@@ -124,6 +126,7 @@ namespace SecondCatch.Boat
                     return;
                 }
                 _repairing = _selected;
+                if (_hammerAudio != null) _hammerAudio.Play();
                 AnimateRepair();
                 LogTransition(_repairing.Id, "started", null, 0);
                 return;
@@ -147,6 +150,7 @@ namespace SecondCatch.Boat
             BoatZone zone = _repairing.Id;
             int woodBefore = _voyage.Session.Wood;
             bool completed = _voyage.TryRepair(zone);
+            if (completed) _voyage.Audio?.Play(_repairComplete, 0.45f);
             ResetHold();
             _selected = FindAvailableZone();
             LogTransition(zone, completed ? "completed" : "rejected",
@@ -191,6 +195,7 @@ namespace SecondCatch.Boat
 
         private void ResetHold()
         {
+            if (_hammerAudio != null) _hammerAudio.Stop();
             _repairing = null;
             _elapsed = 0f;
             if (_repairVisual == null) return;

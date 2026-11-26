@@ -120,10 +120,10 @@ AudioSource:
   m_GameObject: {fileID: 100000}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: d0c2a95863f74ceb8dc9897ab48bd857, type: 3}
+  OutputAudioMixerGroup: {fileID: -2311519291785982467, guid: 92fa3c2fef6394f7fa54a4f7f5995576, type: 2}
+  m_audioClip: {fileID: 8300000, guid: b8f513db23658403c8c5881d3a91b2cc, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.64
+  m_Volume: 0.65
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -131,8 +131,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 0
-  MinDistance: 8
-  MaxDistance: 24
+  MinDistance: 12
+  MaxDistance: 40
   Pan2D: 0
   rolloffMode: 1
   panLevelCustomCurve:
@@ -140,7 +140,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0

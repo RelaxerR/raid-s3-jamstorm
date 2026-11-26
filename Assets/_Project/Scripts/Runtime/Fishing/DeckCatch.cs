@@ -4,6 +4,7 @@ using SecondCatch.Input;
 using SecondCatch.Player;
 using SecondCatch.Solo;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace SecondCatch.Fishing
 {
@@ -22,6 +23,8 @@ namespace SecondCatch.Fishing
         [SerializeField] private AudioClip _pickupSound;
         [SerializeField] private AudioClip _fullSound;
         [SerializeField] private AudioClip _incompatibleSound;
+        [SerializeField] private AudioMixerGroup _incompatibleMixerGroup;
+        [SerializeField] private AudioClip[] _flopSounds;
         [SerializeField, Min(0.01f)] private float _lossCheckInterval = 1f;
         [SerializeField, Min(0f)] private float _lossEdgeDistance = 0.5f;
         [SerializeField, Range(0f, 0.3f)] private float _lossChance = 0.3f;
@@ -36,6 +39,13 @@ namespace SecondCatch.Fishing
         private string _feedback;
         private float _nextLossCheck;
         private float _lossFeedbackUntil;
+        private float _nextFlop;
+        private AudioMixerGroup _defaultMixerGroup;
+
+        private void Awake()
+        {
+            if (_feedbackAudio != null) _defaultMixerGroup = _feedbackAudio.outputAudioMixerGroup;
+        }
 
         public int Count => _voyage != null ? _voyage.Session?.DeckFishCount ?? 0 : 0;
         public string Feedback => Time.time < _feedbackUntil ? _feedback : null;
@@ -46,6 +56,11 @@ namespace SecondCatch.Fishing
         {
             if (_voyage == null || !_voyage.Voyaging || _fishPrefab == null) return;
             RefreshDeck(_voyage.Session);
+            if (Count > 0 && Time.time >= _nextFlop)
+            {
+                _voyage.Audio?.PlayVariation(_flopSounds, 0.25f);
+                _nextFlop = Time.time + 2.4f;
+            }
             if (GameplayInput.TryGetPrimaryClick(out Vector2 position))
                 TryPickFish(position);
             CheckForLoss(static () => Random.value);
@@ -173,6 +188,8 @@ namespace SecondCatch.Fishing
             if (_feedbackAudio != null && sound != null)
             {
                 _feedbackAudio.spatialBlend = result == DeckFishStoreResult.Stored ? 1f : 0f;
+                _feedbackAudio.outputAudioMixerGroup = result == DeckFishStoreResult.Incompatible
+                    ? _incompatibleMixerGroup ?? _defaultMixerGroup : _defaultMixerGroup;
                 _feedbackAudio.clip = sound;
                 _feedbackAudio.Play();
             }

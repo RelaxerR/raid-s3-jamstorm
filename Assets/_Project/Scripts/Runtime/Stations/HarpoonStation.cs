@@ -19,6 +19,10 @@ namespace SecondCatch.Stations
         [SerializeField] private Material _lineMaterial;
         [SerializeField] private AudioSource _feedbackAudio;
         [SerializeField] private AudioClip _lossSound;
+        [SerializeField] private AudioClip _aimSound;
+        [SerializeField] private AudioClip _shotSound;
+        [SerializeField] private AudioClip _hitSound;
+        [SerializeField] private AudioClip _tensionSound;
 
         private const float ShotCooldown = 0.45f;
         private const float TraceSeconds = 0.23f;
@@ -39,6 +43,7 @@ namespace SecondCatch.Stations
         private bool _missed;
         private bool _cast;
         private bool _wasVoyaging;
+        private bool _tensionWarning;
 
         public override PlayerControlMode ControlMode => PlayerControlMode.Harpoon;
         public override bool AllowsCameraOrbit => !Fighting && !CardOpen;
@@ -90,6 +95,8 @@ namespace SecondCatch.Stations
         }
 
         public override void HandleInput(Vector2 input) { }
+
+        protected override void OnEntered() => _voyage.Audio?.Play(_aimSound, 0.35f);
 
         protected override void OnExited()
         {
@@ -191,6 +198,7 @@ namespace SecondCatch.Stations
             if (!shot || Time.time < _nextShot || _voyage.Session.UniqueFishCaughtThisVoyage) return;
             _nextShot = Time.time + ShotCooldown;
             _traceUntil = Time.time + TraceSeconds;
+            _voyage.Audio?.Play(_shotSound, 0.5f);
             _shotOrigin = muzzle;
             _shotEnd = Vector3.MoveTowards(muzzle, aimPoint, HarpoonLine.MaximumLength);
             _missed = !OnTarget;
@@ -207,6 +215,8 @@ namespace SecondCatch.Stations
             Vector3 offset = _target.transform.position - muzzle;
             Vector3 horizontal = Vector3.ProjectOnPlane(offset, Vector3.up);
             _fight = new HarpoonLine(horizontal.magnitude, offset.y);
+            _tensionWarning = false;
+            _voyage.Audio?.Play(_hitSound, 0.45f);
             UpdateRunDirection(horizontal);
         }
 
@@ -235,7 +245,19 @@ namespace SecondCatch.Stations
             if (outcome == HarpoonOutcome.Fighting
                 && Vector3.Distance(muzzle, _target.transform.position) >= HarpoonLine.MaximumLength)
                 outcome = HarpoonOutcome.Escaped;
-            if (outcome == HarpoonOutcome.Fighting) return;
+            if (outcome == HarpoonOutcome.Fighting)
+            {
+                if (!_tensionWarning && Tension >= HarpoonLine.WarningTension)
+                {
+                    _voyage.Audio?.Play(_tensionSound, 0.38f);
+                    _tensionWarning = true;
+                }
+                else if (Tension < HarpoonLine.WarningTension - 0.1f)
+                {
+                    _tensionWarning = false;
+                }
+                return;
+            }
 
             _fight = null;
             _nextShot = Time.time + ShotCooldown;

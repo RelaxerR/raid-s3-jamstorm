@@ -12,6 +12,9 @@ namespace SecondCatch.Stations
     {
         [SerializeField] private HomeShallowsController _voyage;
         [SerializeField] private Transform _netVisual;
+        [SerializeField] private AudioClip _castSound;
+        [SerializeField] private AudioClip _pullSound;
+        [SerializeField] private AudioClip _fullSound;
         [SerializeField] private Vector3 _deployedOffset = new(-0.8f, -0.18f, -0.45f);
         [SerializeField, Min(1)] private int _capacity = 100;
         [SerializeField, Min(0.01f)] private float _lowerSeconds = 0.5f;
@@ -64,20 +67,29 @@ namespace SecondCatch.Stations
             if (State == NetState.Stowed)
             {
                 State = NetState.Lowering;
+                _voyage.Audio?.Play(_castSound, 0.45f);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 _loggedSpill = false;
 #endif
             }
-            else if (State == NetState.Deployed) State = NetState.Raising;
+            else if (State == NetState.Deployed)
+            {
+                State = NetState.Raising;
+                _voyage.Audio?.Play(_pullSound, 0.45f);
+            }
             return true;
         }
 
         public override void HandleInput(Vector2 input) { }
 
-        public bool TryCapture(int schoolId, int portion, string fishId) => isActiveAndEnabled && State == NetState.Deployed
-            && Boat != null && Boat.CurrentSpeed >= _minimumCaptureSpeed
-            && _voyage != null && _voyage.Voyaging
-            && _voyage.Session.TakeSchoolIntoNet(schoolId, portion, _capacity, fishId) > 0;
+        public bool TryCapture(int schoolId, int portion, string fishId)
+        {
+            if (!isActiveAndEnabled || State != NetState.Deployed || Boat == null
+                || Boat.CurrentSpeed < _minimumCaptureSpeed || _voyage == null || !_voyage.Voyaging) return false;
+            if (_voyage.Session.TakeSchoolIntoNet(schoolId, portion, _capacity, fishId) <= 0) return false;
+            if (Count >= _capacity) _voyage.Audio?.Play(_fullSound, 0.5f);
+            return true;
+        }
 
         private void Update()
         {
