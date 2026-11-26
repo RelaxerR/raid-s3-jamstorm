@@ -127,7 +127,7 @@ namespace SecondCatch.Application
             float speed = underway ? _boat.CurrentSpeed : 0f;
             WindController wind = _boat.Wind;
             float offshore = Mathf.InverseLerp(0.1f, 0.45f, wind != null ? wind.NormalizedDistance : 0f);
-            Fade(_oceanSource, underway ? 0.035f : 0f);
+            Fade(_oceanSource, underway ? 0.018f : 0f);
             Fade(_shoreSource, underway ? 0.15f * (1f - offshore) : 0f);
 
             int windIndex = wind != null ? (int)wind.Type : (int)WindType.Calm;

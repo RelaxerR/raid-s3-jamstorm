@@ -28,7 +28,8 @@ namespace SecondCatch.Tests
             Assert.AreEqual("Ambience", ocean.outputAudioMixerGroup.name);
             Assert.AreEqual("Ambience", shore.outputAudioMixerGroup.name);
             yield return WaitFor(() => ocean.isPlaying && shore.isPlaying, "Sea ambience did not start at departure");
-            Assert.That(ocean.volume, Is.InRange(0.001f, 0.04f));
+            yield return new WaitForSecondsRealtime(0.25f);
+            Assert.That(ocean.volume, Is.EqualTo(0.018f).Within(0.0001f));
             AssertCreakSource(voyage.transform.Find("Port Creak"), -1);
             AssertCreakSource(voyage.transform.Find("Starboard Creak"), 1);
         }
