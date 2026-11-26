@@ -98,7 +98,7 @@ namespace SecondCatch.Fishing
             CargoFish fish = Instantiate(_fishPrefab, transform);
             fish.transform.localScale *= 0.65f;
             if (Barrel?.FishId == FishCargo.AmberFish && _amberMaterial != null)
-                fish.GetComponent<Renderer>().sharedMaterial = _amberMaterial;
+                fish.GetComponentInChildren<Renderer>().sharedMaterial = _amberMaterial;
             fish.TryStow(transform, position, rotation, animateDrop);
             _visuals.Add(fish);
             return fish;
