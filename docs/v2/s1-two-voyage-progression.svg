@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="1512" viewBox="0 0 1160 1512" role="img" aria-labelledby="title desc">
+<title id="title">Второй улов. Прогрессия первых двух рейсов</title>
+<desc id="desc">Первый косяк, продажа десяти рыб, выбор скорости или древесины, второй рейс и отдельный проект найма рулевого. Экспертное согласование открыто.</desc>
+<rect x="0" y="0" width="1160" height="1512" rx="0" fill="#f8f4e9" stroke="none"/>
+<rect x="0" y="0" width="1160" height="208" rx="0" fill="#153740" stroke="none"/>
+<defs><clipPath id="chart"><rect x="748" y="0" width="412" height="208"/></clipPath></defs><g clip-path="url(#chart)">
+<path d="M735 -8 Q842 18 810 57 T798 126 Q827 178 775 225" fill="none" stroke="#285057" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M751 -8 Q854 18 825 57 T811 126 Q843 178 793 225" fill="none" stroke="#285057" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M767 -8 Q866 18 840 57 T824 126 Q859 178 811 225" fill="none" stroke="#285057" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M783 -8 Q878 18 855 57 T837 126 Q875 178 829 225" fill="none" stroke="#285057" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M799 -8 Q890 18 870 57 T850 126 Q891 178 847 225" fill="none" stroke="#285057" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M815 -8 Q902 18 885 57 T863 126 Q907 178 865 225" fill="none" stroke="#285057" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M831 -8 Q914 18 900 57 T876 126 Q923 178 883 225" fill="none" stroke="#285057" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M847 -8 Q926 18 915 57 T889 126 Q939 178 901 225" fill="none" stroke="#285057" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M1060 -8 Q1025 33 1068 73 T1107 155 Q1075 194 1080 222" fill="none" stroke="#30535a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M1070 -8 Q1038 33 1081 73 T1122 155 Q1086 194 1093 222" fill="none" stroke="#30535a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M1080 -8 Q1051 33 1094 73 T1137 155 Q1097 194 1106 222" fill="none" stroke="#30535a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M1090 -8 Q1064 33 1107 73 T1152 155 Q1108 194 1119 222" fill="none" stroke="#30535a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M1100 -8 Q1077 33 1120 73 T1167 155 Q1119 194 1132 222" fill="none" stroke="#30535a" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M843 148Q938 156 1026 129L1000 155Q942 177 871 165Z" fill="#e1ab73" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M857 154Q936 166 1017 139L1000 155Q944 176 871 165Z" fill="#76a89b" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M871 158Q947 170 1008 147" fill="none" stroke="#21464b" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M939 146L936 21" fill="none" stroke="#e7c790" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M934 29L862 139L933 139Q922 85 934 29Z" fill="#f2e8cc" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M937 29Q963 64 991 117L945 135Z" fill="#db855e" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M937 29L1025 129M934 32L850 148" fill="none" stroke="#d4c5a0" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M933 46Q907 98 900 139M939 44L957 129" fill="none" stroke="#928f77" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M938 22L956 23L945 30L938 29Z" fill="#f2bd68" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M822 166q30 -5 57 0t62 1" fill="none" stroke="#71958a" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M810 174q30 -5 57 0t62 1" fill="none" stroke="#71958a" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M798 182q30 -5 57 0t62 1" fill="none" stroke="#71958a" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" />
+<g transform="translate(1048 165) scale(0.86)">
+<path d="M0 0Q12 -10 26 0Q12 10 0 0L-9 6L-8 -6Z" fill="#8ebbae" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<circle cx="19" cy="-1" r="1.3" fill="#153740" stroke="none" stroke-width="1"/>
+</g>
+<g transform="translate(1078 182) scale(0.72)">
+<path d="M0 0Q12 -10 26 0Q12 10 0 0L-9 6L-8 -6Z" fill="#8ebbae" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<circle cx="19" cy="-1" r="1.3" fill="#153740" stroke="none" stroke-width="1"/>
+</g>
+<g transform="translate(1037 189) scale(0.59)">
+<path d="M0 0Q12 -10 26 0Q12 10 0 0L-9 6L-8 -6Z" fill="#8ebbae" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<circle cx="19" cy="-1" r="1.3" fill="#153740" stroke="none" stroke-width="1"/>
+</g>
+</g>
+<text x="50" y="42" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#e7bf87" letter-spacing="2">SECOND CATCH   /   S1</text>
+<text x="48" y="112" font-family="Georgia, serif" font-size="59" font-weight="700" fill="#fffcf4" letter-spacing="0">Первые два рейса</text>
+<text x="51" y="160" font-family="Arial, sans-serif" font-size="25" font-weight="400" fill="#d6e7dc" letter-spacing="0">Что даёт первый улов и когда можно оставить руль</text>
+<rect x="0" y="208" width="1160" height="58" rx="0" fill="#e9edde" stroke="none"/>
+<text x="50" y="243" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#19343a" letter-spacing="0">v0.1.2</text>
+<path d="M146 221L146 252" fill="none" stroke="#bdc6b7" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<circle cx="184" cy="238" r="8" fill="#17695c" stroke="none" stroke-width="1"/>
+<path d="M180 238l3 3l5 -6" fill="none" stroke="#fffcf4" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" />
+<text x="201" y="244" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#17695c" letter-spacing="0.4">Проверено в DLL релиза</text>
+<path d="M483 229l8 9l-8 9l-8 -9Z" fill="#365f80" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<text x="500" y="244" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#365f80" letter-spacing="0.4">Сцена, код и тесты Unity</text>
+<rect x="805" y="230" width="16" height="16" rx="2" fill="none" stroke="#865123"/>
+<path d="M809 238h8" fill="none" stroke="#865123" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 3"/>
+<text x="830" y="244" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#865123" letter-spacing="0.4">Запланировано</text>
+<text x="50" y="318" font-family="Georgia, serif" font-size="35" font-weight="700" fill="#19343a" letter-spacing="0">Рейс 1</text>
+<text x="208" y="316" font-family="Arial, sans-serif" font-size="24" font-weight="400" fill="#49605c" letter-spacing="0">Из порта на первый косяк и обратно</text>
+<rect x="48" y="343" width="320" height="203" rx="10" fill="#fffcf4" stroke="#c5c9b9"/>
+<rect x="420" y="343" width="320" height="203" rx="10" fill="#fffcf4" stroke="#c5c9b9"/>
+<rect x="792" y="343" width="320" height="203" rx="10" fill="#fffcf4" stroke="#c5c9b9"/>
+<path d="M76 365l8 9l-8 9l-8 -9Z" fill="#365f80" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<text x="93" y="380" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#365f80" letter-spacing="0.4">ВЫХОД</text>
+<path d="M448 365l8 9l-8 9l-8 -9Z" fill="#365f80" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<text x="465" y="380" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#365f80" letter-spacing="0.4">УЛОВ</text>
+<circle cx="820" cy="374" r="8" fill="#17695c" stroke="none" stroke-width="1"/>
+<path d="M816 374l3 3l5 -6" fill="none" stroke="#fffcf4" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" />
+<text x="837" y="380" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#17695c" letter-spacing="0.4">ПРОДАЖА</text>
+<text x="68" y="428" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#19343a" letter-spacing="0">0 монет</text>
+<text x="68" y="470" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">Поднять парус. Вести</text>
+<text x="68" y="498" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">лодку через первый косяк</text>
+<text x="68" y="526" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">с опущенной сетью.</text>
+<text x="440" y="428" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#19343a" letter-spacing="0">10 лазурных</text>
+<text x="440" y="470" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">Поднять сеть. На палубе</text>
+<text x="440" y="498" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">кликнуть по каждой рыбе.</text>
+<text x="440" y="526" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">В бочке 10 из 100.</text>
+<text x="812" y="428" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#19343a" letter-spacing="0">100 монет</text>
+<text x="812" y="470" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">Причалить. В лавке</text>
+<text x="812" y="498" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">продать все 10 рыб</text>
+<text x="812" y="526" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">по 10 монет за штуку.</text>
+<path d="M372 443h40" fill="none" stroke="#17695c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M403 437L412 443L403 449" fill="none" stroke="#17695c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M744 443h40" fill="none" stroke="#17695c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M775 437L784 443L775 449" fill="none" stroke="#17695c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M954 547v19H385" fill="none" stroke="#17695c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M385 566v29" fill="none" stroke="#17695c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M379 586L385 595L391 586" fill="none" stroke="#17695c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M954 566v29" fill="none" stroke="#865123" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 7"/>
+<path d="M948 586L954 595L960 586" fill="none" stroke="#865123" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<circle cx="954" cy="566" r="4" fill="#17695c" stroke="none" stroke-width="1"/>
+<rect x="48" y="604" width="688" height="449" rx="12" fill="#e4efe4" stroke="#aec7b8"/>
+<circle cx="80" cy="636" r="8" fill="#17695c" stroke="none" stroke-width="1"/>
+<path d="M76 636l3 3l5 -6" fill="none" stroke="#fffcf4" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" />
+<text x="97" y="642" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#17695c" letter-spacing="0.4">ПОКУПКА В ПОРТУ</text>
+<text x="71" y="689" font-family="Georgia, serif" font-size="34" font-weight="700" fill="#19343a" letter-spacing="0">На что потратить 100 монет?</text>
+<path d="M72 716L712 716" fill="none" stroke="#b5cabc" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M397 738L397 1023" fill="none" stroke="#b5cabc" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<text x="72" y="761" font-family="Arial, sans-serif" font-size="29" font-weight="700" fill="#17695c" letter-spacing="0">Скорость</text>
+<text x="420" y="761" font-family="Arial, sans-serif" font-size="29" font-weight="700" fill="#17695c" letter-spacing="0">Древесина</text>
+<text x="72" y="797" font-family="Arial, sans-serif" font-size="22" font-weight="400" fill="#19343a" letter-spacing="0">100 монет · остаток 0</text>
+<text x="420" y="797" font-family="Arial, sans-serif" font-size="22" font-weight="400" fill="#19343a" letter-spacing="0">10 монет · остаток 90</text>
+<path d="M81 816v33" fill="none" stroke="#17695c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M75 840L81 849L87 840" fill="none" stroke="#17695c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M429 816v33" fill="none" stroke="#17695c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M423 840L429 849L435 840" fill="none" stroke="#17695c" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<path d="M80 873l8 9l-8 9l-8 -9Z" fill="#365f80" stroke="none" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<text x="97" y="888" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#365f80" letter-spacing="0.4">РЕЙС 2</text>
+<circle cx="428" cy="882" r="8" fill="#17695c" stroke="none" stroke-width="1"/>
+<path d="M424 882l3 3l5 -6" fill="none" stroke="#fffcf4" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" />
+<text x="445" y="888" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#17695c" letter-spacing="0.4">РЕЙС 2</text>
+<text x="72" y="930" font-family="Arial, sans-serif" font-size="37" font-weight="700" fill="#19343a" letter-spacing="0">×1,4</text>
+<text x="172" y="929" font-family="Arial, sans-serif" font-size="25" font-weight="400" fill="#19343a" letter-spacing="0">к тяге</text>
+<text x="420" y="930" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#19343a" letter-spacing="0">1 ремонт</text>
+<text x="72" y="965" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">Снова вести лодку к косяку.</text>
+<text x="72" y="991" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">При том же ветре и парусе</text>
+<text x="72" y="1017" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">тяга выше.</text>
+<text x="420" y="965" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">Удержать E у повреждённой</text>
+<text x="420" y="991" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">части лодки. На скорость</text>
+<text x="420" y="1017" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">пока не хватает 10 монет.</text>
+<rect x="760" y="604" width="352" height="449" rx="12" fill="#f4e7d5" stroke="#d2b898"/>
+<rect x="783" y="628" width="16" height="16" rx="2" fill="none" stroke="#865123"/>
+<path d="M787 636h8" fill="none" stroke="#865123" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 3"/>
+<text x="808" y="642" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#865123" letter-spacing="0.4">ПРОЕКТ НАЙМА · #19</text>
+<text x="782" y="689" font-family="Georgia, serif" font-size="34" font-weight="700" fill="#19343a" letter-spacing="0">Матрос у руля</text>
+<path d="M783 716L1088 716" fill="none" stroke="#d8bea0" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<text x="783" y="754" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">В порту нанять матроса</text>
+<text x="783" y="781" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">и назначить его на руль.</text>
+<text x="783" y="811" font-family="Arial, sans-serif" font-size="19" font-weight="400" fill="#865123" letter-spacing="0">Цена и момент найма открыты.</text>
+<path d="M792 829v23" fill="none" stroke="#865123" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 7"/>
+<path d="M786 843L792 852L798 843" fill="none" stroke="#865123" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+<text x="783" y="889" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#865123" letter-spacing="0">Матрос держит курс</text>
+<text x="783" y="928" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">Игрок задаёт курс. Можно</text>
+<text x="783" y="956" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">уйти к сети или на ремонт,</text>
+<text x="783" y="984" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">а перед рифом вернуться</text>
+<text x="783" y="1012" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#19343a" letter-spacing="0">к рулю и сменить курс.</text>
+<text x="50" y="1106" font-family="Georgia, serif" font-size="32" font-weight="700" fill="#19343a" letter-spacing="0">Что сверить в порту и в море</text>
+<circle cx="58" cy="1147" r="8" fill="#17695c" stroke="none" stroke-width="1"/>
+<path d="M54 1147l3 3l5 -6" fill="none" stroke="#fffcf4" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" />
+<text x="75" y="1153" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#17695c" letter-spacing="0.4">РЫНОК</text>
+<text x="243" y="1151" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#19343a" letter-spacing="0">Две бочки по 100, один вид в каждой. Лазурная и янтарная — по 10 монет.</text>
+<text x="243" y="1179" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#19343a" letter-spacing="0">Багряная с гарпуна — 50 монет, отдельное место. Продажа по виду или всего улова.</text>
+<path d="M50 1199L1111 1199" fill="none" stroke="#c5c9b9" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<circle cx="58" cy="1226" r="8" fill="#17695c" stroke="none" stroke-width="1"/>
+<path d="M54 1226l3 3l5 -6" fill="none" stroke="#fffcf4" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" />
+<text x="75" y="1232" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#17695c" letter-spacing="0.4">ПОРОГ</text>
+<text x="243" y="1231" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#19343a" letter-spacing="0">9 обычных рыб дают 90 монет. Древесина доступна уже после продажи одной.</text>
+<path d="M50 1252L1111 1252" fill="none" stroke="#c5c9b9" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<rect x="50" y="1272" width="16" height="16" rx="2" fill="none" stroke="#865123"/>
+<path d="M54 1280h8" fill="none" stroke="#865123" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 3"/>
+<text x="75" y="1286" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#865123" letter-spacing="0.4">ЗАМЕР · #54</text>
+<text x="243" y="1285" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#19343a" letter-spacing="0">Пройти один отрезок до и после покупки с тем же курсом, ветром и парусом.</text>
+<text x="243" y="1313" font-family="Arial, sans-serif" font-size="20" font-weight="400" fill="#19343a" letter-spacing="0">Сравнить скорость у метки или время пути. Время игрока пока не измерено.</text>
+<rect x="0" y="1340" width="1160" height="172" rx="0" fill="#153740" stroke="none"/>
+<text x="50" y="1375" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#ecc28e" letter-spacing="1.5">ВОПРОСЫ ЭКСПЕРТАМ</text>
+<text x="795" y="1375" font-family="Arial, sans-serif" font-size="18" font-weight="400" fill="#e6d5b6" letter-spacing="0">Согласование открыто</text>
+<path d="M575 1396L575 1485" fill="none" stroke="#4e6768" stroke-width="1" stroke-linejoin="round" stroke-linecap="round" />
+<text x="50" y="1418" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#fffcf4" letter-spacing="0">Денис Трак</text>
+<text x="50" y="1450" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#d9e7dc" letter-spacing="0">Если новичок довёз 9 рыб, стоит ли дать ему</text>
+<text x="50" y="1478" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#d9e7dc" letter-spacing="0">купить скорость уже после первой продажи?</text>
+<text x="606" y="1418" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#fffcf4" letter-spacing="0">Аким Денисов</text>
+<text x="606" y="1450" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#d9e7dc" letter-spacing="0">Какой выбор покажет пользу найма — поднять</text>
+<text x="606" y="1478" font-family="Arial, sans-serif" font-size="21" font-weight="400" fill="#d9e7dc" letter-spacing="0">сеть сейчас или взять руль перед рифом?</text>
+</svg>
