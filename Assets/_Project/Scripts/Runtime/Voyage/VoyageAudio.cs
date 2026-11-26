@@ -137,8 +137,8 @@ namespace SecondCatch.Application
 
             float moving = Mathf.InverseLerp(0.05f, 0.5f, speed);
             float hullBlend = Mathf.InverseLerp(0.7f, 1.8f, speed);
-            Fade(_hull[0], 0.14f * moving * (1f - hullBlend));
-            Fade(_hull[1], 0.14f * moving * hullBlend);
+            Fade(_hull[0], 0.09f * moving * (1f - hullBlend));
+            Fade(_hull[1], 0.12f * moving * hullBlend);
 
             if (underway)
             {
@@ -187,7 +187,7 @@ namespace SecondCatch.Application
             AudioClip[] waves = descentSpeed >= 0.34f ? _strongWaves
                 : descentSpeed >= 0.15f ? _mediumWaves : _slowWaves;
             float intensity = Mathf.InverseLerp(minimumDescentSpeed, 0.45f, descentSpeed);
-            PlayVariation(waves, Mathf.Lerp(0.15f, 0.34f, intensity));
+            PlayVariation(waves, Mathf.Lerp(0.12f, 0.21f, intensity));
             _nextWave = Time.time + 1.25f;
         }
 
@@ -198,7 +198,7 @@ namespace SecondCatch.Application
             if (clip != null)
             {
                 AudioSource source = _random.Next(2) == 0 ? _portCreak : _starboardCreak;
-                source.PlayOneShot(clip, 0.23f);
+                source.PlayOneShot(clip, 0.19f);
             }
             ScheduleCreak();
         }

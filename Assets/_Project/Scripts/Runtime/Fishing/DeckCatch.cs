@@ -58,7 +58,7 @@ namespace SecondCatch.Fishing
             RefreshDeck(_voyage.Session);
             if (Count > 0 && Time.time >= _nextFlop)
             {
-                _voyage.Audio?.PlayVariation(_flopSounds, 0.25f);
+                _voyage.Audio?.PlayVariation(_flopSounds, 0.16f);
                 _nextFlop = Time.time + 2.4f;
             }
             if (GameplayInput.TryGetPrimaryClick(out Vector2 position))
