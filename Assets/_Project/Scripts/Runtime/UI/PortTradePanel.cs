@@ -97,6 +97,12 @@ namespace SecondCatch.UI
             Refresh();
         }
 
+        private static void SetAvailable(Button button, bool available)
+        {
+            button.interactable = available;
+            button.image.color = available ? Color.white : new Color(0.55f, 0.55f, 0.55f, 0.7f);
+        }
+
         private void Refresh()
         {
             var session = _port != null ? _port.Session : null;
@@ -106,15 +112,15 @@ namespace SecondCatch.UI
             _renderedRevision = revision;
 
             bool ready = session != null && !session.AtSea;
-            _open.interactable = ready;
-            _depart.interactable = ready;
-            _menu.interactable = ready;
-            _sellAll.interactable = session?.CanSell == true;
-            _sellFish.interactable = session?.CanSellFish(FishCargo.AzureFish) == true;
-            _sellAmber.interactable = session?.CanSellFish(FishCargo.AmberFish) == true;
-            _sellUnique.interactable = session?.CanSellFish(SoloGameSession.UNIQUE_FISH_ID) == true;
-            _buyUpgrade.interactable = session?.CanBuySpeedUpgrade == true;
-            _buyWood.interactable = session?.CanBuyWood == true;
+            SetAvailable(_open, ready);
+            SetAvailable(_depart, ready);
+            SetAvailable(_menu, ready);
+            SetAvailable(_sellAll, session?.CanSell == true);
+            SetAvailable(_sellFish, session?.CanSellFish(FishCargo.AzureFish) == true);
+            SetAvailable(_sellAmber, session?.CanSellFish(FishCargo.AmberFish) == true);
+            SetAvailable(_sellUnique, session?.CanSellFish(SoloGameSession.UNIQUE_FISH_ID) == true);
+            SetAvailable(_buyUpgrade, session?.CanBuySpeedUpgrade == true);
+            SetAvailable(_buyWood, session?.CanBuyWood == true);
             if (!ready) return;
 
             _cargo.text = $"Улов {session.Cargo.Count}/{session.Cargo.Capacity} · {SoloGameSession.FISH_PRICE} монет за рыбу\n"
