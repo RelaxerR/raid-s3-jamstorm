@@ -11,6 +11,7 @@ namespace SecondCatch.Application
         [SerializeField] private HomeShallowsController _voyage;
         [SerializeField] private BoatController _boat;
         [SerializeField] private HelmStation _helm;
+        [SerializeField] private BoatBuoyancy _buoyancy;
         [SerializeField] private AudioSource _effects;
         [SerializeField] private AudioMixerGroup _ambience;
         [SerializeField] private AudioClip _ocean;
@@ -33,10 +34,13 @@ namespace SecondCatch.Application
         private AudioSource _shoreSource;
         private AudioSource[] _winds;
         private AudioSource[] _hull;
+        private AudioSource _portCreak;
+        private AudioSource _starboardCreak;
         private BoatHealth _health;
         private SailPosition _previousSail;
         private bool _helmMoving;
         private float _nextHelm;
+        private float _peakDescentSpeed;
         private float _nextWave;
         private float _nextCreak;
 
@@ -46,6 +50,8 @@ namespace SecondCatch.Application
             _shoreSource = CreateLoop(_shore);
             _winds = System.Array.ConvertAll(_windLoops, CreateLoop);
             _hull = System.Array.ConvertAll(_hullLoops, CreateLoop);
+            _portCreak = CreateCreakSource("Port Creak", -0.95f);
+            _starboardCreak = CreateCreakSource("Starboard Creak", 0.95f);
             _health = _boat.Health;
         }
 
@@ -53,8 +59,8 @@ namespace SecondCatch.Application
         {
             if (_health != null) _health.ObstacleHit += OnObstacleHit;
             _previousSail = _boat.SailPosition;
-            _nextWave = Time.time + 2f;
-            _nextCreak = Time.time + 5f;
+            _nextWave = Time.time;
+            ScheduleCreak();
         }
 
         private void OnDisable()
@@ -65,7 +71,10 @@ namespace SecondCatch.Application
             foreach (AudioSource source in _winds) Silence(source);
             foreach (AudioSource source in _hull) Silence(source);
             _effects.Stop();
+            _portCreak.Stop();
+            _starboardCreak.Stop();
             _helmMoving = false;
+            _peakDescentSpeed = 0f;
         }
 
         private AudioSource CreateLoop(AudioClip clip)
@@ -76,6 +85,23 @@ namespace SecondCatch.Application
             source.loop = true;
             source.volume = 0f;
             source.outputAudioMixerGroup = _ambience;
+            return source;
+        }
+
+        private AudioSource CreateCreakSource(string name, float side)
+        {
+            var emitter = new GameObject(name);
+            emitter.transform.SetParent(transform, false);
+            emitter.transform.localPosition = new Vector3(side, 0f, 0f);
+
+            var source = emitter.AddComponent<AudioSource>();
+            source.playOnAwake = false;
+            source.outputAudioMixerGroup = _ambience;
+            source.spatialBlend = 1f;
+            source.rolloffMode = AudioRolloffMode.Linear;
+            source.dopplerLevel = 0f;
+            source.minDistance = 5f;
+            source.maxDistance = 18f;
             return source;
         }
 
@@ -101,7 +127,7 @@ namespace SecondCatch.Application
             float speed = underway ? _boat.CurrentSpeed : 0f;
             WindController wind = _boat.Wind;
             float offshore = Mathf.InverseLerp(0.1f, 0.45f, wind != null ? wind.NormalizedDistance : 0f);
-            Fade(_oceanSource, underway ? Mathf.Lerp(0.07f, 0.14f, offshore) : 0f);
+            Fade(_oceanSource, underway ? 0.035f : 0f);
             Fade(_shoreSource, underway ? 0.15f * (1f - offshore) : 0f);
 
             int windIndex = wind != null ? (int)wind.Type : (int)WindType.Calm;
@@ -114,11 +140,17 @@ namespace SecondCatch.Application
             Fade(_hull[0], 0.14f * moving * (1f - hullBlend));
             Fade(_hull[1], 0.14f * moving * hullBlend);
 
-            if (underway) PlayBoatMotion(speed, windIndex);
+            if (underway)
+            {
+                PlayBoatControls();
+                PlayPassingWave(speed);
+                PlayCreak();
+            }
+            else _peakDescentSpeed = 0f;
             _previousSail = _boat.SailPosition;
         }
 
-        private void PlayBoatMotion(float speed, int windIndex)
+        private void PlayBoatControls()
         {
             if (_boat.SailPosition != _previousSail)
                 Play(_boat.SailPosition > _previousSail ? _raiseSail : _lowerSail, 0.38f);
@@ -130,35 +162,59 @@ namespace SecondCatch.Application
                 _nextHelm = Time.time + 0.45f;
             }
             _helmMoving = turning;
-
-            if (Time.time >= _nextWave)
-            {
-                AudioClip[] waves = windIndex == (int)WindType.Storm ? _strongWaves
-                    : speed >= 1.2f ? _mediumWaves : _slowWaves;
-                PlayVariation(waves, 0.23f);
-                _nextWave = Time.time + RandomInterval(2.8f, 5f);
-            }
-
-            if (Time.time >= _nextCreak)
-            {
-                if (turning || speed >= 0.5f || windIndex == (int)WindType.Storm)
-                    PlayVariation(_woodCreaks, 0.20f);
-                _nextCreak = Time.time + RandomInterval(5f, 9f);
-            }
         }
+
+        private void PlayPassingWave(float speed)
+        {
+            if (speed < 0.12f || _buoyancy == null || !_buoyancy.isActiveAndEnabled)
+            {
+                _peakDescentSpeed = 0f;
+                return;
+            }
+
+            float verticalSpeed = _buoyancy.VerticalSpeed;
+            if (verticalSpeed < 0f)
+            {
+                _peakDescentSpeed = Mathf.Max(_peakDescentSpeed, -verticalSpeed);
+                return;
+            }
+
+            // The hull has finished descending into a trough. Use the actual motion to choose the splash.
+            const float minimumDescentSpeed = 0.035f;
+            float descentSpeed = _peakDescentSpeed;
+            _peakDescentSpeed = 0f;
+            if (descentSpeed < minimumDescentSpeed || Time.time < _nextWave) return;
+            AudioClip[] waves = descentSpeed >= 0.34f ? _strongWaves
+                : descentSpeed >= 0.15f ? _mediumWaves : _slowWaves;
+            float intensity = Mathf.InverseLerp(minimumDescentSpeed, 0.45f, descentSpeed);
+            PlayVariation(waves, Mathf.Lerp(0.15f, 0.34f, intensity));
+            _nextWave = Time.time + 1.25f;
+        }
+
+        private void PlayCreak()
+        {
+            if (Time.time < _nextCreak) return;
+            AudioClip clip = PickClip(_woodCreaks);
+            if (clip != null)
+            {
+                AudioSource source = _random.Next(2) == 0 ? _portCreak : _starboardCreak;
+                source.PlayOneShot(clip, 0.23f);
+            }
+            ScheduleCreak();
+        }
+
+        private void ScheduleCreak() =>
+            _nextCreak = Time.time + Mathf.Lerp(5f, 15f, (float)_random.NextDouble());
 
         internal void Play(AudioClip clip, float volume)
         {
             if (isActiveAndEnabled && clip != null) _effects.PlayOneShot(clip, volume);
         }
 
-        internal void PlayVariation(AudioClip[] clips, float volume)
-        {
-            if (clips != null && clips.Length > 0) Play(clips[_random.Next(clips.Length)], volume);
-        }
+        internal void PlayVariation(AudioClip[] clips, float volume) => Play(PickClip(clips), volume);
 
-        private float RandomInterval(float minimum, float maximum) =>
-            Mathf.Lerp(minimum, maximum, (float)_random.NextDouble());
+        private AudioClip PickClip(AudioClip[] clips) =>
+            clips != null && clips.Length > 0 ? clips[_random.Next(clips.Length)] : null;
 
         private void OnObstacleHit(BoatObstacleType type)
         {

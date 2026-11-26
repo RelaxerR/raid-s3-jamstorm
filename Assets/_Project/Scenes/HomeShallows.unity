@@ -7938,6 +7938,7 @@ MonoBehaviour:
   _voyage: {fileID: 1100}
   _boat: {fileID: 2100000001}
   _helm: {fileID: 2100000004}
+  _buoyancy: {fileID: 2500000003}
   _effects: {fileID: 2500000025}
   _ambience: {fileID: 4043440696589013870, guid: 92fa3c2fef6394f7fa54a4f7f5995576, type: 2}
   _ocean: {fileID: 8300000, guid: 7cf1ed76e2f584da78d69e8921163fe6, type: 3}

@@ -10,7 +10,7 @@ namespace SecondCatch.Tests
     public sealed class VoyageAudioTests : VoyageTestFixture
     {
         [UnityTest]
-        public IEnumerator PortAndSeaStartTheirOwnAmbience()
+        public IEnumerator PortAndSeaStartTheirOwnAmbienceWithCreaksAtBothSidesOfTheBoat()
         {
             yield return StartNewGame();
             var port = SceneComponent<HomePortController>();
@@ -28,6 +28,18 @@ namespace SecondCatch.Tests
             Assert.AreEqual("Ambience", ocean.outputAudioMixerGroup.name);
             Assert.AreEqual("Ambience", shore.outputAudioMixerGroup.name);
             yield return WaitFor(() => ocean.isPlaying && shore.isPlaying, "Sea ambience did not start at departure");
+            Assert.That(ocean.volume, Is.InRange(0.001f, 0.04f));
+            AssertCreakSource(voyage.transform.Find("Port Creak"), -1);
+            AssertCreakSource(voyage.transform.Find("Starboard Creak"), 1);
+        }
+
+        private static void AssertCreakSource(Transform emitter, int side)
+        {
+            Assert.IsNotNull(emitter);
+            Assert.Greater(emitter.localPosition.x * side, 0f);
+            var source = emitter.GetComponent<AudioSource>();
+            Assert.AreEqual(1f, source.spatialBlend);
+            Assert.AreEqual("Ambience", source.outputAudioMixerGroup.name);
         }
 
         private static AudioSource FindLoop(Component owner, string name)
