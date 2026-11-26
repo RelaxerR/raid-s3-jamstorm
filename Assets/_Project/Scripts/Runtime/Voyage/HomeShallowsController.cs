@@ -11,12 +11,14 @@ namespace SecondCatch.Application
         [SerializeField] private BoatController _boat;
         [SerializeField] private Collider _hull;
         [SerializeField] private BoatRepairController _repair;
+        [SerializeField] private VoyageAudio _audio;
 
         private PlayerController _player;
         private GameApplication _application;
         private SoloGameSession _session;
         public SoloGameSession Session => _session;
         public BoatRepairController Repair => _repair;
+        internal VoyageAudio Audio => _audio;
 
         public bool Voyaging => _session != null && _session.AtSea && !_application.IsLoading;
 

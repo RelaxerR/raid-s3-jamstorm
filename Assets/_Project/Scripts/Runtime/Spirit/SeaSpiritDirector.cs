@@ -11,6 +11,7 @@ namespace SecondCatch.Spirit
         [SerializeField] private HomeShallowsController _voyage;
         [SerializeField] private BoatController _boat;
         [SerializeField] private GameObject _spiritPrefab;
+        [SerializeField] private AudioClip _attackSound;
         [SerializeField, Min(1f)] private float _spawnDistance = 18f;
         [SerializeField, Min(0f)] private float _spawnHeight = 1.5f;
         [SerializeField, Min(0f)] private float _pursuitSpeed = 4.5f;
@@ -24,6 +25,7 @@ namespace SecondCatch.Spirit
         public GameObject ActiveSpirit => _activeSpirit;
 
         private GameObject _activeSpirit;
+        private AudioSource _spiritAudio;
         private float _nextAttackTime;
         private bool _spawnedThisVoyage;
 
@@ -68,6 +70,7 @@ namespace SecondCatch.Spirit
             position.y += _spawnHeight;
             _activeSpirit = Instantiate(_spiritPrefab, position,
                 Quaternion.LookRotation(direction, Vector3.up), transform);
+            _spiritAudio = _activeSpirit.GetComponent<AudioSource>();
             _nextAttackTime = Time.time;
             _spawnedThisVoyage = true;
             SpawnCount++;
@@ -86,6 +89,8 @@ namespace SecondCatch.Spirit
 
             if (offset.magnitude <= Mathf.Max(0.1f, _attackDistance) && Time.time >= _nextAttackTime)
             {
+                if (_spiritAudio != null && _attackSound != null)
+                    _spiritAudio.PlayOneShot(_attackSound, 0.8f);
                 _boat.TakeDamage(Mathf.Max(1, _attackDamage));
                 _nextAttackTime = Time.time + Mathf.Max(0.1f, _attackInterval);
             }
@@ -96,6 +101,7 @@ namespace SecondCatch.Spirit
             if (_activeSpirit == null) return;
             Destroy(_activeSpirit);
             _activeSpirit = null;
+            _spiritAudio = null;
         }
     }
 }

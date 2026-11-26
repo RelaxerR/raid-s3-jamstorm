@@ -14,6 +14,7 @@ namespace SecondCatch.Fishing
         [SerializeField] private HomeShallowsController _voyage;
         [SerializeField] private CargoFish _fishPrefab;
         [SerializeField] private Material _amberMaterial;
+        [SerializeField] private AudioClip _insertSound;
         [SerializeField] private int _barrelIndex;
         [SerializeField, Min(0.1f)] private float _releaseRadius = 0.55f;
         [SerializeField, Min(0.1f)] private float _releaseSeconds = 1.2f;
@@ -103,7 +104,7 @@ namespace SecondCatch.Fishing
             return fish;
         }
 
-        private static IEnumerator Transfer(FishOnDeck selected, CargoFish stored)
+        private IEnumerator Transfer(FishOnDeck selected, CargoFish stored)
         {
             const float duration = 0.2f;
             Transform movingFish = selected.transform;
@@ -126,7 +127,11 @@ namespace SecondCatch.Fishing
                 selected.gameObject.SetActive(false);
                 Destroy(selected.gameObject);
             }
-            if (stored != null) stored.gameObject.SetActive(true);
+            if (stored != null)
+            {
+                stored.gameObject.SetActive(true);
+                if (_voyage != null && _voyage.Voyaging) _voyage.Audio?.Play(_insertSound, 0.35f);
+            }
         }
     }
 }
