@@ -39,7 +39,8 @@ namespace SecondCatch.UI
             switch (player.ControlMode)
             {
                 case PlayerControlMode.Helm:
-                    _label.text = lossHint + "W/S — гребля вперёд / назад · A/D — инерционный руль\nEsc / E — выйти (тяга и руль плавно затухают)" + "\n" + player.Boat.RowingAvailabilityText + CameraHint;
+                    _label.text = lossHint + "W/S — гребля · A/D — руль · " + player.Boat.RowingAvailabilityText
+                        + "\n" + player.Boat.Helm.ExitHint + "\nПКМ — обзор · колесо — приближение · V — вернуть камеру";
                     return;
                 case PlayerControlMode.Sail:
                     _label.text = lossHint + "W/S — больше / меньше паруса · A/D — разгон поворота\nEsc / E — выйти (угол сохраняется после выбега)" + CameraHint;

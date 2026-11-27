@@ -23,6 +23,7 @@ namespace SecondCatch.Solo
             return species < 0 ? 0 : _deckFish[species];
         }
 
+        public FishContract Contract { get; } = new();
         public BoatState Boat { get; } = new BoatState();
         public FishCargo Cargo { get; } = new FishCargo();
         public int UniqueFishCount { get; private set; }
@@ -33,6 +34,15 @@ namespace SecondCatch.Solo
         public long Coins { get; private set; }
         public int Wood { get; private set; }
         public int WoodPrice { get; }
+        private readonly StationAssignment _crewStations = new();
+        public const int HELMSMAN_PRICE = 100;
+        public const string HELMSMAN_ID = "crew.ivan";
+        public const string HELM_ID = "helm.1";
+        public bool HasHelmsman { get; private set; }
+        public bool HelmsmanAssigned => _crewStations.OperatorAt(HELM_ID) == HELMSMAN_ID;
+        public bool CanHireHelmsman => !AtSea && !HasHelmsman && Coins >= HELMSMAN_PRICE;
+        public bool CanAssignHelmsman => !AtSea && HasHelmsman && !HelmsmanAssigned;
+
         public long Revision { get; private set; }
         public const int FISH_PRICE = 10;
         public const string UNIQUE_FISH_ID = "fish.crimson";
@@ -161,6 +171,29 @@ namespace SecondCatch.Solo
             return true;
         }
 
+        public int ContractProgress => Math.Min(FishContract.Target, Cargo.FindBarrel(FishContract.FishId)?.Count ?? 0);
+        public bool CanAcceptContract => !AtSea && Contract.State == FishContractState.Available;
+        public bool CanDeliverContract => !AtSea && Contract.State == FishContractState.Active
+            && ContractProgress == FishContract.Target && Coins <= long.MaxValue - FishContract.Reward;
+
+        public bool AcceptContract()
+        {
+            if (!CanAcceptContract) return false;
+            Contract.State = FishContractState.Active;
+            Revision++;
+            return true;
+        }
+
+        public bool DeliverContract()
+        {
+            if (!CanDeliverContract) return false;
+            Cargo.FindBarrel(FishContract.FishId).Remove(FishContract.Target);
+            Coins += FishContract.Reward;
+            Contract.State = FishContractState.Closed;
+            Revision++;
+            return true;
+        }
+
         public bool CanSell => !AtSea && SaleValue > 0 && Coins <= long.MaxValue - SaleValue;
         public long SaleValue => (long)Cargo.Count * FISH_PRICE + UniqueSaleValue;
         private long UniqueSaleValue => (long)UniqueFishCount * UNIQUE_FISH_PRICE;
@@ -204,6 +237,25 @@ namespace SecondCatch.Solo
 
         private bool CanSellBarrel(FishBarrel barrel) =>
             !AtSea && barrel != null && Coins <= long.MaxValue - (long)barrel.Count * FISH_PRICE;
+
+        public bool HireHelmsman()
+        {
+            if (!CanHireHelmsman) return false;
+            Coins -= HELMSMAN_PRICE;
+            HasHelmsman = true;
+            Revision++;
+            return true;
+        }
+
+        public bool AssignHelmsman()
+        {
+            if (!CanAssignHelmsman || !_crewStations.Assign(HELMSMAN_ID, HELM_ID)) return false;
+            Revision++;
+            OnStationAssigned?.Invoke(HELMSMAN_ID, HELM_ID);
+            return true;
+        }
+
+        public event Action<string, string> OnStationAssigned;
 
         public bool BuySpeedUpgrade()
         {

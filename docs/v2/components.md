@@ -27,6 +27,7 @@
 | `Fishing/FishSchool.cs`, `Stations/NetStation.cs` | Ручная сеть, захват косяка и выгрузка | [Груз](entities/cargo.md) |
 | `Fishing/DeckCatch.cs`, `Fishing/FishOnDeck.cs` | Рыба на палубе, попадание ЛКМ и перенос в бочку | [Груз](entities/cargo.md) |
 | `Fishing/CargoHold.cs`, `Fishing/CargoFish.cs` | Локальное отображение и укладка рыбы на лодке | [Груз](entities/cargo.md) |
+| `UI/PortContractPanel.cs`, `Game/FishContract.cs` | Предложение портового мастера, прогресс и сдача улова | [Порт](entities/port.md#контракт-портового-мастера) |
 | `UI/PortTradePanel.cs` | Продажа и улучшение через HomePortController | [Порт](entities/port.md) |
 | `UI/GameplayHud.cs` | Статус лодки и счётчик улова в рейсе | [HUD](../gameplay-hud.md) |
 | `World/SeaEnvironment.cs` | Заготовка поля направленных сил моря и ветра | [Мир](entities/world.md) |

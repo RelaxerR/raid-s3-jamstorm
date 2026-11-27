@@ -88,6 +88,8 @@ namespace SecondCatch.Boat
         }
         public Vector3 SailDirection => Quaternion.AngleAxis(SailAngle, Vector3.up) * HullDirection;
         public Vector3 MovementDirection => Velocity.normalized;
+        public HelmStation Helm => _helm;
+        public WaveController Waves => _waves != null && _waves.isActiveAndEnabled ? _waves : null;
         public bool HelmActive => _helm != null && _helm.Active;
         public bool IsRowing => RowingAvailable && Mathf.Abs(RowingInput) > 0.001f;
         public float Steering => _helm != null ? _helm.Steering : 0f;

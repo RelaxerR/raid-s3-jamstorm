@@ -53,11 +53,12 @@ namespace SecondCatch.UI
             }
             string damage = health != null && health.DamageFeedbackActive ? $" · −{health.LastDamage:0} HP" : "";
             string movement = boat.IsRespawning ? "Лодка возвращается в порт" : $"Движение {source}";
+            string helmsman = boat.HelmActive ? "игрок" : boat.Helm != null && boat.Helm.CrewSteering ? "Иван" : "свободен";
             _status.text = $"ЛОДКА   HP {boat.HitPoints:0}/{boat.MaxHitPoints:0}{damage}\n" +
                 $"Скорость {boat.LongitudinalSpeed:+0.0;-0.0;0.0} · ход {boat.CurrentSpeed:0.0} ед/с\n" +
                 $"Парус {sailPosition} · {boat.SailAngle:+0;-0;0}°\n" +
                 $"Эффективность вперёд {boat.SailEfficiency:0%}\n{wind}\n" +
-                $"{movement}\n{boat.RowingAvailabilityText}\nРуль {steering} · {boat.RudderAngle:+0;-0;0}°";
+                $"{movement}\n{boat.RowingAvailabilityText}\nРуль · {helmsman} · {steering} {boat.RudderAngle:+0;-0;0}°";
         }
     }
 }

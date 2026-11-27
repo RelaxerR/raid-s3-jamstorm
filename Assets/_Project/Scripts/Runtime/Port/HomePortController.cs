@@ -19,11 +19,15 @@ namespace SecondCatch.Application
             }
         }
 
+        public bool AcceptContract() => Session?.AcceptContract() == true;
+        public bool DeliverContract() => ConfirmTrade(Session?.DeliverContract() == true, _sellSound);
         public void Depart() => GameApplication.Instance?.Depart();
         public void OpenMenu() => GameApplication.Instance?.OpenMenu();
         public bool Sell() => ConfirmTrade(Session?.Sell() == true, _sellSound);
         public bool SellFish(string fishId) => ConfirmTrade(Session?.SellFish(fishId) == true, _sellSound);
         public bool BuyUpgrade() => ConfirmTrade(Session?.BuySpeedUpgrade() == true, _purchaseSound);
+        public bool HireHelmsman() => ConfirmTrade(Session?.HireHelmsman() == true, _purchaseSound);
+        public bool AssignHelmsman() => Session?.AssignHelmsman() == true;
         public bool BuyWood() => ConfirmTrade(Session?.BuyWood() == true, _purchaseSound);
 
         private bool ConfirmTrade(bool completed, AudioClip sound)
