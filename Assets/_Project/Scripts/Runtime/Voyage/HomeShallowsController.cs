@@ -29,6 +29,7 @@ namespace SecondCatch.Application
             if (_session == null || _boat == null) return;
             // Сессия уже существует при загрузке моря. До завершения загрузки её команды закрыты.
             _player = _boat.GetComponentInChildren<PlayerController>();
+            _boat.Helm?.BindSession(_session);
             _boat.Health.BindVoyage(_session.Boat, ApplyDamage);
             _boat.PropulsionMultiplier = _session.Boat.SpeedMultiplier;
         }

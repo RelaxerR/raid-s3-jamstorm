@@ -14,6 +14,48 @@ namespace SecondCatch.Tests
     public sealed class PortTradePanelTests : VoyageTestFixture
     {
         [UnityTest]
+        public IEnumerator PortCrewCardAssignsIvanAndHelmReturnsToHimAtSea()
+        {
+            yield return StartNewGame();
+            var session = App.Session;
+            var panel = SceneComponent<PortTradePanel>();
+            Click(ButtonIn(panel, "OpenTrade"));
+            var crew = ButtonIn(panel, "CrewAction");
+            Assert.IsFalse(crew.interactable);
+            Assert.IsTrue(HasText(panel, "Держит заданный курс"));
+            session.Depart();
+            session.CatchSchool(1, 15);
+            session.Dock();
+            session.Sell();
+            yield return null;
+            Click(crew);
+            Assert.AreEqual(50, session.Coins);
+            Assert.IsTrue(HasText(panel, "Назначить на руль"));
+            Click(crew);
+            Assert.IsTrue(HasText(panel, "Иван на руле"));
+            Assert.IsFalse(crew.interactable);
+            Click(ButtonIn(panel, "Depart"));
+            yield return WaitForScene(GameScenes.SEA);
+            var boat = SceneComponent<BoatController>();
+            var player = SceneComponent<SecondCatch.Player.PlayerController>();
+            Assert.IsTrue(boat.Helm.CrewSteering);
+            PlacePlayer(player, boat.Helm);
+            Assert.IsTrue(boat.Helm.TryEnter(player));
+            Assert.IsFalse(boat.Helm.CrewSteering);
+            player.ExitStation();
+            var net = SceneComponent<SecondCatch.Stations.NetStation>();
+            PlacePlayer(player, net);
+            Assert.IsTrue(net.TryEnter(player));
+            Assert.IsTrue(boat.Helm.CrewSteering);
+            Assert.IsTrue(App.ReturnToPort());
+            yield return WaitForScene(GameScenes.PORT);
+            panel = SceneComponent<PortTradePanel>();
+            Click(ButtonIn(panel, "OpenTrade"));
+            Assert.IsTrue(HasText(panel, "Иван на руле"));
+            Assert.IsFalse(ButtonIn(panel, "CrewAction").interactable);
+        }
+
+        [UnityTest]
         public IEnumerator PortButtonsReflectSessionAcrossSalePurchaseAndNewVoyage()
         {
             yield return StartNewGame();
