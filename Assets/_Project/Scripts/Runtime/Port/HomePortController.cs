@@ -19,6 +19,8 @@ namespace SecondCatch.Application
             }
         }
 
+        public bool AcceptContract() => Session?.AcceptContract() == true;
+        public bool DeliverContract() => ConfirmTrade(Session?.DeliverContract() == true, _sellSound);
         public void Depart() => GameApplication.Instance?.Depart();
         public void OpenMenu() => GameApplication.Instance?.OpenMenu();
         public bool Sell() => ConfirmTrade(Session?.Sell() == true, _sellSound);
