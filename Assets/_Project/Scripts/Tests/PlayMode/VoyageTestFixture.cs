@@ -113,7 +113,7 @@ namespace SecondCatch.Tests
 
         protected static void PlacePlayer(PlayerController player, StationInteraction station)
         {
-            Vector3 local = player.Boat.transform.InverseTransformPoint(station.transform.position);
+            Vector3 local = player.Boat.transform.InverseTransformPoint(station.InteractionPosition);
             local.y = player.transform.localPosition.y;
             player.transform.localPosition = local;
         }

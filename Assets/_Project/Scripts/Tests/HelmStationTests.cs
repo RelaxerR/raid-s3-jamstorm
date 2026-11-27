@@ -1,5 +1,8 @@
 using NUnit.Framework;
 using SecondCatch.Stations;
+using SecondCatch.Boat;
+using SecondCatch.Solo;
+using UnityEngine;
 using SecondCatch.UI;
 using UnityEngine.UI;
 
@@ -7,6 +10,61 @@ namespace SecondCatch.Tests
 {
     public sealed class HelmStationTests : BoatTestFixture
     {
+        [TestCase(false)]
+        [TestCase(true)]
+        public void LeavingHelmUnderSailShowsWaveTurnOrHeldCourse(bool hired)
+        {
+            var session = new SoloGameSession();
+            if (hired)
+            {
+                session.Depart();
+                session.CatchSchool(1, 10);
+                session.Dock();
+                session.Sell();
+                Assert.IsTrue(session.HireHelmsman());
+                Assert.IsTrue(session.AssignHelmsman());
+            }
+            session.Depart();
+            Boat.transform.position = new Vector3(40f, 0f, 0f);
+            var waves = Create("Waves").AddComponent<WaveController>();
+            Set(Boat, "_waves", waves);
+            Helm.BindSession(session);
+            Deploy(SailPosition.Full);
+            Assert.IsTrue(Helm.TryEnter(Player));
+            StringAssert.Contains(hired ? "Иван удержит курс" : "волна уведёт лодку", Helm.ExitHint);
+            Helm.SetSteering(1f);
+            AdvanceSailing(1f);
+            var heading = Boat.HullDirection;
+            Player.ExitStation();
+            Assert.AreEqual(hired, Helm.CrewSteering);
+            AdvanceSailing(8f);
+            float change = Vector3.SignedAngle(heading, Boat.HullDirection, Vector3.up);
+            TestContext.WriteLine($"Heading change after 8 s: {change:F2} degrees (crew = {hired})");
+            if (hired)
+                Assert.That(Mathf.Abs(change), Is.LessThan(1.5f), "Ivan must correct the residual turn");
+            else
+                Assert.That(change, Is.LessThan(-8f), "Waves should turn the unattended helm towards port");
+
+            Assert.IsTrue(Helm.TryEnter(Player));
+            Assert.IsFalse(Helm.CrewSteering);
+            Helm.SetSteering(1f);
+            AdvanceSailing(3f);
+            Assert.Greater(Helm.RudderAngle, 0f);
+            Vector3 newHeading = Boat.HullDirection;
+            Player.ExitStation();
+            AdvanceSailing(12f);
+            if (hired) Assert.Less(Vector3.Angle(newHeading, Boat.HullDirection), 1.5f);
+        }
+
+        private void AdvanceSailing(float seconds)
+        {
+            for (int i = 0; i < Mathf.RoundToInt(seconds / 0.02f); i++)
+            {
+                Call(Helm, "Advance", 0.02f);
+                Call(Boat, "AdvanceMotion", 0.02f);
+            }
+        }
+
         [Test]
         public void GameplayHudShowsSailBlockingInStatusAndInteractionHint()
         {
