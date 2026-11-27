@@ -885,6 +885,7 @@ RectTransform:
   - {fileID: 7207557397099735801}
   - {fileID: 9082619339434541129}
   - {fileID: 7122743318139549921}
+  - {fileID: 2200101}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -969,6 +970,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Runtime::SecondCatch.UI.PortTradePanel
   _port: {fileID: 0}
+  _contract: {fileID: 2200104}
   _tradeBody: {fileID: 2181788941339264723}
   _cargo: {fileID: 3596731857581091720}
   _coins: {fileID: 5315931560430533570}
@@ -3231,3 +3233,32 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1001 &2200100
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5793238878216691597}
+    m_Modifications: []
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 736ec047426e43b4883219c38605860f, type: 3}
+--- !u!224 &2200101 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1001, guid: 736ec047426e43b4883219c38605860f, type: 3}
+  m_PrefabInstance: {fileID: 2200100}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2200104 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1004, guid: 736ec047426e43b4883219c38605860f, type: 3}
+  m_PrefabInstance: {fileID: 2200100}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32f298dc0d034390b29963c211a7ed06, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Runtime::SecondCatch.UI.PortContractPanel

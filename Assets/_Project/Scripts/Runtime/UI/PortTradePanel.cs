@@ -10,6 +10,7 @@ namespace SecondCatch.UI
     {
         [SerializeField] private HomePortController _port;
         [SerializeField] private GameObject _tradeBody;
+        [SerializeField] private PortContractPanel _contract;
         [SerializeField] private Text _cargo;
         [SerializeField] private Text _coins;
         [SerializeField] private Text _wood;
@@ -51,6 +52,7 @@ namespace SecondCatch.UI
         public void Open()
         {
             if (_port == null || _port.Session == null) return;
+            _contract.gameObject.SetActive(false);
             _tradeBody.SetActive(true);
             _open.gameObject.SetActive(false);
             Refresh();
@@ -59,6 +61,7 @@ namespace SecondCatch.UI
         public void Close()
         {
             _tradeBody.SetActive(false);
+            _contract.gameObject.SetActive(true);
             _open.gameObject.SetActive(true);
         }
 
@@ -112,6 +115,7 @@ namespace SecondCatch.UI
             _renderedSession = session;
             _renderedRevision = revision;
 
+            _contract.Refresh(_port);
             bool ready = session != null && !session.AtSea;
             SetAvailable(_open, ready);
             SetAvailable(_depart, ready);

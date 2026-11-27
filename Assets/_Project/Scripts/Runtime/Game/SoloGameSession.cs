@@ -23,6 +23,7 @@ namespace SecondCatch.Solo
             return species < 0 ? 0 : _deckFish[species];
         }
 
+        public FishContract Contract { get; } = new();
         public BoatState Boat { get; } = new BoatState();
         public FishCargo Cargo { get; } = new FishCargo();
         public int UniqueFishCount { get; private set; }
@@ -157,6 +158,29 @@ namespace SecondCatch.Solo
             if (!AtSea || UniqueFishCaughtThisVoyage || (UniqueFishFull && !replace)) return false;
             if (!UniqueFishFull) UniqueFishCount++;
             UniqueFishCaughtThisVoyage = true;
+            Revision++;
+            return true;
+        }
+
+        public int ContractProgress => Math.Min(FishContract.Target, Cargo.FindBarrel(FishContract.FishId)?.Count ?? 0);
+        public bool CanAcceptContract => !AtSea && Contract.State == FishContractState.Available;
+        public bool CanDeliverContract => !AtSea && Contract.State == FishContractState.Active
+            && ContractProgress == FishContract.Target && Coins <= long.MaxValue - FishContract.Reward;
+
+        public bool AcceptContract()
+        {
+            if (!CanAcceptContract) return false;
+            Contract.State = FishContractState.Active;
+            Revision++;
+            return true;
+        }
+
+        public bool DeliverContract()
+        {
+            if (!CanDeliverContract) return false;
+            Cargo.FindBarrel(FishContract.FishId).Remove(FishContract.Target);
+            Coins += FishContract.Reward;
+            Contract.State = FishContractState.Closed;
             Revision++;
             return true;
         }
