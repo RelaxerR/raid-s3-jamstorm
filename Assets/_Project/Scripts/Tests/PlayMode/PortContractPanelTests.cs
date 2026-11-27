@@ -22,8 +22,10 @@ namespace SecondCatch.Tests
             Assert.IsTrue(HasText(panel, $"0/{FishContract.Target}"));
             Assert.IsFalse(action.interactable);
             Click(ButtonIn(panel, "OpenTrade"));
+            yield return null;
             Assert.IsFalse(action.gameObject.activeInHierarchy);
             Click(ButtonIn(panel, "CloseTrade"));
+            yield return null;
             Assert.IsTrue(action.gameObject.activeInHierarchy);
 
             Click(ButtonIn(panel, "Depart"));
