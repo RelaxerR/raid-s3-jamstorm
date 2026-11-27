@@ -17,6 +17,7 @@ namespace SecondCatch.Stations
         [SerializeField, Min(0.01f)] private float _rowingAccelerationTime = 1.2f;
         [SerializeField, Min(0.01f)] private float _rowingBrakingTime = 1.8f;
         [SerializeField, Min(0f)] private float _waveDeflectionSpeed = 12f;
+        private const float HullSpeedForWaveSteering = 0.3f;
         private const float WaveSpeedForFullDeflection = 0.3f;
         private const float CourseGain = 3.5f;
         private const float TurnDamping = 2.5f;
@@ -33,6 +34,9 @@ namespace SecondCatch.Stations
         public float RowingInput { get; private set; }
         public bool Active => _active && isActiveAndEnabled;
         public bool CrewSteering => !Active && _session?.AtSea == true && _session.HelmsmanAssigned;
+        public string ExitHint => _session?.AtSea != true ? "Esc / E — выйти"
+            : _session.HelmsmanAssigned ? "Esc / E — выйти · Иван удержит курс"
+            : "Esc / E — выйти · волна уведёт лодку с курса";
         public float Steering => RudderAngle / Mathf.Max(1f, _maxRudderAngle);
         public float CourseCorrection => Steering;
         public bool RowingAvailable => Boat != null && Boat.RowingAvailable;
@@ -100,7 +104,9 @@ namespace SecondCatch.Stations
             {
                 Vector3 drift = Boat.Waves.DriftVelocityAt(Boat.transform.position);
                 float angleToWave = Vector3.SignedAngle(Boat.HullDirection, drift, Vector3.up);
-                target = _maxRudderAngle * Mathf.Clamp(angleToWave / 90f, -1f, 1f)
+                // Passive drift carries hull and rudder together. The loose rudder turns a boat making way.
+                float waterFlow = Mathf.Clamp01(Mathf.Abs(Boat.LongitudinalSpeed) / HullSpeedForWaveSteering);
+                target = waterFlow * _maxRudderAngle * Mathf.Clamp(angleToWave / 90f, -1f, 1f)
                     * Mathf.Clamp01(drift.magnitude / WaveSpeedForFullDeflection);
             }
 

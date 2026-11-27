@@ -65,8 +65,8 @@ namespace SecondCatch.Tests
 
                 player.transform.localPosition = new Vector3(0f, player.transform.localPosition.y, 0f);
                 Assert.IsTrue(sail.TryEnter(player));
-                // Держим курс западнее рифа, оставаясь в зоне первого косяка.
-                boat.transform.rotation = Quaternion.Euler(0f, -10f, 0f);
+                // С запасом проходим западнее центрального рифа: пока игрок у сети, волна доворачивает свободный руль.
+                boat.transform.rotation = Quaternion.Euler(0f, -25f, 0f);
                 boat.SetSailRaised(true);
                 player.ExitStation();
                 PlacePlayer(player, net);

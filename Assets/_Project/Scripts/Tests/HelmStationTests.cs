@@ -31,6 +31,7 @@ namespace SecondCatch.Tests
             Helm.BindSession(session);
             Deploy(SailPosition.Full);
             Assert.IsTrue(Helm.TryEnter(Player));
+            StringAssert.Contains(hired ? "Иван удержит курс" : "волна уведёт лодку", Helm.ExitHint);
             Helm.SetSteering(1f);
             AdvanceSailing(1f);
             var heading = Boat.HullDirection;
